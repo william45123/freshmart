@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  
+  
+  
+  <g transform="translate(200, 220)">
+    <!-- carrot body -->
+    <path d="M -40 -30 Q -50 60 -10 130 L 10 130 Q 50 60 40 -30 Z" fill="#fb923c" stroke="#ea580c" stroke-width="2"/>
+    <!-- texture lines -->
+    <path d="M -30 -10 Q -35 30 -20 80" stroke="#ea580c" stroke-width="2" fill="none" opacity="0.5"/>
+    <path d="M 30 -10 Q 35 30 20 80" stroke="#ea580c" stroke-width="2" fill="none" opacity="0.5"/>
+    <line x1="-20" y1="20" x2="0" y2="20" stroke="#ea580c" stroke-width="1.5" opacity="0.4"/>
+    <line x1="-15" y1="50" x2="10" y2="50" stroke="#ea580c" stroke-width="1.5" opacity="0.4"/>
+    <line x1="-10" y1="80" x2="5" y2="80" stroke="#ea580c" stroke-width="1.5" opacity="0.4"/>
+    <!-- leaves -->
+    <ellipse cx="-15" cy="-60" rx="10" ry="35" fill="#16a34a" transform="rotate(-15 -15 -60)"/>
+    <ellipse cx="0" cy="-70" rx="10" ry="40" fill="#22c55e"/>
+    <ellipse cx="15" cy="-60" rx="10" ry="35" fill="#16a34a" transform="rotate(15 15 -60)"/>
+  </g>
+  
+
+</svg>

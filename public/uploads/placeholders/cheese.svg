@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <g transform="translate(200, 210)">
+    <!-- Wedge cheese -->
+    <path d="M -120 60 L 110 60 L 110 30 Q 90 -30 30 -50 Q -50 -65 -120 -10 Z"
+          fill="#fbbf24" stroke="#a16207" stroke-width="2"/>
+    <!-- Holes -->
+    <circle cx="-50" cy="20" r="8" fill="#fef3c7"/>
+    <circle cx="20" cy="30" r="6" fill="#fef3c7"/>
+    <circle cx="60" cy="-10" r="7" fill="#fef3c7"/>
+    <circle cx="-20" cy="-15" r="5" fill="#fef3c7"/>
+    <!-- Top edge highlight -->
+    <path d="M -118 -8 Q -50 -65 30 -50 Q 90 -30 108 30"
+          fill="none" stroke="#fde68a" stroke-width="2" opacity="0.8"/>
+  </g>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  
+  
+  
+  <g>
+    <!-- Egg carton -->
+    <rect x="60" y="170" width="280" height="100" fill="#a8a29e" stroke="#57534e" stroke-width="2" rx="5"/>
+    <!-- 12 eggs (3x4 grid) -->
+    <g>
+      <ellipse cx="105" cy="195" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="155" cy="195" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="205" cy="195" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="255" cy="195" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="305" cy="195" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+
+      <ellipse cx="105" cy="245" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="155" cy="245" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="205" cy="245" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="255" cy="245" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+      <ellipse cx="305" cy="245" rx="22" ry="28" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+    </g>
+    <!-- Highlight -->
+    <ellipse cx="100" cy="188" rx="5" ry="8" fill="#ffffff" opacity="0.8"/>
+    <ellipse cx="200" cy="188" rx="5" ry="8" fill="#ffffff" opacity="0.8"/>
+    <ellipse cx="300" cy="188" rx="5" ry="8" fill="#ffffff" opacity="0.8"/>
+  </g>
+  <text x="200" y="320" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="20" font-weight="bold" fill="#78350f">Grade A Eggs (Dozen)</text>
+
+</svg>

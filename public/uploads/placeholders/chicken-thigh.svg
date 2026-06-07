@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <g transform="translate(200, 220)">
+    <!-- packaging tray -->
+    <ellipse cx="0" cy="20" rx="130" ry="55" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+    <!-- thigh meat (rounder, fattier) -->
+    <ellipse cx="-30" cy="0" rx="80" ry="45" fill="#fda4af" stroke="#be185d" stroke-width="2"/>
+    <ellipse cx="40" cy="10" rx="65" ry="35" fill="#fda4af" stroke="#be185d" stroke-width="2"/>
+    <!-- Bone protruding -->
+    <ellipse cx="-90" cy="-10" rx="22" ry="9" fill="#fef3c7" stroke="#a16207" stroke-width="1.5"/>
+    <!-- highlights -->
+    <ellipse cx="-50" cy="-10" rx="20" ry="10" fill="#fecaca" opacity="0.6"/>
+    <ellipse cx="50" cy="5" rx="18" ry="9" fill="#fecaca" opacity="0.6"/>
+  </g>
+</svg>

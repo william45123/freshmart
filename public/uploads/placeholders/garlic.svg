@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  
+  
+  
+  <g>
+    <!-- garlic 1 -->
+    <g transform="translate(150, 200)">
+      <ellipse cx="0" cy="20" rx="55" ry="60" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+      <ellipse cx="-15" cy="0" rx="20" ry="35" fill="#fffbeb" stroke="#a16207" stroke-width="1.5"/>
+      <ellipse cx="15" cy="0" rx="20" ry="35" fill="#fffbeb" stroke="#a16207" stroke-width="1.5"/>
+      <ellipse cx="0" cy="20" rx="20" ry="40" fill="#fefce8" stroke="#a16207" stroke-width="1.5"/>
+      <!-- stem -->
+      <path d="M 0 -40 Q 5 -55 10 -65" stroke="#a16207" stroke-width="3" fill="none"/>
+    </g>
+    <!-- garlic 2 -->
+    <g transform="translate(260, 230)">
+      <ellipse cx="0" cy="0" rx="45" ry="50" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+      <ellipse cx="-12" cy="-10" rx="15" ry="28" fill="#fffbeb" stroke="#a16207" stroke-width="1.5"/>
+      <ellipse cx="12" cy="-10" rx="15" ry="28" fill="#fffbeb" stroke="#a16207" stroke-width="1.5"/>
+      <ellipse cx="0" cy="5" rx="15" ry="32" fill="#fefce8" stroke="#a16207" stroke-width="1.5"/>
+      <path d="M 0 -50 Q 0 -65 5 -75" stroke="#a16207" stroke-width="3" fill="none"/>
+    </g>
+  </g>
+  
+
+</svg>

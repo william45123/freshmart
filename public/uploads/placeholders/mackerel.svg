@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <g transform="translate(200, 210)">
+    <!-- body -->
+    <path d="M -140 0 Q -120 -45 -20 -45 Q 80 -45 130 0 Q 80 45 -20 45 Q -120 45 -140 0 Z"
+          fill="#94a3b8" stroke="#475569" stroke-width="2"/>
+    <!-- belly (lighter) -->
+    <path d="M -130 5 Q -120 35 -20 38 Q 80 38 125 5"
+          fill="#e2e8f0" stroke="none"/>
+    <!-- tail -->
+    <path d="M 130 0 Q 165 -25 175 -10 L 165 0 L 175 10 Q 165 25 130 0 Z"
+          fill="#475569"/>
+    <!-- stripes (mackerel pattern) -->
+    <path d="M -100 -25 Q -95 0 -100 25" stroke="#1e293b" stroke-width="3" fill="none" opacity="0.6"/>
+    <path d="M -60 -35 Q -55 0 -60 35" stroke="#1e293b" stroke-width="3" fill="none" opacity="0.6"/>
+    <path d="M -20 -40 Q -15 0 -20 40" stroke="#1e293b" stroke-width="3" fill="none" opacity="0.6"/>
+    <path d="M 30 -38 Q 35 0 30 38" stroke="#1e293b" stroke-width="3" fill="none" opacity="0.6"/>
+    <path d="M 75 -30 Q 80 0 75 30" stroke="#1e293b" stroke-width="3" fill="none" opacity="0.6"/>
+    <!-- eye -->
+    <circle cx="-110" cy="-10" r="8" fill="#fef3c7"/>
+    <circle cx="-108" cy="-10" r="5" fill="#1e293b"/>
+    <!-- gill -->
+    <path d="M -85 -25 Q -75 0 -85 25" stroke="#475569" stroke-width="2" fill="none"/>
+    <!-- fins -->
+    <path d="M 0 -45 L 10 -65 L 20 -45 Z" fill="#64748b"/>
+    <path d="M 0 45 L 5 60 L 15 45 Z" fill="#64748b"/>
+  </g>
+</svg>

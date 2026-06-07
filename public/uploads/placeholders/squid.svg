@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <g transform="translate(200, 200)">
+    <!-- body (mantle - upside-down triangle) -->
+    <path d="M -50 -80 Q -55 -85 0 -90 Q 55 -85 50 -80 L 45 0 Q 25 20 0 22 Q -25 20 -45 0 Z"
+          fill="#fda4af" stroke="#be185d" stroke-width="2"/>
+    <!-- highlight on mantle -->
+    <ellipse cx="-15" cy="-50" rx="15" ry="25" fill="#fecdd3" opacity="0.6"/>
+    <!-- fins on top -->
+    <ellipse cx="-30" cy="-90" rx="22" ry="10" fill="#fda4af" stroke="#be185d" stroke-width="1.5"/>
+    <ellipse cx="30" cy="-90" rx="22" ry="10" fill="#fda4af" stroke="#be185d" stroke-width="1.5"/>
+    <!-- eyes -->
+    <circle cx="-15" cy="0" r="5" fill="#1e293b"/>
+    <circle cx="15" cy="0" r="5" fill="#1e293b"/>
+    <!-- tentacles -->
+    <path d="M -35 15 Q -40 50 -45 90" stroke="#be185d" stroke-width="4" fill="none"/>
+    <path d="M -20 18 Q -25 60 -28 100" stroke="#be185d" stroke-width="4" fill="none"/>
+    <path d="M -5 20 Q -8 65 -10 105" stroke="#be185d" stroke-width="4" fill="none"/>
+    <path d="M 10 20 Q 12 65 15 105" stroke="#be185d" stroke-width="4" fill="none"/>
+    <path d="M 25 18 Q 30 60 35 100" stroke="#be185d" stroke-width="4" fill="none"/>
+    <path d="M 38 15 Q 45 50 50 90" stroke="#be185d" stroke-width="4" fill="none"/>
+  </g>
+</svg>

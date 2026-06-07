@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <g transform="translate(200, 200)">
+    <path d="M -60 -50 L -60 80 Q -60 100 -40 100 L 40 100 Q 60 100 60 80 L 60 -50 Q 60 -55 55 -55 L -55 -55 Q -60 -55 -60 -50 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="-30" y="-90" width="60" height="35" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="-32" y="-105" width="64" height="20" fill="#10b981" rx="3"/>
+    <rect x="-50" y="-20" width="100" height="60" fill="#ffffff" stroke="#10b981" stroke-width="1.5" rx="3"/>
+    <text x="0" y="5" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="13" font-weight="bold" fill="#065f46">LOW FAT</text>
+    <text x="0" y="22" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="9" fill="#475569">Milk</text>
+    <text x="0" y="35" text-anchor="middle" font-family="Helvetica,sans-serif" font-size="9" fill="#475569">1.5% Fat</text>
+  </g>
+</svg>
