@@ -166,6 +166,12 @@ $recentlyViewed = array_map('decorate_with_freshness', $recentlyViewed);
 // ============================================================
 require_once __DIR__ . '/../includes/recommendations.php';
 $popularThisWeek = reco_popular_this_week(6);
+
+// Platform-wide sustainability impact — total food bought while in Last Chance
+// (i.e. rescued from being thrown away). Mirrors the admin "kg saved" metric.
+$kgRescued = (float) db_scalar(
+    "SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE freshness_at_order = 'LAST_CHANCE'"
+);
 $mayAlsoLike     = reco_you_may_like(auth_check() ? auth_id() : null, 6);
 
 require_once __DIR__ . '/../includes/header.php';
@@ -209,13 +215,31 @@ function fresh_color($level) {
 <!-- ============ SECTION 2: EDITORIAL HERO (Last Chance spotlight) ============ -->
 <?php if ($heroProduct): ?>
 <section class="editorial-hero">
+    <span class="blob-accent" style="top:-110px; right:-60px;" aria-hidden="true"></span>
+    <span class="hero-illus" style="left:-22px; bottom:-44px; transform:rotate(16deg);" aria-hidden="true">
+        <svg width="92" height="150" viewBox="0 0 130 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M65 205 C 60 160 70 120 64 80 C 60 50 66 26 64 8" stroke="#5f7049" stroke-width="2.4" stroke-linecap="round"/>
+            <g stroke="#5f7049" stroke-width="2" stroke-linecap="round">
+                <path d="M64 170 C 50 166 40 152 38 138 C 54 142 64 156 64 170"/>
+                <path d="M64 170 C 78 166 88 152 90 138 C 74 142 64 156 64 170"/>
+                <path d="M64 130 C 52 126 44 114 42 102 C 56 106 64 118 64 130"/>
+                <path d="M64 130 C 76 126 84 114 86 102 C 72 106 64 118 64 130"/>
+                <path d="M64 92 C 54 88 47 78 45 68 C 58 72 64 82 64 92"/>
+                <path d="M64 92 C 74 88 81 78 83 68 C 70 72 64 82 64 92"/>
+                <path d="M64 56 C 56 53 50 45 49 37 C 60 40 64 48 64 56"/>
+                <path d="M64 56 C 72 53 78 45 79 37 C 68 40 64 48 64 56"/>
+            </g>
+            <circle cx="64" cy="12" r="5" fill="#b85c38"/>
+            <circle cx="55" cy="20" r="4" fill="#c9a55a"/>
+        </svg>
+    </span>
     <div class="container">
         <div class="hero-eyebrow">Featured today · Last Chance</div>
         <div class="hero-grid">
             <div class="hero-text">
                 <h1 class="hero-title">
                     <?= e($heroProduct['name']) ?>.<br>
-                    <em>Save it from waste.</em>
+                    <em class="scribble">Save it from waste.</em>
                 </h1>
                 <p class="hero-description">
                     Last batch, expires <?= relative_date($heroProduct['expiry_date']) ?>.
@@ -243,7 +267,7 @@ function fresh_color($level) {
                 <?php if (!empty($heroProduct['primary_image'])): ?>
                     <img src="<?= upload_url($heroProduct['primary_image']) ?>" alt="<?= attr($heroProduct['name']) ?>">
                 <?php else: ?>
-                    <span class="hero-emoji">🥭</span>
+                    <span class="img-fallback"><?= icon('leaf', 110) ?></span>
                 <?php endif; ?>
             </div>
         </div>
@@ -334,10 +358,20 @@ function fresh_color($level) {
 <?php endif; ?>
 
 <!-- ============ SECTION 4: PRODUCT GRID (4-col with freshness bars) ============ -->
-<section class="section">
+<div class="veg-divider" aria-hidden="true">
+    <svg viewBox="0 0 360 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 26 C 80 16 130 34 180 24 S 290 16 352 26" stroke="#cabfa7" stroke-width="2" stroke-linecap="round"/>
+        <g stroke="#6f8159" stroke-width="2" stroke-linecap="round">
+            <path d="M180 24 L180 9"/><path d="M180 16 C172 14 168 8 169 3 C176 5 181 11 180 16"/><path d="M180 13 C188 11 192 6 193 1"/>
+        </g>
+        <circle cx="128" cy="26" r="3" fill="#b85c38"/><circle cx="232" cy="24" r="3" fill="#c9a55a"/>
+    </svg>
+</div>
+
+<section class="section reveal">
     <div class="container">
         <div class="section-header">
-            <h2>Today's Fresh Picks</h2>
+            <h2>Today's Fresh <span class="scribble">Picks</span></h2>
             <a href="<?= url('/shop/browse.php') ?>" class="section-link">View all →</a>
         </div>
         <?php if (empty($products)): ?>
@@ -353,14 +387,12 @@ function fresh_color($level) {
 
                         <div class="product-card-image">
                             <?php if (!empty($p['primary_image'])): ?>
-                                <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>">
+                                <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>" loading="lazy">
                             <?php else: ?>
-                                <span class="product-emoji">🛒</span>
+                                <span class="img-fallback"><?= icon('leaf', 56) ?></span>
                             <?php endif; ?>
 
-                            <span class="freshness-badge-tl level-<?= e($p['freshness_level']) ?>">
-                                <?= e(str_replace('_', ' ', $p['freshness_level'])) ?>
-                            </span>
+                            <?= freshness_ring_html($p) ?>
 
                             <?php if (!empty($p['is_discounted'])): ?>
                                 <span class="discount-tag-tr">−<?= (int) $p['discount_pct'] ?>%</span>
@@ -370,14 +402,8 @@ function fresh_color($level) {
                         <div class="product-card-body">
                             <div class="product-card-name"><?= e($p['name']) ?></div>
                             <?php if (!empty($p['origin'])): ?>
-                                <div class="product-card-origin">📍 <?= e($p['origin']) ?></div>
+                                <div class="product-card-origin"><?= icon('pin', 14) ?> <?= e($p['origin']) ?></div>
                             <?php endif; ?>
-
-                            <!-- Freshness progress bar -->
-                            <div class="freshness-progress">
-                                <div class="freshness-progress-fill"
-                                     style="width: <?= (int) $p['freshness_pct'] ?>%; background: <?= $barColor ?>;"></div>
-                            </div>
 
                             <div class="product-card-pricing">
                                 <span class="price-final <?= $isLastChance ? 'price-alert' : '' ?>">
@@ -410,7 +436,7 @@ function fresh_color($level) {
                    class="product-card-v2">
                     <div class="product-card-image">
                         <?php if (!empty($rv['primary_image'])): ?>
-                            <img src="<?= upload_url($rv['primary_image']) ?>" alt="<?= attr($rv['name']) ?>">
+                            <img src="<?= upload_url($rv['primary_image']) ?>" alt="<?= attr($rv['name']) ?>" loading="lazy">
                         <?php else: ?>
                             <span class="product-emoji">🛒</span>
                         <?php endif; ?>
@@ -433,7 +459,7 @@ function fresh_color($level) {
 <section class="section" style="padding-top: 0;">
     <div class="container">
         <?= reco_render_section('Popular This Week', '🔥', $popularThisWeek,
-            'Best sellers in the last 7 days') ?>
+            'Best sellers in the last 7 days', 'carousel') ?>
     </div>
 </section>
 <?php endif; ?>
@@ -448,12 +474,22 @@ function fresh_color($level) {
 <?php endif; ?>
 
 <!-- ============ FRESHNESS EXPLAINER (footer banner) ============ -->
-<section class="section freshness-banner">
+<div class="veg-divider" aria-hidden="true">
+    <svg viewBox="0 0 360 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 26 C 80 16 130 34 180 24 S 290 16 352 26" stroke="#cabfa7" stroke-width="2" stroke-linecap="round"/>
+        <g stroke="#6f8159" stroke-width="2" stroke-linecap="round">
+            <path d="M180 24 L180 9"/><path d="M180 16 C172 14 168 8 169 3 C176 5 181 11 180 16"/><path d="M180 13 C188 11 192 6 193 1"/>
+        </g>
+        <circle cx="128" cy="26" r="3" fill="#b85c38"/><circle cx="232" cy="24" r="3" fill="#c9a55a"/>
+    </svg>
+</div>
+
+<section class="section freshness-banner reveal">
     <div class="container">
         <div class="freshness-banner-grid">
             <div>
                 <div class="banner-eyebrow">How it works</div>
-                <h2 style="margin-top: 4px;">Our Freshness Promise</h2>
+                <h2 style="margin-top: 4px;">Our Freshness <span class="scribble">Promise</span></h2>
                 <p>
                     Every product carries one of four freshness levels, calculated automatically
                     from each batch's age using a category-aware power-law decay model.
@@ -461,6 +497,16 @@ function fresh_color($level) {
                     cutting waste while keeping prices fair.
                 </p>
                 <a href="<?= url('/shop/freshness.php') ?>" class="btn-pill btn-pill-outline">Learn more →</a>
+
+                <?php if ($kgRescued > 0): ?>
+                    <div class="impact-callout">
+                        <div class="impact-figure"><?= number_format($kgRescued, 0) ?> kg</div>
+                        <div class="impact-text">
+                            of food <strong>rescued from waste</strong> by FreshMart shoppers so far —
+                            every Last Chance item you buy adds to this.
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
             <div class="freshness-levels-grid">
                 <div class="level-card" style="--c: #16a34a;">

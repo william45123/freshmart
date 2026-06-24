@@ -160,7 +160,7 @@ if ($orderId > 0) {
                 <div style="display: grid; grid-template-columns: 60px 1fr auto; gap: var(--space-3); padding: var(--space-3) 0; align-items: center; border-bottom: 1px solid var(--color-border);">
                     <div style="aspect-ratio: 1; background: var(--color-bg); border-radius: var(--radius); overflow: hidden; display: grid; place-items: center;">
                         <?php if (!empty($item['primary_image'])): ?>
-                            <img src="<?= upload_url($item['primary_image']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
                         <?php else: ?>
                             🥬
                         <?php endif; ?>

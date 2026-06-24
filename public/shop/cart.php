@@ -70,21 +70,22 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <?php if ($cart['count'] === 0): ?>
         <div class="empty-state" style="margin-top: var(--space-6);">
-            <p style="font-size: 1.0625rem; margin-bottom: var(--space-3);">🛒 Your cart is empty</p>
+            <div class="empty-ico"><?= icon('cart', 44) ?></div>
+            <p style="font-size: 1.0625rem; margin-bottom: var(--space-3);">Your cart is empty</p>
             <a href="<?= url('/shop/browse.php') ?>" class="btn btn-primary">Browse products</a>
         </div>
     <?php else: ?>
-        <div style="display: grid; grid-template-columns: 1fr 320px; gap: var(--space-6); margin-top: var(--space-6);">
+        <div class="cart-layout">
 
             <!-- Items list -->
             <div>
                 <?php foreach ($cart['items'] as $item): ?>
-                    <div style="display: grid; grid-template-columns: 100px 1fr auto; gap: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-3); align-items: center;">
+                    <div class="cart-item">
 
                         <a href="<?= url('/shop/product.php?slug=' . urlencode($item['slug'])) ?>"
                            style="aspect-ratio: 1; background: var(--color-bg); border-radius: var(--radius); display: grid; place-items: center; overflow: hidden;">
                             <?php if (!empty($item['primary_image'])): ?>
-                                <img src="<?= upload_url($item['primary_image']) ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
                             <?php else: ?>
                                 <span style="font-size: 2rem;">🥬</span>
                             <?php endif; ?>
@@ -117,7 +118,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             </form>
                         </div>
 
-                        <div style="text-align: right;">
+                        <div class="cart-item-total" style="text-align: right;">
                             <div style="font-size: 1.125rem; font-weight: 700;">
                                 <?= format_myr((float) $item['quantity'] * (float) $item['price_snapshot']) ?>
                             </div>
@@ -154,11 +155,24 @@ require_once __DIR__ . '/../../includes/header.php';
                             <?php endif; ?>
                         </span>
                     </div>
-                    <?php if ($cart['shipping'] > 0): ?>
-                        <div style="font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: var(--space-3); background: var(--color-primary-light); padding: var(--space-2) var(--space-3); border-radius: var(--radius);">
-                            Add <?= format_myr(FREE_SHIPPING_THRESHOLD - $cart['subtotal']) ?> more for free shipping!
+                    <?php
+                        $threshold = (float) FREE_SHIPPING_THRESHOLD;
+                        $sub       = (float) $cart['subtotal'];
+                        $pct       = $threshold > 0 ? min(100, ($sub / $threshold) * 100) : 100;
+                        $remaining = max(0, $threshold - $sub);
+                    ?>
+                    <div class="ship-progress <?= $remaining <= 0 ? 'is-complete' : '' ?>">
+                        <div class="ship-progress-label">
+                            <?php if ($remaining > 0): ?>
+                                Add <strong><?= format_myr($remaining) ?></strong> more for <strong>FREE</strong> shipping
+                            <?php else: ?>
+                                <span class="label-ico"><?= icon('sparkles', 16) ?> You&rsquo;ve unlocked <strong>free shipping!</strong></span>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
+                        <div class="ship-progress-track">
+                            <div class="ship-progress-fill" style="width: <?= number_format($pct, 1) ?>%;"></div>
+                        </div>
+                    </div>
 
                     <div style="display: flex; justify-content: space-between; padding-top: var(--space-3); border-top: 1px solid var(--color-border); margin-bottom: var(--space-4);">
                         <strong>Total</strong>

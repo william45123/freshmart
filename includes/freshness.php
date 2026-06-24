@@ -82,11 +82,17 @@ function freshness_level($receivedDate, $expiryDate, float $decayExponent = FRES
 {
     $pct = freshness_percent($receivedDate, $expiryDate, $decayExponent);
 
-    if ($pct <= 0)   return 'EXPIRED';
-    if ($pct < 25)   return 'LAST_CHANCE';
-    if ($pct < 50)   return 'ENJOY_SOON';
-    if ($pct < 75)   return 'FRESH';
-    return 'VERY_FRESH';
+    if ($pct <= 0) return 'EXPIRED';
+
+    // Boundaries come from freshness_config (admin-editable in Settings),
+    // evaluated highest level first.
+    $cfg = freshness_config();
+    foreach (['VERY_FRESH', 'FRESH', 'ENJOY_SOON', 'LAST_CHANCE'] as $lvl) {
+        if (isset($cfg[$lvl]['min_percent']) && $pct >= (float) $cfg[$lvl]['min_percent']) {
+            return $lvl;
+        }
+    }
+    return 'LAST_CHANCE';
 }
 
 /**
@@ -287,4 +293,38 @@ function freshness_run_automation(): array
     }
 
     return $summary;
+}
+
+/**
+ * Freshness "ring" — the signature visual.
+ * A circular gauge of the freshness % remaining, coloured by level.
+ * Drop inside a positioned .product-card-image (or anywhere). Reads
+ * the decorated fields off a product row ($p).
+ */
+function freshness_ring_html(array $p, int $size = 46, bool $inline = false): string
+{
+    $pct   = (float) ($p['freshness_percent'] ?? $p['freshness_pct'] ?? 0);
+    $pct   = max(0, min(100, $pct));
+    $color = $p['freshness_color'] ?? '#7a8467';
+    $level = $p['freshness_level'] ?? 'FRESH';
+    $label = $p['freshness_label'] ?? ucwords(strtolower(str_replace('_', ' ', $level)));
+    $days  = isset($p['days_remaining']) ? (int) $p['days_remaining'] : null;
+
+    $r      = 42.0;
+    $circ   = 2 * M_PI * $r;
+    $offset = $circ * (1 - $pct / 100);
+    $num    = (int) round($pct);
+    $aria   = "Freshness: {$label}, {$num}%" . ($days !== null ? ", {$days} days left" : '');
+
+    return sprintf(
+        '<span class="freshness-ring%8$s level-%1$s" title="%2$s" aria-label="%2$s">'
+        . '<svg width="%3$d" height="%3$d" viewBox="0 0 100 100" role="img" aria-hidden="true">'
+        . '<circle cx="50" cy="50" r="42" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="9"/>'
+        . '<circle cx="50" cy="50" r="42" fill="none" stroke="%4$s" stroke-width="9" stroke-linecap="round" '
+        .   'stroke-dasharray="%5$.1f" stroke-dashoffset="%6$.1f" transform="rotate(-90 50 50)"/>'
+        . '<text x="50" y="60" text-anchor="middle" class="ring-num">%7$d</text>'
+        . '</svg></span>',
+        e($level), e($aria), $size, e($color), $circ, $offset, $num,
+        ($inline ? ' freshness-ring-inline' : '')
+    );
 }

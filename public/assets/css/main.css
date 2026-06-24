@@ -40,8 +40,8 @@
     --color-info:    #5a6f7a;
 
     /* === TYPOGRAPHY === */
-    --font-serif: Georgia, "Times New Roman", "DM Serif Display", serif;
-    --font-sans:  -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter",
+    --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
                   "Helvetica Neue", Arial, sans-serif;
     --font-mono:  "SF Mono", Monaco, "Cascadia Code", monospace;
 
@@ -139,7 +139,7 @@ a:hover { color: var(--color-primary); }
 .site-header {
     background: var(--color-bg);
     border-bottom: 0.5px solid var(--color-border);
-    padding: var(--space-3) 0;
+    padding: var(--space-2) 0;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -230,7 +230,7 @@ a:hover { color: var(--color-primary); }
     border-color: var(--color-danger);
 }
 .btn-lg { padding: 12px 28px; font-size: 0.9375rem; }
-.btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+.btn-sm { padding: 8px 14px; font-size: 0.8125rem; }
 .btn-block { display: block; width: 100%; text-align: center; }
 
 /* Pill buttons (Apple-esque) */
@@ -501,9 +501,11 @@ input[type="number"], input[type="tel"], input[type="date"], select, textarea {
     flex-direction: column;
     text-decoration: none;
     color: inherit;
-    transition: opacity 0.15s;
+    transition: transform 0.2s ease;
 }
-.product-card-v2:hover { opacity: 0.85; border: none; }
+.product-card-v2:hover { transform: translateY(-4px); border: none; }
+.product-card-v2 .product-card-image img { transition: transform 0.45s ease; }
+.product-card-v2:hover .product-card-image img { transform: scale(1.06); }
 .product-card-v2.last-chance .product-card-image { box-shadow: inset 0 0 0 2px var(--color-accent); }
 
 .product-card-v2 .product-card-image {
@@ -824,7 +826,10 @@ tr:last-child td { border-bottom: none; }
     color: var(--color-text);
     text-decoration: none;
     border: none;
-    padding: 4px 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;   /* comfortable tap target (Apple HIG / WCAG 2.5.5) */
+    padding: 0 2px;
 }
 .nav-main a:hover { color: var(--color-primary); }
 
@@ -837,6 +842,22 @@ tr:last-child td { border-bottom: none; }
     font-size: 0.875rem;
 }
 .nav-actions a { border: none; }
+
+/* All header action buttons get a 44px-tall hit area */
+.nav-actions .btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Icon-only buttons (cart, bell, wishlist, orders): full 44x44 + larger glyph */
+.nav-actions .btn-icon {
+    min-width: 44px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 1.15rem;   /* was ~0.75rem — far easier to see & tap */
+    line-height: 1;
+}
 .btn-ghost {
     background: transparent;
     color: var(--color-text);
@@ -1662,4 +1683,434 @@ aside h4 {
     .hero-stat-value {
         font-size: 2rem;
     }
+}
+
+/* ============================================================
+   FIX — "Popular This Week" / recommendation grid
+   ------------------------------------------------------------
+   Old grid used auto-FIT, which collapses empty columns and
+   stretches a lone card to the full container width (the
+   square image then balloons). auto-FILL keeps the column
+   width fixed so 1 item looks like a normal product card.
+   ============================================================ */
+.reco-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 200px));
+    gap: var(--space-4);
+    justify-content: start;
+}
+@media (max-width: 700px) {
+    .reco-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        justify-content: stretch;
+    }
+}
+
+/* ============================================================
+   ROLE THEMES — give Admin & Retailer a distinct identity
+   ------------------------------------------------------------
+   Customer  = cream + olive (default :root, unchanged)
+   Retailer  = forest-green console, olive CTAs
+   Admin     = slate/charcoal panel, amber CTAs
+   Body gets .role-* so the whole page (not just the header)
+   picks up the palette via custom-property overrides.
+   ============================================================ */
+
+/* ---------- RETAILER: forest-green merchant console ---------- */
+.role-retailer {
+    --color-bg:           #f1f4ec;   /* cool sage-tinted paper */
+    --color-bg-warm:      #e7ecdf;
+    --color-surface:      #ffffff;
+    --color-surface-alt:  #eef1e7;
+    --color-border:       #d6ddca;
+    --color-border-dark:  #bbc4a7;
+    --color-primary:      #3a4a2a;
+    --color-primary-dark: #2c3a1f;
+}
+.role-retailer .site-header {
+    background: #2f3d22;             /* deep forest */
+    border-bottom: 3px solid #c9a55a;
+}
+.role-retailer .site-header .brand,
+.role-retailer .site-header .brand:hover,
+.role-retailer .nav-main a,
+.role-retailer .nav-actions .btn-ghost {
+    color: #f2f0e6;
+}
+.role-retailer .nav-main a:hover,
+.role-retailer .nav-actions .btn-ghost:hover { color: #e6c574; }
+.role-retailer .brand-sublabel {
+    background: rgba(255, 255, 255, 0.12);
+    color: #f2f0e6;
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* ---------- ADMIN: slate + amber control panel ---------- */
+.role-admin {
+    --color-bg:           #f4f5f7;   /* cool neutral gray */
+    --color-bg-warm:      #ebedf1;
+    --color-surface:      #ffffff;
+    --color-surface-alt:  #eef0f4;
+    --color-border:       #d8dce3;
+    --color-border-dark:  #b9bfca;
+    --color-primary:      #b8862b;   /* amber CTAs = admin identity */
+    --color-primary-dark: #9c7022;
+}
+.role-admin .site-header {
+    background: #272c34;             /* charcoal slate */
+    border-bottom: 3px solid #d8a93a;
+}
+.role-admin .site-header .brand,
+.role-admin .site-header .brand:hover,
+.role-admin .nav-main a,
+.role-admin .nav-actions .btn-ghost {
+    color: #eef0f4;
+}
+.role-admin .nav-main a:hover,
+.role-admin .nav-actions .btn-ghost:hover { color: #f0c75a; }
+.role-admin .brand-sublabel {
+    background: rgba(216, 169, 58, 0.18);
+    color: #f0c75a;
+    border-color: rgba(216, 169, 58, 0.40);
+}
+/* Keep accent KPI cards on-theme (override the hardcoded green) */
+.role-admin .kpi-card-accent {
+    background: linear-gradient(135deg, rgba(184, 134, 43, 0.06), rgba(216, 169, 58, 0.12));
+    border-color: rgba(184, 134, 43, 0.30);
+}
+.role-admin .kpi-card-accent .kpi-value { color: #9c7022; }
+
+/* ============================================================
+   Recommendation carousel — swipeable product row
+   (mobile: finger-swipe;  desktop: arrow buttons)
+   ============================================================ */
+.reco-carousel-wrap { position: relative; }
+
+.reco-carousel {
+    display: flex;
+    gap: var(--space-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 2px 12px;        /* breathing room + avoids snap clipping */
+    scrollbar-width: none;        /* Firefox: hide scrollbar */
+}
+.reco-carousel::-webkit-scrollbar { display: none; }   /* Chrome / Safari */
+
+/* Each card stays a fixed compact width (no more ballooning) */
+.reco-carousel > .product-card-v2 {
+    flex: 0 0 180px;
+    scroll-snap-align: start;
+}
+
+/* Arrow buttons (shown on desktop, hidden on touch) */
+.reco-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 1.5rem;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    z-index: 2;
+    transition: background .15s, opacity .15s;
+}
+.reco-arrow:hover { background: var(--color-bg-warm); }
+.reco-arrow[data-reco-dir="prev"] { left: -10px; }
+.reco-arrow[data-reco-dir="next"] { right: -10px; }
+.reco-arrow[hidden] { display: none; }
+
+/* Soft fade on the right edge to hint "more →" */
+.reco-carousel-wrap::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 12px;
+    width: 44px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--color-bg));
+    transition: opacity .15s;
+}
+.reco-carousel-wrap.reco-end::after,
+.reco-carousel-wrap.reco-no-scroll::after { opacity: 0; }
+
+@media (max-width: 700px) {
+    .reco-arrow { display: none; }                       /* swipe instead */
+    .reco-carousel > .product-card-v2 { flex-basis: 42%; } /* ~2 cards + peek */
+    .reco-carousel-wrap::after { display: none; }
+}
+
+/* ============================================================
+   Mobile navigation (hamburger + slide-in drawer)
+   ============================================================ */
+.nav-toggle { display: none; }                 /* hidden on desktop */
+
+@media (max-width: 860px) {
+    .nav-main    { display: none; }             /* hide desktop nav links */
+    .nav-actions { display: none; }             /* actions move into drawer */
+    .nav-toggle {
+        display: inline-grid;
+        place-items: center;
+        margin-left: auto;
+        width: 44px; height: 44px;              /* proper tap target */
+        border: none; background: transparent;
+        color: inherit; cursor: pointer;
+        font-size: 1.6rem; line-height: 1;
+    }
+}
+
+.mobile-nav-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 200;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity .2s ease, visibility .2s ease;
+}
+.mobile-nav-backdrop.open { opacity: 1; visibility: visible; pointer-events: auto; }
+
+.mobile-nav {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(82vw, 320px);
+    background: var(--color-surface, #fff);
+    z-index: 201;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform .22s ease, visibility .22s ease;
+    display: flex; flex-direction: column;
+    padding: var(--space-4) var(--space-5);
+    overflow-y: auto;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+}
+.mobile-nav.open { transform: translateX(0); visibility: visible; }
+
+.mobile-nav-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: var(--space-3);
+}
+.mobile-nav-head .brand { margin: 0; font-size: 1.25rem; }
+.mobile-nav-close {
+    width: 44px; height: 44px; border: none; background: transparent;
+    font-size: 1.6rem; line-height: 1; cursor: pointer; color: var(--color-text);
+}
+.mobile-nav-group {
+    font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--color-text-muted); margin: var(--space-4) 0 var(--space-1);
+}
+.mobile-nav a {
+    display: flex; align-items: center; min-height: 48px;
+    padding: 0 2px; border: none;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text); font-size: 1rem;
+}
+.mobile-nav a:hover { color: var(--color-primary); }
+.mobile-nav .mobile-nav-cta {
+    border: none; justify-content: center; margin-top: var(--space-4);
+}
+
+/* ============================================================
+   Free-shipping progress bar (cart)
+   ============================================================ */
+.ship-progress { margin: var(--space-2) 0 var(--space-3); }
+.ship-progress-label { font-size: 0.8125rem; margin-bottom: 6px; color: var(--color-text-muted); }
+.ship-progress-label strong { color: var(--color-primary); }
+.ship-progress-track {
+    height: 8px; background: var(--color-border);
+    border-radius: 999px; overflow: hidden;
+}
+.ship-progress-fill {
+    height: 100%; width: 0;
+    background: var(--color-primary);
+    border-radius: 999px;
+    transition: width .35s ease;
+}
+.ship-progress.is-complete .ship-progress-label { color: var(--color-primary); }
+
+/* ============================================================
+   Sustainability impact callout (homepage + profile)
+   ============================================================ */
+.impact-callout {
+    display: flex; align-items: center; gap: var(--space-4);
+    background: var(--color-bg-warm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+    margin-top: var(--space-5);
+}
+.impact-callout .impact-figure {
+    font-family: var(--font-serif);
+    font-size: 2rem; line-height: 1; color: var(--color-primary);
+    white-space: nowrap;
+}
+.impact-callout .impact-text { font-size: 0.9375rem; color: var(--color-text-muted); }
+.impact-callout .impact-text strong { color: var(--color-text); }
+
+/* ============================================================
+   Responsive layouts for browse / product / cart
+   (moved off inline styles so media queries can win)
+   ============================================================ */
+.browse-layout { display: grid; grid-template-columns: 220px 1fr; gap: var(--space-8); }
+.product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); }
+.cart-layout {
+    display: grid; grid-template-columns: 1fr 320px;
+    gap: var(--space-6); margin-top: var(--space-6);
+}
+.cart-item {
+    display: grid; grid-template-columns: 100px 1fr auto; gap: var(--space-4);
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg); padding: var(--space-4);
+    margin-bottom: var(--space-3); align-items: center;
+}
+
+@media (max-width: 860px) {
+    .browse-layout { grid-template-columns: 1fr; gap: var(--space-5); }
+    .browse-layout aside {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--space-4) var(--space-5); align-content: start;
+    }
+}
+@media (max-width: 768px) {
+    .product-layout { grid-template-columns: 1fr; gap: var(--space-5); }
+    .cart-layout    { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+    .cart-item { grid-template-columns: 72px 1fr; }
+    .cart-item .cart-item-total { grid-column: 1 / -1; text-align: left; margin-top: var(--space-2); }
+}
+
+/* ============================================================
+   DESIGN PASS — "Thrive clean + Graza hand-drawn"
+   typography, motion, hand-drawn accents, breathing room
+   ============================================================ */
+
+/* --- Wordmark / leaf logo --- */
+.brand-logo { display: inline-flex; align-items: center; }
+.brand-logo svg { color: var(--color-primary); }
+.role-retailer .site-header .brand-logo svg,
+.role-admin .site-header .brand-logo svg { color: currentColor; }
+.brand { letter-spacing: -0.01em; }
+
+/* --- Header action icons sit nicely as SVGs --- */
+.nav-actions .btn-icon svg { display: block; }
+
+/* --- Hand-drawn accents (Graza personality) --- */
+/* wavy terracotta underline you drop under a word/phrase */
+.scribble {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 14'%3E%3Cpath d='M4 8 C 45 2 75 12 120 7 C 165 2 200 12 236 6' fill='none' stroke='%23b85c38' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 100% 0.4em;
+    padding-bottom: 0.16em;
+}
+/* soft organic background blob (Graza-ish), purely decorative */
+.blob-accent {
+    position: absolute;
+    width: 340px; height: 340px;
+    background: radial-gradient(circle at 32% 30%, var(--color-accent-light), transparent 68%);
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+    filter: blur(3px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* --- Motion / micro-interactions --- */
+.btn-primary:hover, .btn-pill-primary:hover { transform: translateY(-1px); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: 3px; }
+.btn:focus-visible { outline-offset: 2px; }
+
+/* reveal-on-scroll (wired up in footer.php) */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal.in { opacity: 1; transform: none; transition: none; }
+    .product-card-v2:hover { transform: none; }
+    .product-card-v2:hover .product-card-image img { transform: none; }
+}
+
+/* --- Breathing room (Thrive) --- */
+@media (min-width: 768px) {
+    .section { padding: var(--space-16) 0; }
+    .product-grid-4 { gap: var(--space-6) var(--space-5); }
+}
+.section-header h2, .freshness-banner h2 { letter-spacing: -0.015em; }
+.product-card-v2 .product-card-name { font-size: 0.95rem; letter-spacing: -0.005em; }
+
+/* --- Cleaner product image frame (consistent photo treatment) --- */
+.product-card-v2 .product-card-image {
+    background: var(--color-bg-warm);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.03);
+}
+
+/* ============================================================
+   Freshness ring (signature visual) + hand-drawn extras
+   ============================================================ */
+.freshness-ring {
+    position: absolute; top: 8px; left: 8px; z-index: 2;
+    display: inline-grid; place-items: center;
+    background: rgba(253, 250, 243, 0.9);
+    border-radius: 50%; padding: 3px;
+    -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+    box-shadow: var(--shadow-md);
+    transition: transform .2s ease;
+}
+.product-card-v2:hover .freshness-ring { transform: scale(1.06); }
+.freshness-ring svg { display: block; }
+.freshness-ring .ring-num {
+    font-family: var(--font-serif);
+    font-weight: 600; font-size: 34px;
+    fill: var(--color-text);
+}
+.freshness-ring-lg { top: 16px; left: 16px; padding: 4px; }
+
+/* leaf placeholder (replaces the 🥬 fallback emoji) */
+.img-fallback {
+    display: grid; place-items: center;
+    width: 100%; height: 100%;
+    color: var(--color-border-dark);
+}
+
+/* origin line gets a pin icon */
+.product-card-origin { display: inline-flex; align-items: center; gap: 5px; }
+.product-card-origin svg { flex: none; opacity: .7; }
+
+/* inline label icons (e.g. "Last Chance" flame in nav / titles) */
+.label-ico { display: inline-flex; align-items: center; gap: 6px; }
+.label-ico svg { flex: none; }
+
+/* hand-drawn section divider (Graza) */
+.veg-divider { display: flex; justify-content: center; align-items: center; padding: var(--space-10) 0 var(--space-6); }
+.veg-divider svg { width: 320px; max-width: 72%; height: auto; }
+
+/* prominent hero botanical illustration */
+.hero-illus { position: absolute; pointer-events: none; z-index: 0; }
+
+/* bigger empty-state icon */
+.empty-state .empty-ico { color: var(--color-border-dark); margin-bottom: var(--space-3); display: inline-flex; }
+
+/* drawer links: gap between icon and label */
+.mobile-nav a svg { margin-right: 10px; flex: none; vertical-align: middle; }
+
+/* hero becomes a positioning context for decorative art */
+.editorial-hero { position: relative; overflow: hidden; }
+.editorial-hero > .container { position: relative; z-index: 1; }
+.editorial-hero .hero-illus { z-index: 0; }
+@media (max-width: 720px){ .editorial-hero .hero-illus { display: none; } }
+
+/* inline ring (for tables / banners — no absolute positioning, no frosted bg) */
+.freshness-ring-inline {
+    position: static;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }

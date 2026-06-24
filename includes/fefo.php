@@ -274,3 +274,28 @@ function fefo_display_batch(int $productId): ?array
         [$productId]
     );
 }
+
+/**
+ * Write off a batch's remaining stock (spoiled / expired / damaged).
+ * Sets quantity to 0, marks the batch unsellable, and logs the loss to
+ * inventory_logs so it appears in waste reports.
+ * $movementType must be 'EXPIRED' or 'DAMAGED'. Returns qty written off.
+ */
+function fefo_discard(int $batchId, string $movementType, string $reason, int $performedByUserId): float
+{
+    $movementType = in_array($movementType, ['EXPIRED', 'DAMAGED'], true) ? $movementType : 'EXPIRED';
+    return (float) db_transaction(function () use ($batchId, $movementType, $reason, $performedByUserId) {
+        $cur = db_scalar('SELECT quantity_remaining FROM stock_batches WHERE id = ? FOR UPDATE', [$batchId]);
+        if ($cur === null) throw new RuntimeException("Batch #{$batchId} not found.");
+        $qty = (float) $cur;
+        if ($qty <= 0) return 0.0;
+        db_run("UPDATE stock_batches SET quantity_remaining = 0, status = 'EXPIRED' WHERE id = ?", [$batchId]);
+        db_run(
+            "INSERT INTO inventory_logs
+                (stock_batch_id, user_id, movement_type, quantity_change, quantity_after, reason)
+             VALUES (?, ?, ?, ?, 0, ?)",
+            [$batchId, $performedByUserId, $movementType, -$qty, $reason]
+        );
+        return $qty;
+    });
+}

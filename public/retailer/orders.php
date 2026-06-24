@@ -114,6 +114,30 @@ $statusCounts = db_all(
 $counts = [];
 foreach ($statusCounts as $r) $counts[$r['status']] = (int) $r['c'];
 
+// FEFO picking list — the batches actually allocated to each listed order
+$pickMap  = [];
+$orderIds = array_column($orders, 'id');
+if ($orderIds) {
+    $in = implode(',', array_fill(0, count($orderIds), '?'));
+    $pickRows = db_all(
+        "SELECT il.related_order_id AS oid, p.name AS product, ut.code AS unit_code,
+                sb.batch_code, sb.expiry_date, sb.storage_location,
+                -il.quantity_change AS qty
+         FROM inventory_logs il
+         JOIN stock_batches sb ON sb.id = il.stock_batch_id
+         JOIN products p       ON p.id = sb.product_id
+         JOIN unit_types ut    ON ut.id = p.unit_type_id
+         WHERE il.movement_type = 'SOLD'
+           AND il.related_order_id IN ($in)
+           AND p.retailer_id = ?
+         ORDER BY p.name, sb.expiry_date",
+        array_merge($orderIds, [$retailerId])
+    );
+    foreach ($pickRows as $pr) {
+        $pickMap[(int) $pr['oid']][] = $pr;
+    }
+}
+
 $pageTitle = 'Orders — Retailer';
 require_once __DIR__ . '/../../includes/header.php';
 retailer_layout_start('orders', 'Orders');
@@ -198,6 +222,22 @@ retailer_layout_start('orders', 'Orders');
                                     → <?= $nextStatus ?>
                                 </button>
                             </form>
+                        <?php endif; ?>
+                        <?php if (!empty($pickMap[$o['id']])): ?>
+                            <details style="margin-top: var(--space-2);">
+                                <summary class="btn btn-secondary btn-sm" style="display:inline-block;"><?= icon('package', 15) ?> Pick list</summary>
+                                <div style="margin-top: var(--space-2); background: var(--color-bg-warm); border:1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); min-width: 280px;">
+                                    <div style="font-size:0.75rem; color: var(--color-text-muted); margin-bottom: 6px;">FEFO — pick earliest expiry first</div>
+                                    <?php foreach ($pickMap[$o['id']] as $pk): ?>
+                                        <div style="display:flex; justify-content:space-between; gap: var(--space-3); padding: 3px 0; border-bottom: 1px dashed var(--color-border);">
+                                            <span><strong><?= number_format((float) $pk['qty'], 2) ?> <?= e($pk['unit_code']) ?></strong> <?= e($pk['product']) ?></span>
+                                            <span style="color: var(--color-text-muted); white-space:nowrap;">
+                                                <?= e($pk['batch_code']) ?> · exp <?= format_datetime($pk['expiry_date'], 'd M') ?><?= $pk['storage_location'] ? ' · ' . e($pk['storage_location']) : '' ?>
+                                            </span>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </details>
                         <?php endif; ?>
                     </td>
                 </tr>

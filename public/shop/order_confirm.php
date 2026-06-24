@@ -47,7 +47,7 @@ require_once __DIR__ . '/../../includes/header.php';
 <section class="container" style="padding: var(--space-8) 0; max-width: 720px;">
 
     <div style="text-align: center; margin-bottom: var(--space-8);">
-        <div style="font-size: 4rem; margin-bottom: var(--space-3);">🎉</div>
+        <div class="empty-ico" style="margin-bottom: var(--space-3); color: var(--color-primary);"><?= icon('sparkles', 56) ?></div>
         <h1 style="margin-bottom: var(--space-2);">Order placed!</h1>
         <p style="color: var(--color-text-muted); font-size: 1.0625rem;">
             Order <strong><?= e($order['order_number']) ?></strong> is being processed.
@@ -60,7 +60,7 @@ require_once __DIR__ . '/../../includes/header.php';
             <div style="display: grid; grid-template-columns: 60px 1fr auto; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); align-items: center;">
                 <div style="aspect-ratio: 1; background: var(--color-bg); border-radius: var(--radius); overflow: hidden; display: grid; place-items: center;">
                     <?php if (!empty($item['primary_image'])): ?>
-                        <img src="<?= upload_url($item['primary_image']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
+                        <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
                     <?php else: ?>
                         🥬
                     <?php endif; ?>

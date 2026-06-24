@@ -107,6 +107,15 @@ $edit = $editId > 0
     ? db_one('SELECT * FROM addresses WHERE id = ? AND user_id = ?', [$editId, $userId])
     : null;
 
+// Personal sustainability impact — how much this customer rescued from waste
+$myKgRescued = (float) db_scalar(
+    "SELECT COALESCE(SUM(oi.quantity), 0)
+     FROM order_items oi
+     JOIN orders o ON o.id = oi.order_id
+     WHERE o.user_id = ? AND oi.freshness_at_order = 'LAST_CHANCE'",
+    [$userId]
+);
+
 $pageTitle = 'My Profile — FreshMart';
 require_once __DIR__ . '/../includes/header.php';
 ?>
@@ -114,6 +123,15 @@ require_once __DIR__ . '/../includes/header.php';
 <section class="container" style="padding: var(--space-6) 0 var(--space-12); max-width: 800px;">
 
     <h1>My profile</h1>
+
+    <?php if ($myKgRescued > 0): ?>
+        <div class="impact-callout" style="margin-top: var(--space-4);">
+            <div class="impact-figure"><?= number_format($myKgRescued, 1) ?> kg</div>
+            <div class="impact-text">
+                of food <strong>you&rsquo;ve rescued from waste</strong> by choosing Last Chance items. 🌱
+            </div>
+        </div>
+    <?php endif; ?>
 
     <?php foreach ($errors as $err): ?>
         <div class="flash flash-error"><?= e($err) ?></div>

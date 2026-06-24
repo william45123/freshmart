@@ -73,6 +73,40 @@ if (is_post() && csrf_verify() && input('action') === 'save') {
     }
 }
 
+// ---- Handle freshness-level config save ----
+if (is_post() && csrf_verify() && input('action') === 'save_freshness') {
+    try {
+        $levels = $_POST['fresh'] ?? [];
+        db_transaction(function () use ($levels) {
+            foreach ((array) $levels as $levelName => $f) {
+                db_run(
+                    "UPDATE freshness_config
+                        SET label_en = ?, min_percent = ?, max_percent = ?,
+                            color_hex = ?, auto_discount_pct = ?
+                      WHERE level_name = ?",
+                    [
+                        trim((string) ($f['label'] ?? '')),
+                        (float) ($f['min'] ?? 0),
+                        (float) ($f['max'] ?? 0),
+                        trim((string) ($f['color'] ?? '#000000')),
+                        (float) ($f['discount'] ?? 0),
+                        (string) $levelName,
+                    ]
+                );
+            }
+            db_run(
+                "INSERT INTO audit_logs (user_id, action, entity_type, new_values)
+                 VALUES (?, 'FRESHNESS_CONFIG_UPDATE', 'freshness_config', ?)",
+                [auth_id(), json_encode(['levels' => count((array) $levels)])]
+            );
+        });
+        flash_set('success', 'Freshness levels updated.');
+        redirect('/admin/settings.php');
+    } catch (Throwable $e) {
+        $errors[] = $e->getMessage();
+    }
+}
+
 // ---- Load current values ----
 $rows = db_all('SELECT config_key, config_value, description FROM system_config');
 $cfg  = [];
@@ -81,6 +115,9 @@ foreach ($rows as $r) {
     $cfg[$r['config_key']]  = $r['config_value'];
     $desc[$r['config_key']] = $r['description'];
 }
+
+// Freshness levels (their own table) — admin-tunable boundaries/colours/discount
+$freshLevels = db_all("SELECT * FROM freshness_config WHERE level_name <> 'EXPIRED' ORDER BY display_order ASC");
 
 $pageTitle = 'Settings — Admin';
 require_once __DIR__ . '/../../includes/header.php';
@@ -141,6 +178,48 @@ admin_layout_start('settings', 'System Settings');
         <button type="submit" class="btn btn-primary btn-lg">Save all settings</button>
         <a href="<?= url('/admin/settings.php') ?>" class="btn btn-ghost">Cancel</a>
     </div>
+</form>
+
+<h2 style="font-size: 1.125rem; margin: var(--space-8) 0 var(--space-2);">Freshness levels</h2>
+<p style="color: var(--color-text-muted); max-width: 660px; margin-bottom: var(--space-4);">
+    This is the core of FreshMart. <strong>Min %</strong> is the shelf-life-remaining
+    threshold at which an item enters each level; <strong>Auto-discount %</strong> is applied
+    automatically to that level's price (e.g. Last Chance 15%). Changes apply store-wide immediately.
+</p>
+<form method="post">
+    <?= csrf_field() ?>
+    <input type="hidden" name="action" value="save_freshness">
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4); max-width: 760px; overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Level</th>
+                    <th>Label</th>
+                    <th style="text-align:right;">Min %</th>
+                    <th style="text-align:right;">Max %</th>
+                    <th>Colour</th>
+                    <th style="text-align:right;">Auto-discount %</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($freshLevels as $lv): $ln = $lv['level_name']; ?>
+                <tr>
+                    <td><code style="font-size:0.75rem;"><?= e($ln) ?></code></td>
+                    <td><input type="text" name="fresh[<?= e($ln) ?>][label]" value="<?= attr($lv['label_en']) ?>" class="form-control" style="width:130px;" maxlength="50"></td>
+                    <td style="text-align:right;"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][min]" value="<?= attr((string) $lv['min_percent']) ?>" class="form-control" style="width:80px;"></td>
+                    <td style="text-align:right;"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][max]" value="<?= attr((string) $lv['max_percent']) ?>" class="form-control" style="width:80px;"></td>
+                    <td>
+                        <span style="display:inline-flex; align-items:center; gap:8px;">
+                            <input type="color" name="fresh[<?= e($ln) ?>][color]" value="<?= attr($lv['color_hex']) ?>" style="width:42px; height:30px; border:1px solid var(--color-border); border-radius:6px; padding:2px; background:none;">
+                        </span>
+                    </td>
+                    <td style="text-align:right;"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][discount]" value="<?= attr((string) $lv['auto_discount_pct']) ?>" class="form-control" style="width:80px;"></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg">Save freshness levels</button>
 </form>
 
 <?php

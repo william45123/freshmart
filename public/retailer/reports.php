@@ -103,6 +103,41 @@ if ($export === 'csv') {
     exit;
 }
 
+// ---- Waste & rescue summary (from inventory write-offs in the date range) ----
+$waste = db_one(
+    "SELECT
+        COALESCE(SUM(-il.quantity_change), 0)                    AS units,
+        COALESCE(SUM(-il.quantity_change * sb.cost_per_unit), 0) AS cost
+     FROM inventory_logs il
+     JOIN stock_batches sb ON sb.id = il.stock_batch_id
+     JOIN products p       ON p.id  = sb.product_id
+     WHERE p.retailer_id = ?
+       AND il.movement_type IN ('EXPIRED','DAMAGED')
+       AND DATE(il.created_at) BETWEEN ? AND ?",
+    [$retailerId, $from, $to]
+);
+$wasteUnits = (float) ($waste['units'] ?? 0);
+$wasteCost  = (float) ($waste['cost'] ?? 0);
+$wasteRate  = ($totalUnits + $wasteUnits) > 0
+    ? ($wasteUnits / ($totalUnits + $wasteUnits)) * 100 : 0.0;
+
+$topWasted = db_all(
+    "SELECT p.name, ut.code AS unit_code,
+            SUM(-il.quantity_change)                     AS qty,
+            SUM(-il.quantity_change * sb.cost_per_unit)  AS cost
+     FROM inventory_logs il
+     JOIN stock_batches sb ON sb.id = il.stock_batch_id
+     JOIN products p       ON p.id  = sb.product_id
+     JOIN unit_types ut    ON ut.id = p.unit_type_id
+     WHERE p.retailer_id = ?
+       AND il.movement_type IN ('EXPIRED','DAMAGED')
+       AND DATE(il.created_at) BETWEEN ? AND ?
+     GROUP BY p.id, p.name, ut.code
+     ORDER BY qty DESC
+     LIMIT 5",
+    [$retailerId, $from, $to]
+);
+
 $pageTitle = 'Product Report — Retailer';
 require_once __DIR__ . '/../../includes/header.php';
 retailer_layout_start('reports', 'Product Performance Report');
@@ -143,7 +178,37 @@ retailer_layout_start('reports', 'Product Performance Report');
             <?= number_format($totalSaved, 2) ?> units
         </div>
     </div>
+    <div class="kpi-card" style="background: #fbeee8; border-color: #b85c38;">
+        <div class="kpi-label">Discarded (Waste)</div>
+        <div class="kpi-value" style="color: #b85c38;">
+            <?= number_format($wasteUnits, 2) ?> units
+        </div>
+        <div class="kpi-meta">Loss: <?= format_myr($wasteCost) ?></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Waste Rate</div>
+        <div class="kpi-value"><?= number_format($wasteRate, 1) ?>%</div>
+        <div class="kpi-meta">discarded ÷ (sold + discarded)</div>
+    </div>
 </div>
+
+<?php if (!empty($topWasted)): ?>
+    <div style="margin-bottom: var(--space-6); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface);">
+        <h3 style="margin: 0 0 var(--space-3); font-size: 1rem;">Most-wasted products (<?= e($from) ?> → <?= e($to) ?>)</h3>
+        <table class="data-table">
+            <thead><tr><th>Product</th><th style="text-align:right;">Discarded</th><th style="text-align:right;">Loss</th></tr></thead>
+            <tbody>
+            <?php foreach ($topWasted as $w): ?>
+                <tr>
+                    <td><?= e($w['name']) ?></td>
+                    <td style="text-align:right;"><?= number_format((float) $w['qty'], 2) ?> <?= e($w['unit_code']) ?></td>
+                    <td style="text-align:right;"><?= format_myr((float) $w['cost']) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+<?php endif; ?>
 
 <?php if (empty($report)): ?>
     <div class="empty-state">No products yet. <a href="<?= url('/retailer/product_edit.php') ?>">Add your first product</a>.</div>

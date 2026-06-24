@@ -51,6 +51,43 @@ $expiringSoon = db_all(
     [$retailerId]
 );
 
+// Stock freshness mix (for the donut chart)
+$mix = ['VERY_FRESH' => 0, 'FRESH' => 0, 'ENJOY_SOON' => 0, 'LAST_CHANCE' => 0];
+foreach (db_all(
+    "SELECT sb.received_date, sb.expiry_date,
+            COALESCE(p.decay_exponent_override, c.decay_exponent, 1.0) AS de
+     FROM stock_batches sb
+     JOIN products p   ON p.id = sb.product_id
+     JOIN categories c ON c.id = p.category_id
+     WHERE p.retailer_id = ? AND sb.status = 'ACTIVE'",
+    [$retailerId]
+) as $m) {
+    $lv = freshness_level($m['received_date'], $m['expiry_date'], (float) $m['de']);
+    if (isset($mix[$lv])) $mix[$lv]++;
+}
+$mixColors = [
+    freshness_info('VERY_FRESH')['color_hex'],
+    freshness_info('FRESH')['color_hex'],
+    freshness_info('ENJOY_SOON')['color_hex'],
+    freshness_info('LAST_CHANCE')['color_hex'],
+];
+
+// Sell-through rate per product (avg units/day over the last 30 days) — for forecast
+$rate = [];
+foreach (db_all(
+    "SELECT oi.product_id AS pid, SUM(oi.quantity) / 30.0 AS r
+     FROM order_items oi
+     JOIN orders o   ON o.id = oi.order_id
+     JOIN products p ON p.id = oi.product_id
+     WHERE p.retailer_id = ?
+       AND o.placed_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+       AND o.status IN ('PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY','DELIVERED')
+     GROUP BY oi.product_id",
+    [$retailerId]
+) as $r) {
+    $rate[(int) $r['pid']] = (float) $r['r'];
+}
+
 $pageTitle = 'Retailer Dashboard';
 require_once __DIR__ . '/../../includes/header.php';
 retailer_layout_start('dashboard', 'Dashboard');
@@ -79,9 +116,9 @@ retailer_layout_start('dashboard', 'Dashboard');
     </div>
 </div>
 
-<h2 style="font-size: 1.25rem;">⏰ Batches Expiring Soon</h2>
+<h2 style="font-size: 1.25rem;"><span class="label-ico"><?= icon('alert', 20) ?> Batches Expiring Soon</span></h2>
 <?php if (empty($expiringSoon)): ?>
-    <div class="empty-state">Nothing expiring in the next 3 days 🎉</div>
+    <div class="empty-state">Nothing expiring in the next 3 days.</div>
 <?php else: ?>
     <table class="data-table">
         <thead>
@@ -91,6 +128,7 @@ retailer_layout_start('dashboard', 'Dashboard');
                 <th>Quantity</th>
                 <th>Expiry</th>
                 <th>Freshness</th>
+                <th>Forecast</th>
             </tr>
         </thead>
         <tbody>
@@ -103,12 +141,54 @@ retailer_layout_start('dashboard', 'Dashboard');
                     <td><?= e($b['product_name']) ?></td>
                     <td><?= number_format((float) $b['quantity_remaining'], 2) ?></td>
                     <td><?= format_date($b['expiry_date']) ?> <small style="color: var(--color-text-muted);">(<?= relative_date($b['expiry_date']) ?>)</small></td>
-                    <td><?= freshness_badge_html($level, $daysLeft) ?></td>
+                    <td><?= freshness_ring_html([
+                        'freshness_percent' => freshness_percent($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']),
+                        'freshness_color'   => freshness_info($level)['color_hex'],
+                        'freshness_level'   => $level,
+                        'days_remaining'    => $daysLeft,
+                    ], 40, true) ?></td>
+                    <td>
+                        <?php
+                            $pr   = $rate[(int) $b['product_id']] ?? 0.0;
+                            $proj = $pr * $daysLeft;
+                            $risk = (float) $b['quantity_remaining'] - $proj;
+                        ?>
+                        <?php if ($risk > 0.5): ?>
+                            <span style="color:#b85c38; font-size:0.8125rem;">~<?= number_format($risk, 1) ?> may expire unsold</span>
+                        <?php else: ?>
+                            <span style="color: var(--color-primary); font-size:0.8125rem;">On track to sell</span>
+                        <?php endif; ?>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 <?php endif; ?>
+
+<h2 style="font-size: 1.25rem; margin-top: var(--space-8);">Stock freshness mix</h2>
+<div style="max-width: 380px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
+    <canvas id="freshMixChart" height="220"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('freshMixChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['Very Fresh', 'Fresh', 'Enjoy Soon', 'Last Chance'],
+        datasets: [{
+            data: [<?= (int) $mix['VERY_FRESH'] ?>, <?= (int) $mix['FRESH'] ?>, <?= (int) $mix['ENJOY_SOON'] ?>, <?= (int) $mix['LAST_CHANCE'] ?>],
+            backgroundColor: <?= json_encode($mixColors) ?>,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } },
+        cutout: '62%'
+    }
+});
+</script>
 
 <?php
 retailer_layout_end();

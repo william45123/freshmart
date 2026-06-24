@@ -139,7 +139,7 @@ function url_with($overrides = []): string {
         <?php elseif ($activeCat): ?>
             <?= e($activeCat['name']) ?>
         <?php elseif ($freshness === 'LAST_CHANCE'): ?>
-            🔥 Last Chance Deals
+            <span class="label-ico"><?= icon('flame', 22) ?> Last Chance Deals</span>
         <?php else: ?>
             Browse all
         <?php endif; ?>
@@ -154,7 +154,7 @@ function url_with($overrides = []): string {
     </form>
 </section>
 
-<section class="container" style="display: grid; grid-template-columns: 220px 1fr; gap: var(--space-8); padding-top: var(--space-4); padding-bottom: var(--space-12);">
+<section class="container browse-layout" style="padding-top: var(--space-4); padding-bottom: var(--space-12);">
 
     <!-- Sidebar filters -->
     <aside>
@@ -227,7 +227,8 @@ function url_with($overrides = []): string {
 
         <?php if (empty($products)): ?>
             <div class="empty-state">
-                <p style="font-size: 1.0625rem;">🤷 No products match your filters.</p>
+                <div class="empty-ico"><?= icon('search', 40) ?></div>
+                <p style="font-size: 1.0625rem;">No products match your filters.</p>
                 <p style="color: var(--color-text-muted);">Try removing some filters or
                     <a href="<?= url('/shop/browse.php') ?>">browse all</a>.</p>
             </div>
@@ -238,12 +239,12 @@ function url_with($overrides = []): string {
                        class="product-card-v2 <?= ($p['freshness_level'] === 'LAST_CHANCE') ? 'last-chance' : '' ?>" style="color: inherit;">
                         <div class="product-card-image">
                             <?php if (!empty($p['primary_image'])): ?>
-                                <img src="<?= upload_url($p['primary_image']) ?>" alt=""
+                                <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>" loading="lazy"
                                      style="width: 100%; height: 100%; object-fit: cover;">
                             <?php else: ?>
-                                <span>🥬</span>
+                                <span class="img-fallback"><?= icon('leaf', 56) ?></span>
                             <?php endif; ?>
-                            <?= freshness_badge_html($p['freshness_level'], $p['days_remaining'] ?? null) ?>
+                            <?= freshness_ring_html($p) ?>
                             <?php if (!empty($p['is_discounted'])): ?>
                                 <span class="discount-tag">-<?= (int) $p['discount_pct'] ?>%</span>
                             <?php endif; ?>
@@ -251,7 +252,7 @@ function url_with($overrides = []): string {
                         <div class="product-card-body">
                             <div class="product-card-name"><?= e($p['name']) ?></div>
                             <?php if (!empty($p['origin'])): ?>
-                                <div class="product-card-origin">📍 <?= e($p['origin']) ?></div>
+                                <div class="product-card-origin"><?= icon('pin', 14) ?> <?= e($p['origin']) ?></div>
                             <?php endif; ?>
                             <div class="product-card-pricing">
                                 <span class="price-final"><?= format_myr($p['final_price'] ?? $p['base_price']) ?></span>

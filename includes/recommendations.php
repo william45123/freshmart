@@ -251,8 +251,48 @@ function reco_popular_this_week(int $limit = 6): array {
  * Render a reusable horizontal product card row.
  * Used for FBT, May Like, Popular sections.
  */
-function reco_render_section(string $title, string $emoji, array $products, string $subtitle = ''): string {
+/**
+ * Render a recommendation section.
+ *
+ * @param string $layout 'grid' (default, wraps onto multiple rows) or
+ *                        'carousel' (single swipeable row with arrows).
+ */
+function reco_render_section(string $title, string $emoji, array $products, string $subtitle = '', string $layout = 'grid'): string {
     if (empty($products)) return '';
+
+    // Build the product cards once — shared by both layouts.
+    ob_start();
+    foreach ($products as $p): ?>
+        <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
+           class="product-card-v2 <?= ($p['freshness_level'] ?? '') === 'LAST_CHANCE' ? 'last-chance' : '' ?>"
+           style="color: inherit;">
+            <div class="product-card-image">
+                <?php if (!empty($p['primary_image'])): ?>
+                    <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= htmlspecialchars($p['name']) ?>" loading="lazy"
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                <?php else: ?>
+                    <span class="img-fallback"><?= icon('leaf', 56) ?></span>
+                <?php endif; ?>
+                <?= freshness_ring_html($p) ?>
+                <?php if (!empty($p['is_discounted'])): ?>
+                    <span class="discount-tag">-<?= (int) $p['discount_pct'] ?>%</span>
+                <?php endif; ?>
+            </div>
+            <div class="product-card-body">
+                <div class="product-card-name"><?= htmlspecialchars($p['name']) ?></div>
+                <div class="product-card-pricing">
+                    <span class="price-final"><?= format_myr($p['final_price'] ?? $p['base_price']) ?></span>
+                    <?php if (!empty($p['is_discounted'])): ?>
+                        <span class="price-base-strike"><?= format_myr($p['base_price']) ?></span>
+                    <?php endif; ?>
+                    <span style="color: var(--color-text-muted); font-size: 0.8125rem;">
+                        / <?= htmlspecialchars($p['unit_code']) ?>
+                    </span>
+                </div>
+            </div>
+        </a>
+    <?php endforeach;
+    $cards = ob_get_clean();
 
     ob_start();
     ?>
@@ -269,38 +309,15 @@ function reco_render_section(string $title, string $emoji, array $products, stri
                 <?php endif; ?>
             </div>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--space-3);">
-            <?php foreach ($products as $p): ?>
-                <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
-                   class="product-card-v2 <?= ($p['freshness_level'] ?? '') === 'LAST_CHANCE' ? 'last-chance' : '' ?>"
-                   style="color: inherit;">
-                    <div class="product-card-image">
-                        <?php if (!empty($p['primary_image'])): ?>
-                            <img src="<?= upload_url($p['primary_image']) ?>" alt=""
-                                 style="width: 100%; height: 100%; object-fit: cover;">
-                        <?php else: ?>
-                            <span>🥬</span>
-                        <?php endif; ?>
-                        <?= freshness_badge_html($p['freshness_level'] ?? 'FRESH', $p['days_remaining'] ?? null) ?>
-                        <?php if (!empty($p['is_discounted'])): ?>
-                            <span class="discount-tag">-<?= (int) $p['discount_pct'] ?>%</span>
-                        <?php endif; ?>
-                    </div>
-                    <div class="product-card-body">
-                        <div class="product-card-name"><?= htmlspecialchars($p['name']) ?></div>
-                        <div class="product-card-pricing">
-                            <span class="price-final"><?= format_myr($p['final_price'] ?? $p['base_price']) ?></span>
-                            <?php if (!empty($p['is_discounted'])): ?>
-                                <span class="price-base-strike"><?= format_myr($p['base_price']) ?></span>
-                            <?php endif; ?>
-                            <span style="color: var(--color-text-muted); font-size: 0.8125rem;">
-                                / <?= htmlspecialchars($p['unit_code']) ?>
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            <?php endforeach; ?>
-        </div>
+        <?php if ($layout === 'carousel'): ?>
+            <div class="reco-carousel-wrap">
+                <button class="reco-arrow" data-reco-dir="prev" type="button" aria-label="Scroll left" hidden>&lsaquo;</button>
+                <div class="reco-carousel"><?= $cards ?></div>
+                <button class="reco-arrow" data-reco-dir="next" type="button" aria-label="Scroll right">&rsaquo;</button>
+            </div>
+        <?php else: ?>
+            <div class="reco-grid"><?= $cards ?></div>
+        <?php endif; ?>
     </section>
     <?php
     return ob_get_clean();

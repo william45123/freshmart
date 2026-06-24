@@ -86,6 +86,35 @@ if (is_post() && input('action') === 'adjust') {
     }
 }
 
+// ---------- Handle batch discard (write-off as waste) ----------
+if (is_post() && input('action') === 'discard') {
+    if (!csrf_verify()) {
+        $errors[] = 'CSRF mismatch.';
+    } else {
+        $batchId = (int) input('batch_id');
+        $mtype   = (string) input('movement_type', 'EXPIRED');
+        $reason  = trim((string) input('reason', '')) ?: 'Written off by retailer';
+
+        $owned = db_scalar(
+            "SELECT sb.id FROM stock_batches sb
+             JOIN products p ON p.id = sb.product_id
+             WHERE sb.id = ? AND p.retailer_id = ?",
+            [$batchId, $retailerId]
+        );
+        if (!$owned) {
+            $errors[] = 'Invalid batch.';
+        } else {
+            try {
+                $qty = fefo_discard($batchId, $mtype, $reason, auth_id());
+                flash_set('success', 'Batch written off — ' . number_format($qty, 2) . ' units recorded as waste.');
+                redirect('/retailer/inventory.php' . ($filterProductId ? "?product_id=$filterProductId" : ''));
+            } catch (Throwable $e) {
+                $errors[] = 'Write-off failed: ' . $e->getMessage();
+            }
+        }
+    }
+}
+
 // ---------- Load batches ----------
 $where = ['p.retailer_id = ?'];
 $args  = [$retailerId];
@@ -193,7 +222,12 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                     </td>
                     <td>
                         <?php if ($b['status'] === 'ACTIVE'): ?>
-                            <?= freshness_badge_html($level, $days) ?>
+                            <?= freshness_ring_html([
+                                'freshness_percent' => freshness_percent($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']),
+                                'freshness_color'   => freshness_info($level)['color_hex'],
+                                'freshness_level'   => $level,
+                                'days_remaining'    => $days,
+                            ], 42, true) ?>
                         <?php else: ?>
                             <span style="color: var(--color-text-muted); font-size: 0.875rem;">—</span>
                         <?php endif; ?>
@@ -217,6 +251,21 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                                     <input type="text" name="reason" placeholder="Reason"
                                            class="form-control" style="width: 150px;" maxlength="100">
                                     <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                </form>
+                            </details>
+                            <details style="margin-top: var(--space-2);">
+                                <summary class="btn btn-danger btn-sm" style="display: inline-block;">Discard</summary>
+                                <form method="post" onsubmit="return confirm('Write off ALL remaining units of this batch as waste? This cannot be undone.');" style="margin-top: var(--space-2); display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="action" value="discard">
+                                    <input type="hidden" name="batch_id" value="<?= $b['id'] ?>">
+                                    <select name="movement_type" class="form-control" style="width: 130px;">
+                                        <option value="EXPIRED">Expired</option>
+                                        <option value="DAMAGED">Damaged</option>
+                                    </select>
+                                    <input type="text" name="reason" placeholder="Reason (optional)"
+                                           class="form-control" style="width: 160px;" maxlength="100">
+                                    <button type="submit" class="btn btn-danger btn-sm">Confirm write-off</button>
                                 </form>
                             </details>
                         <?php endif; ?>

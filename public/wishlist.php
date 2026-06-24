@@ -34,13 +34,14 @@ require_once __DIR__ . '/../includes/header.php';
 
 <section class="container" style="padding: var(--space-6) 0 var(--space-12);">
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-4);">
-        <h1 style="margin: 0;">❤️ My Wishlist</h1>
+        <h1 style="margin: 0;"><span class="label-ico"><?= icon('heart', 22) ?> My Wishlist</span></h1>
         <span style="color: var(--color-text-muted);"><?= count($items) ?> item<?= count($items) === 1 ? '' : 's' ?></span>
     </div>
 
     <?php if (empty($items)): ?>
         <div class="empty-state">
-            <p style="font-size: 1.0625rem; margin-bottom: var(--space-3);">❤️ Your wishlist is empty</p>
+            <div class="empty-ico"><?= icon('heart', 44) ?></div>
+            <p style="font-size: 1.0625rem; margin-bottom: var(--space-3);">Your wishlist is empty</p>
             <p>Tap the heart on any product to save it for later.</p>
             <a href="<?= url('/shop/browse.php') ?>" class="btn btn-primary" style="margin-top: var(--space-3);">Browse products</a>
         </div>
@@ -52,12 +53,12 @@ require_once __DIR__ . '/../includes/header.php';
                        style="color: inherit; display: block;">
                         <div class="product-card-image">
                             <?php if (!empty($p['primary_image'])): ?>
-                                <img src="<?= upload_url($p['primary_image']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
+                                <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
                             <?php else: ?>
-                                <span>🥬</span>
+                                <span class="img-fallback"><?= icon('leaf', 56) ?></span>
                             <?php endif; ?>
                             <?php if (!empty($p['expiry_date'])): ?>
-                                <?= freshness_badge_html($p['freshness_level'], $p['days_remaining']) ?>
+                                <?= freshness_ring_html($p) ?>
                                 <?php if (!empty($p['is_discounted'])): ?>
                                     <span class="discount-tag">-<?= (int) $p['discount_pct'] ?>%</span>
                                 <?php endif; ?>

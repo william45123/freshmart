@@ -131,6 +131,38 @@ $pageTitle = $product['name'] . ' — FreshMart';
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
+<?php
+// SEO: schema.org Product structured data (rich snippets + AI shopping agents)
+$ld = [
+    '@context'    => 'https://schema.org',
+    '@type'       => 'Product',
+    'name'        => $product['name'],
+    'description' => trim(strip_tags((string) ($product['description'] ?? ''))),
+    'sku'         => $product['sku'] ?? null,
+    'category'    => $product['category_name'] ?? null,
+    'brand'       => ['@type' => 'Brand', 'name' => $product['retailer_name'] ?? 'FreshMart'],
+    'image'       => !empty($images) ? upload_url($images[0]['image_path']) : null,
+    'offers'      => [
+        '@type'         => 'Offer',
+        'priceCurrency' => 'MYR',
+        'price'         => number_format((float) ($freshness['final_price'] ?? $product['base_price']), 2, '.', ''),
+        'availability'  => $totalStock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        'url'           => url('/shop/product.php?slug=' . urlencode($product['slug'])),
+    ],
+];
+if ($reviewCount > 0) {
+    $ld['aggregateRating'] = [
+        '@type'       => 'AggregateRating',
+        'ratingValue' => number_format($avgRating, 1),
+        'reviewCount' => $reviewCount,
+    ];
+}
+$ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
+?>
+<script type="application/ld+json">
+<?= json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?>
+</script>
+
 <section class="container" style="padding: var(--space-6) 0;">
 
     <!-- Breadcrumb -->
@@ -142,7 +174,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <span><?= e($product['name']) ?></span>
     </nav>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8);">
+    <div class="product-layout">
 
         <!-- Image gallery -->
         <div>
@@ -152,13 +184,11 @@ require_once __DIR__ . '/../../includes/header.php';
                          alt="<?= attr($images[0]['alt_text']) ?>"
                          style="width: 100%; height: 100%; object-fit: cover;">
                 <?php else: ?>
-                    <span style="font-size: 6rem;">🥬</span>
+                    <span class="img-fallback"><?= icon('leaf', 96) ?></span>
                 <?php endif; ?>
 
                 <?php if ($freshness): ?>
-                    <div style="position: absolute; top: var(--space-4); left: var(--space-4);">
-                        <?= freshness_badge_html($freshness['freshness_level'], $freshness['days_remaining']) ?>
-                    </div>
+                    <?= freshness_ring_html($freshness, 76) ?>
                 <?php endif; ?>
                 <?php if ($freshness && !empty($freshness['is_discounted'])): ?>
                     <div class="discount-tag" style="top: var(--space-4); right: var(--space-4); position: absolute;">
@@ -172,7 +202,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     <?php foreach ($images as $img): ?>
                         <button onclick="document.getElementById('mainImage').src='<?= upload_url($img['image_path']) ?>'"
                                 style="aspect-ratio: 1; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; padding: 0; background: var(--color-bg); cursor: pointer;">
-                            <img src="<?= upload_url($img['image_path']) ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="<?= upload_url($img['image_path']) ?>" alt="<?= attr($img['alt_text'] ?? $product['name']) ?>" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
                         </button>
                     <?php endforeach; ?>
                 </div>
@@ -365,7 +395,7 @@ require_once __DIR__ . '/../../includes/header.php';
                    class="product-card-v2" style="color: inherit;">
                     <div class="product-card-image">
                         <?php if (!empty($rv['primary_image'])): ?>
-                            <img src="<?= upload_url($rv['primary_image']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="<?= upload_url($rv['primary_image']) ?>" alt="<?= attr($rv['name']) ?>" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
                         <?php else: ?>
                             <span>🥬</span>
                         <?php endif; ?>
@@ -399,7 +429,7 @@ require_once __DIR__ . '/../../includes/header.php';
                    class="product-card-v2" style="color: inherit;">
                     <div class="product-card-image">
                         <?php if (!empty($r['primary_image'])): ?>
-                            <img src="<?= upload_url($r['primary_image']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
+                            <img src="<?= upload_url($r['primary_image']) ?>" alt="<?= attr($r['name']) ?>" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
                         <?php else: ?>
                             <span>🥬</span>
                         <?php endif; ?>

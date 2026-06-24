@@ -37,6 +37,31 @@ $kgSaved = (float) db_scalar(
      WHERE freshness_at_order = 'LAST_CHANCE'"
 );
 
+// Waste & rescue (platform-wide, last 30 days)
+$wasteAgg = db_one(
+    "SELECT COALESCE(SUM(-il.quantity_change),0) AS units,
+            COALESCE(SUM(-il.quantity_change * sb.cost_per_unit),0) AS cost
+     FROM inventory_logs il
+     JOIN stock_batches sb ON sb.id = il.stock_batch_id
+     WHERE il.movement_type IN ('EXPIRED','DAMAGED')
+       AND il.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)"
+);
+$discUnits30 = (float) ($wasteAgg['units'] ?? 0);
+$discCost30  = (float) ($wasteAgg['cost'] ?? 0);
+$rescued30 = (float) db_scalar(
+    "SELECT COALESCE(SUM(oi.quantity),0) FROM order_items oi
+     JOIN orders o ON o.id = oi.order_id
+     WHERE oi.freshness_at_order = 'LAST_CHANCE'
+       AND o.placed_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)"
+);
+$sold30 = (float) db_scalar(
+    "SELECT COALESCE(SUM(oi.quantity),0) FROM order_items oi
+     JOIN orders o ON o.id = oi.order_id
+     WHERE o.placed_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+       AND o.status IN ('PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY','DELIVERED')"
+);
+$wasteRate30 = ($sold30 + $discUnits30) > 0 ? ($discUnits30 / ($sold30 + $discUnits30)) * 100 : 0.0;
+
 // Pending reviews count
 $pendingReviews = (int) db_scalar("SELECT COUNT(*) FROM reviews WHERE is_approved = 0");
 
@@ -162,17 +187,17 @@ admin_layout_start('dashboard', 'Platform Dashboard');
 <!-- ===== Section 2: 3 main business stats ===== -->
 <div class="kpi-row-3">
     <div class="kpi-card">
-        <div class="kpi-label">📦 Orders</div>
+        <div class="kpi-label"><span class="label-ico"><?= icon('package',16) ?> Orders</span></div>
         <div class="kpi-value"><?= number_format($kpis['total_orders']) ?></div>
         <div class="kpi-meta">Lifetime</div>
     </div>
     <div class="kpi-card">
-        <div class="kpi-label">👥 Customers</div>
+        <div class="kpi-label"><span class="label-ico"><?= icon('user',16) ?> Customers</span></div>
         <div class="kpi-value"><?= number_format($kpis['total_users']) ?></div>
         <div class="kpi-meta">Active accounts</div>
     </div>
     <div class="kpi-card kpi-card-accent">
-        <div class="kpi-label">🌱 Saved from waste</div>
+        <div class="kpi-label"><span class="label-ico"><?= icon('leaf',16) ?> Saved from waste</span></div>
         <div class="kpi-value"><?= number_format($kgSaved, 1) ?></div>
         <div class="kpi-meta">Last Chance units sold</div>
     </div>
@@ -195,6 +220,26 @@ admin_layout_start('dashboard', 'Platform Dashboard');
     <div class="kpi-strip-item">
         <div class="kpi-strip-label">Expired</div>
         <div class="kpi-strip-value <?= $kpis['expired_batches'] > 0 ? 'is-warn' : '' ?>"><?= number_format($kpis['expired_batches']) ?></div>
+    </div>
+</div>
+
+<!-- ===== Section: Waste & rescue (last 30 days) ===== -->
+<h2 style="font-size: 1.125rem; margin: var(--space-6) 0 var(--space-3);">Waste &amp; rescue · last 30 days</h2>
+<div class="kpi-row-3">
+    <div class="kpi-card kpi-card-accent">
+        <div class="kpi-label">Rescued from waste</div>
+        <div class="kpi-value"><?= number_format($rescued30, 1) ?></div>
+        <div class="kpi-meta">Last Chance units sold</div>
+    </div>
+    <div class="kpi-card" style="background: #fbeee8; border-color: #b85c38;">
+        <div class="kpi-label">Discarded</div>
+        <div class="kpi-value" style="color: #b85c38;"><?= number_format($discUnits30, 1) ?></div>
+        <div class="kpi-meta">Loss <?= format_myr($discCost30) ?></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Waste rate</div>
+        <div class="kpi-value"><?= number_format($wasteRate30, 1) ?>%</div>
+        <div class="kpi-meta">discarded ÷ (sold + discarded)</div>
     </div>
 </div>
 

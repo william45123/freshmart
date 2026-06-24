@@ -51,16 +51,20 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle ?? 'FreshMart — Fresh Produce, Delivered') ?></title>
     <meta name="description" content="Malaysia's freshness-first online grocery — backed by FEFO inventory and a transparent Freshness Indicator.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
+    <noscript><style>.reveal{opacity:1 !important;transform:none !important;}</style></noscript>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥬</text></svg>">
 </head>
-<body>
+<body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?>">
 <header class="site-header <?= $isAdmin ? 'header-admin' : ($isRetailer ? 'header-retailer' : '') ?>">
     <div class="container">
 
         <!-- Brand (varies by role) -->
         <a href="<?= url($isAdmin ? '/admin/dashboard.php' : ($isRetailer ? '/retailer/dashboard.php' : '/')) ?>" class="brand">
-            <span class="brand-logo">🥬</span>
+            <span class="brand-logo"><?= icon('leaf', 24) ?></span>
             <span>FreshMart</span>
             <?php if ($brandSubLabel): ?>
                 <span class="brand-sublabel"><?= e($brandSubLabel) ?></span>
@@ -91,7 +95,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                 <a href="<?= url('/shop/browse.php') ?>">Browse</a>
                 <a href="<?= url('/shop/browse.php?category=vegetables') ?>">Vegetables</a>
                 <a href="<?= url('/shop/browse.php?category=fruits') ?>">Fruits</a>
-                <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>">🔥 Last Chance</a>
+                <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="label-ico"><?= icon('flame', 15) ?> Last Chance</a>
             <?php endif; ?>
         </nav>
 
@@ -100,8 +104,8 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
 
             <?php if ($isCustomer): ?>
                 <!-- Customer cart icon with badge -->
-                <a href="<?= url('/shop/cart.php') ?>" class="btn btn-ghost btn-sm" style="position: relative;" title="Cart">
-                    🛒
+                <a href="<?= url('/shop/cart.php') ?>" class="btn btn-ghost btn-sm btn-icon" style="position: relative;" title="Cart">
+                    <?= icon('cart') ?>
                     <?php if ($cartCount > 0): ?>
                         <span style="position: absolute; top: -2px; right: -2px; background: var(--color-primary); color: white; font-size: 0.625rem; font-weight: 700; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; line-height: 1;">
                             <?= min(99, $cartCount) ?>
@@ -112,8 +116,8 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
 
             <?php if (auth_check()): ?>
                 <!-- Notifications (everyone logged in) -->
-                <a href="<?= url('/notifications.php') ?>" class="btn btn-ghost btn-sm" style="position: relative;" title="Notifications">
-                    🔔
+                <a href="<?= url('/notifications.php') ?>" class="btn btn-ghost btn-sm btn-icon" style="position: relative;" title="Notifications">
+                    <?= icon('bell') ?>
                     <?php if ($unreadNotifs > 0): ?>
                         <span style="position: absolute; top: -2px; right: -2px; background: var(--color-danger); color: white; font-size: 0.625rem; border-radius: 999px; min-width: 16px; height: 16px; display: grid; place-items: center; padding: 0 4px;">
                             <?= min(99, $unreadNotifs) ?>
@@ -123,8 +127,8 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
 
                 <?php if ($isCustomer): ?>
                     <!-- Customer extras: wishlist + orders -->
-                    <a href="<?= url('/wishlist.php') ?>" class="btn btn-ghost btn-sm" title="Wishlist">❤️</a>
-                    <a href="<?= url('/shop/orders.php') ?>" class="btn btn-ghost btn-sm" title="My orders">📦</a>
+                    <a href="<?= url('/wishlist.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="Wishlist"><?= icon('heart') ?></a>
+                    <a href="<?= url('/shop/orders.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="My orders"><?= icon('package') ?></a>
                 <?php endif; ?>
 
                 <!-- Greeting + Profile link -->
@@ -140,8 +144,60 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                 <a href="<?= url('/auth/register.php') ?>" class="btn btn-primary btn-sm">Sign Up</a>
             <?php endif; ?>
         </div>
+
+        <!-- Mobile hamburger (shown < 860px) -->
+        <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" data-mobile-open>&#9776;</button>
     </div>
 </header>
+
+<!-- Mobile slide-in navigation -->
+<div class="mobile-nav-backdrop" data-mobile-close></div>
+<nav class="mobile-nav" aria-label="Mobile menu">
+    <div class="mobile-nav-head">
+        <span class="brand"><span class="brand-logo"><?= icon('leaf', 22) ?></span> FreshMart</span>
+        <button class="mobile-nav-close" type="button" aria-label="Close menu" data-mobile-close>&times;</button>
+    </div>
+
+    <div class="mobile-nav-group">Menu</div>
+    <?php if ($isAdmin): ?>
+        <a href="<?= url('/admin/dashboard.php') ?>">Dashboard</a>
+        <a href="<?= url('/admin/users.php') ?>">Users</a>
+        <a href="<?= url('/admin/retailers.php') ?>">Retailers</a>
+        <a href="<?= url('/admin/orders.php') ?>">Orders</a>
+        <a href="<?= url('/admin/reviews.php') ?>">Reviews</a>
+        <a href="<?= url('/admin/promos.php') ?>">Promos</a>
+        <a href="<?= url('/admin/settings.php') ?>">Settings</a>
+    <?php elseif ($isRetailer): ?>
+        <a href="<?= url('/retailer/dashboard.php') ?>">Dashboard</a>
+        <a href="<?= url('/retailer/products.php') ?>">Products</a>
+        <a href="<?= url('/retailer/inventory.php') ?>">Inventory</a>
+        <a href="<?= url('/retailer/orders.php') ?>">Orders</a>
+        <a href="<?= url('/retailer/reviews.php') ?>">Reviews</a>
+        <a href="<?= url('/retailer/reports.php') ?>">Reports</a>
+    <?php else: ?>
+        <a href="<?= url('/shop/browse.php') ?>">Browse</a>
+        <a href="<?= url('/shop/browse.php?category=vegetables') ?>">Vegetables</a>
+        <a href="<?= url('/shop/browse.php?category=fruits') ?>">Fruits</a>
+        <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>"><?= icon('flame', 18) ?> Last Chance</a>
+    <?php endif; ?>
+
+    <div class="mobile-nav-group">Account</div>
+    <?php if ($isCustomer): ?>
+        <a href="<?= url('/shop/cart.php') ?>"><?= icon('cart', 18) ?> Cart<?= $cartCount > 0 ? ' (' . min(99, $cartCount) . ')' : '' ?></a>
+    <?php endif; ?>
+    <?php if (auth_check()): ?>
+        <a href="<?= url('/notifications.php') ?>"><?= icon('bell', 18) ?> Notifications<?= $unreadNotifs > 0 ? ' (' . min(99, $unreadNotifs) . ')' : '' ?></a>
+        <?php if ($isCustomer): ?>
+            <a href="<?= url('/wishlist.php') ?>"><?= icon('heart', 18) ?> Wishlist</a>
+            <a href="<?= url('/shop/orders.php') ?>"><?= icon('package', 18) ?> My orders</a>
+        <?php endif; ?>
+        <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>"><?= icon('user', 18) ?> <?= e(auth_name()) ?></a>
+        <a class="btn btn-outline mobile-nav-cta" href="<?= url('/auth/logout.php') ?>">Logout</a>
+    <?php else: ?>
+        <a href="<?= url('/auth/login.php') ?>">Login</a>
+        <a class="btn btn-primary mobile-nav-cta" href="<?= url('/auth/register.php') ?>">Sign Up</a>
+    <?php endif; ?>
+</nav>
 
 <?php if (!empty($flashes)): ?>
 <div class="container" style="margin-top: var(--space-4);">
