@@ -28,20 +28,20 @@ $heroProduct = db_one(
         p.id, p.name, p.slug, p.base_price, p.origin, p.description,
         c.name AS category_name,
         COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent,
-        (SELECT image_path FROM product_images pi
-         WHERE pi.product_id = p.id AND pi.is_primary = 1 LIMIT 1) AS primary_image,
-        sb.id AS display_batch_id, sb.received_date, sb.expiry_date,
-        sb.selling_price_override
+        pi.image_path AS primary_image,
+        sb.id AS display_batch_id, sb.received_date, sb.expiry_date
      FROM products p
      JOIN categories c ON c.id = p.category_id
+     JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
+        AND pi.image_path NOT LIKE 'placeholders/%'
      JOIN stock_batches sb ON sb.id = (
         SELECT id FROM stock_batches
         WHERE product_id = p.id AND status = 'ACTIVE'
           AND quantity_remaining > 0 AND expiry_date > CURDATE()
-          AND selling_price_override IS NOT NULL
         ORDER BY expiry_date ASC LIMIT 1
      )
      WHERE p.is_active = 1 AND p.deleted_at IS NULL
+     ORDER BY p.is_featured DESC, RAND()
      LIMIT 1"
 );
 if ($heroProduct) {
@@ -103,21 +103,38 @@ $products = array_map(function ($p) {
 // ============================================================
 // 3) DASHBOARD STATS — sustainability + freshness KPIs
 // ============================================================
+
+// Compute Last Chance count + rescued kg LIVE from freshness (not from the
+// stale selling_price_override column, which we no longer write to).
+$activeBatches = db_all(
+    "SELECT sb.quantity_remaining,
+            COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent,
+            sb.received_date, sb.expiry_date
+     FROM stock_batches sb
+     JOIN products p   ON p.id = sb.product_id
+     JOIN categories c ON c.id = p.category_id
+     WHERE sb.status = 'ACTIVE' AND sb.quantity_remaining > 0
+       AND sb.expiry_date > CURDATE()"
+);
+$lastChanceCount = 0;
+foreach ($activeBatches as $b) {
+    $lvl = freshness_level($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']);
+    if ($lvl === 'LAST_CHANCE') {
+        $lastChanceCount++;
+    }
+}
+
+// "Saved from waste" = units actually sold while in Last Chance state.
+// Uses the SAME definition as the admin dashboard so the two figures match.
+$savedUnits = (float) db_scalar(
+    "SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE freshness_at_order = 'LAST_CHANCE'"
+);
+
 $stats = [
     'products'   => (int) db_scalar("SELECT COUNT(*) FROM products WHERE is_active = 1"),
     'retailers'  => (int) db_scalar("SELECT COUNT(*) FROM retailers WHERE approval_status = 'APPROVED'"),
-    'last_chance' => (int) db_scalar(
-        "SELECT COUNT(*) FROM stock_batches sb
-         JOIN products p ON p.id = sb.product_id
-         WHERE sb.status = 'ACTIVE' AND sb.quantity_remaining > 0
-           AND sb.selling_price_override IS NOT NULL"
-    ),
-    // "saved from waste" estimate: kg of LAST_CHANCE batches currently available + items already sold
-    'saved_kg'   => (float) db_scalar(
-        "SELECT COALESCE(SUM(quantity_remaining * 0.5), 0) +
-                COALESCE((SELECT SUM(quantity) FROM order_items WHERE freshness_at_order = 'LAST_CHANCE'), 0)
-         FROM stock_batches WHERE selling_price_override IS NOT NULL AND status='ACTIVE'"
-    ),
+    'last_chance' => $lastChanceCount,
+    'saved_kg'   => $savedUnits,
 ];
 
 // ============================================================
@@ -126,7 +143,14 @@ $stats = [
 $homeCategories = db_all(
     "SELECT c.id, c.name, c.slug,
             (SELECT COUNT(*) FROM products p
-             WHERE p.category_id = c.id AND p.is_active = 1 AND p.deleted_at IS NULL) AS product_count
+             WHERE p.category_id = c.id AND p.is_active = 1 AND p.deleted_at IS NULL) AS product_count,
+            (SELECT pi.image_path
+             FROM products p
+             JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
+             WHERE p.category_id = c.id AND p.is_active = 1 AND p.deleted_at IS NULL
+               AND pi.image_path NOT LIKE 'placeholders/%'
+             ORDER BY p.is_featured DESC, p.id ASC
+             LIMIT 1) AS cover_image
      FROM categories c
      WHERE c.is_active = 1
      ORDER BY c.display_order
@@ -172,7 +196,31 @@ $popularThisWeek = reco_popular_this_week(6);
 $kgRescued = (float) db_scalar(
     "SELECT COALESCE(SUM(quantity), 0) FROM order_items WHERE freshness_at_order = 'LAST_CHANCE'"
 );
-$mayAlsoLike     = reco_you_may_like(auth_check() ? auth_id() : null, 6);
+
+// "You May Also Like" — pull extra, then remove anything already shown in
+// "Popular This Week" so the two rows don't look identical.
+$mayAlsoLikeRaw = reco_you_may_like(auth_check() ? auth_id() : null, 12);
+$popularIds     = array_column($popularThisWeek, 'id');
+$mayAlsoLike    = array_values(array_filter(
+    $mayAlsoLikeRaw,
+    fn($p) => !in_array($p['id'], $popularIds, true)
+));
+$mayAlsoLike    = array_slice($mayAlsoLike, 0, 6);
+
+// Top customer reviews for the homepage testimonials strip (real 4-5 star reviews).
+$testimonials = db_all(
+    "SELECT r.rating, r.title, r.body, r.created_at,
+            pr.full_name AS reviewer_name,
+            p.name AS product_name
+     FROM reviews r
+     JOIN users u    ON u.id = r.user_id
+     LEFT JOIN profiles pr ON pr.user_id = r.user_id
+     JOIN products p ON p.id = r.product_id
+     WHERE r.is_approved = 1 AND r.rating >= 4
+       AND r.body IS NOT NULL AND CHAR_LENGTH(r.body) > 15
+     ORDER BY r.rating DESC, r.created_at DESC
+     LIMIT 3"
+);
 
 require_once __DIR__ . '/../includes/header.php';
 
@@ -198,7 +246,7 @@ function fresh_color($level) {
             </div>
             <div class="stat-item highlight">
                 <div class="stat-label">🌱 Saved from waste</div>
-                <div class="stat-value"><?= number_format($stats['saved_kg'], 1) ?> <span class="stat-unit">kg</span></div>
+                <div class="stat-value"><?= number_format($stats['saved_kg'], 0) ?> <span class="stat-unit">items</span></div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Last Chance items</div>
@@ -212,87 +260,145 @@ function fresh_color($level) {
     </div>
 </section>
 
-<!-- ============ SECTION 2: EDITORIAL HERO (Last Chance spotlight) ============ -->
-<?php if ($heroProduct): ?>
-<section class="editorial-hero">
-    <span class="blob-accent" style="top:-110px; right:-60px;" aria-hidden="true"></span>
-    <span class="hero-illus" style="left:-22px; bottom:-44px; transform:rotate(16deg);" aria-hidden="true">
-        <svg width="92" height="150" viewBox="0 0 130 210" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M65 205 C 60 160 70 120 64 80 C 60 50 66 26 64 8" stroke="#5f7049" stroke-width="2.4" stroke-linecap="round"/>
-            <g stroke="#5f7049" stroke-width="2" stroke-linecap="round">
-                <path d="M64 170 C 50 166 40 152 38 138 C 54 142 64 156 64 170"/>
-                <path d="M64 170 C 78 166 88 152 90 138 C 74 142 64 156 64 170"/>
-                <path d="M64 130 C 52 126 44 114 42 102 C 56 106 64 118 64 130"/>
-                <path d="M64 130 C 76 126 84 114 86 102 C 72 106 64 118 64 130"/>
-                <path d="M64 92 C 54 88 47 78 45 68 C 58 72 64 82 64 92"/>
-                <path d="M64 92 C 74 88 81 78 83 68 C 70 72 64 82 64 92"/>
-                <path d="M64 56 C 56 53 50 45 49 37 C 60 40 64 48 64 56"/>
-                <path d="M64 56 C 72 53 78 45 79 37 C 68 40 64 48 64 56"/>
-            </g>
-            <circle cx="64" cy="12" r="5" fill="#b85c38"/>
-            <circle cx="55" cy="20" r="4" fill="#c9a55a"/>
-        </svg>
-    </span>
+<!-- ============ SECTION 2: HERO POSTER BANNER ============ -->
+<section class="hero-poster-section">
     <div class="container">
-        <div class="hero-eyebrow">Featured today · Last Chance</div>
-        <div class="hero-grid">
-            <div class="hero-text">
-                <h1 class="hero-title">
-                    <?= e($heroProduct['name']) ?>.<br>
-                    <em class="scribble">Save it from waste.</em>
+        <div class="hero-poster">
+            <div class="hero-poster-text">
+                <div class="hero-poster-eyebrow">🌿 Farm fresh, delivered</div>
+                <h1 class="hero-poster-title">
+                    Fresh produce,<br><span class="scribble">honest freshness.</span>
                 </h1>
-                <p class="hero-description">
-                    Last batch, expires <?= relative_date($heroProduct['expiry_date']) ?>.
-                    Auto-discounted because every <?= e(strtolower(explode(' ', $heroProduct['name'])[0])) ?>
-                    sold means one less thrown away.
+                <p class="hero-poster-desc">
+                    Every product shows a live freshness score. Shop with confidence,
+                    save money on Last Chance deals, and help cut food waste.
                 </p>
-                <div class="hero-pricing">
-                    <span class="hero-price-final"><?= format_myr($heroProduct['final_price']) ?></span>
-                    <?php if (!empty($heroProduct['is_discounted'])): ?>
-                        <span class="hero-price-strike"><?= format_myr($heroProduct['base_price']) ?></span>
-                        <span class="hero-discount-tag">−<?= (int) $heroProduct['discount_pct'] ?>% AUTO</span>
-                    <?php endif; ?>
-                </div>
-                <div class="hero-actions">
-                    <a href="<?= url('/shop/product.php?slug=' . urlencode($heroProduct['slug'])) ?>"
-                       class="btn-pill btn-pill-primary">
-                        Add to Cart
+                <div class="hero-poster-actions">
+                    <a href="<?= url('/shop/browse.php') ?>" class="hero-poster-btn hero-poster-btn-primary">
+                        Start shopping
                     </a>
-                    <a href="<?= url('/shop/freshness.php') ?>" class="btn-pill btn-pill-outline">
+                    <a href="<?= url('/shop/freshness.php') ?>" class="hero-poster-btn hero-poster-btn-ghost">
                         How freshness works →
                     </a>
                 </div>
+                <div class="hero-poster-stats">
+                    <div class="hps-item">
+                        <span class="hps-num"><?= (int) $stats['products'] ?>+</span>
+                        <span class="hps-label">Fresh products</span>
+                    </div>
+                    <div class="hps-item">
+                        <span class="hps-num"><?= number_format($stats['saved_kg'], 0) ?></span>
+                        <span class="hps-label">Items saved</span>
+                    </div>
+                    <div class="hps-item">
+                        <span class="hps-num"><?= (int) $stats['retailers'] ?></span>
+                        <span class="hps-label">Local retailers</span>
+                    </div>
+                </div>
             </div>
-            <div class="hero-image">
-                <?php if (!empty($heroProduct['primary_image'])): ?>
-                    <img src="<?= upload_url($heroProduct['primary_image']) ?>" alt="<?= attr($heroProduct['name']) ?>">
+            <div class="hero-poster-image">
+                <?php if ($heroProduct && !empty($heroProduct['primary_image'])): ?>
+                    <img src="<?= upload_url($heroProduct['primary_image']) ?>" alt="Fresh produce" loading="eager">
                 <?php else: ?>
-                    <span class="img-fallback"><?= icon('leaf', 110) ?></span>
+                    <div class="hero-poster-image-fallback"><?= icon('leaf', 120) ?></div>
+                <?php endif; ?>
+                <?php if ($heroProduct): ?>
+                    <a href="<?= url('/shop/product.php?slug=' . urlencode($heroProduct['slug'])) ?>" class="hero-poster-tag">
+                        <span class="hpt-name"><?= e($heroProduct['name']) ?></span>
+                        <span class="hpt-price"><?= format_myr($heroProduct['final_price'] ?? $heroProduct['base_price']) ?></span>
+                    </a>
                 <?php endif; ?>
             </div>
         </div>
     </div>
 </section>
-<?php endif; ?>
 
-<!-- ============ SECTION 3: CATEGORY CHIPS ============ -->
-<section class="category-chips-section">
+<!-- ============ SECTION 2b: TRUST BADGES ============ -->
+<section class="trust-badges-section">
     <div class="container">
-        <div class="category-chips">
-            <a href="<?= url('/shop/browse.php') ?>" class="chip chip-active">All · <?= $stats['products'] ?></a>
+        <div class="trust-badges">
+            <div class="trust-badge">
+                <span class="trust-badge-icon">🚚</span>
+                <div class="trust-badge-text">
+                    <div class="trust-badge-title">Free delivery over RM50</div>
+                    <div class="trust-badge-sub">On all orders</div>
+                </div>
+            </div>
+            <div class="trust-badge">
+                <span class="trust-badge-icon">🌿</span>
+                <div class="trust-badge-text">
+                    <div class="trust-badge-title">Farm fresh daily</div>
+                    <div class="trust-badge-sub">Sourced locally</div>
+                </div>
+            </div>
+            <div class="trust-badge">
+                <span class="trust-badge-icon">♻️</span>
+                <div class="trust-badge-text">
+                    <div class="trust-badge-title">Zero-waste mission</div>
+                    <div class="trust-badge-sub">Last Chance deals</div>
+                </div>
+            </div>
+            <div class="trust-badge">
+                <span class="trust-badge-icon">🔒</span>
+                <div class="trust-badge-text">
+                    <div class="trust-badge-title">Secure checkout</div>
+                    <div class="trust-badge-sub">Safe & encrypted</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ SECTION 3: CATEGORY CIRCLES ============ -->
+<section class="category-circles-section">
+    <div class="container">
+        <div class="section-header" style="margin-bottom: var(--space-6);">
+            <h2>Shop by <span class="scribble">Category</span></h2>
+            <a href="<?= url('/shop/browse.php') ?>" class="section-link">View all →</a>
+        </div>
+        <div class="category-circles">
             <?php foreach ($homeCategories as $c):
                 $emoji = $catEmoji[$c['slug']] ?? '🛒';
             ?>
-                <a href="<?= url('/shop/browse.php?category=' . urlencode($c['slug'])) ?>" class="chip">
-                    <?= $emoji ?> <?= e($c['name']) ?> · <?= (int) $c['product_count'] ?>
+                <a href="<?= url('/shop/browse.php?category=' . urlencode($c['slug'])) ?>" class="cat-circle">
+                    <div class="cat-circle-img">
+                        <?php if (!empty($c['cover_image'])): ?>
+                            <img src="<?= upload_url($c['cover_image']) ?>" alt="<?= attr($c['name']) ?>" loading="lazy">
+                        <?php else: ?>
+                            <span class="cat-circle-emoji"><?= $emoji ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="cat-circle-name"><?= e($c['name']) ?></div>
+                    <div class="cat-circle-count"><?= (int) $c['product_count'] ?> items</div>
                 </a>
             <?php endforeach; ?>
             <?php if ($stats['last_chance'] > 0): ?>
-                <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="chip chip-alert">
-                    🟠 Last Chance · <?= $stats['last_chance'] ?>
+                <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="cat-circle cat-circle-alert">
+                    <div class="cat-circle-img">
+                        <span class="cat-circle-emoji">🔥</span>
+                    </div>
+                    <div class="cat-circle-name">Last Chance</div>
+                    <div class="cat-circle-count"><?= $stats['last_chance'] ?> deals</div>
                 </a>
             <?php endif; ?>
         </div>
+    </div>
+</section>
+
+<!-- ============ SECTION 3a: LAST CHANCE PROMO BANNER ============ -->
+<section class="section" style="padding-top: var(--space-6); padding-bottom: 0;">
+    <div class="container">
+        <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="lc-promo">
+            <div class="lc-promo-content">
+                <div class="lc-promo-kicker">🔥 Last Chance</div>
+                <div class="lc-promo-title">15% off — or more</div>
+                <div class="lc-promo-sub">
+                    Every item near its best-before date is automatically discounted.
+                    Great produce, better price, less waste.
+                </div>
+            </div>
+            <div class="lc-promo-cta">Shop Last Chance →</div>
+        </a>
     </div>
 </section>
 
@@ -358,17 +464,9 @@ function fresh_color($level) {
 <?php endif; ?>
 
 <!-- ============ SECTION 4: PRODUCT GRID (4-col with freshness bars) ============ -->
-<div class="veg-divider" aria-hidden="true">
-    <svg viewBox="0 0 360 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 26 C 80 16 130 34 180 24 S 290 16 352 26" stroke="#cabfa7" stroke-width="2" stroke-linecap="round"/>
-        <g stroke="#6f8159" stroke-width="2" stroke-linecap="round">
-            <path d="M180 24 L180 9"/><path d="M180 16 C172 14 168 8 169 3 C176 5 181 11 180 16"/><path d="M180 13 C188 11 192 6 193 1"/>
-        </g>
-        <circle cx="128" cy="26" r="3" fill="#b85c38"/><circle cx="232" cy="24" r="3" fill="#c9a55a"/>
-    </svg>
-</div>
+<div class="section-gap" aria-hidden="true"></div>
 
-<section class="section reveal">
+<section class="section reveal" id="fresh-picks-section">
     <div class="container">
         <div class="section-header">
             <h2>Today's Fresh <span class="scribble">Picks</span></h2>
@@ -377,13 +475,17 @@ function fresh_color($level) {
         <?php if (empty($products)): ?>
             <p style="color: var(--color-text-muted)">No products available yet.</p>
         <?php else: ?>
-            <div class="product-grid-4">
+            <div class="fresh-picks-carousel-wrap">
+                <button type="button" class="carousel-nav carousel-nav-prev" id="fpPrev" aria-label="Previous">
+                    ‹
+                </button>
+                <div class="fresh-picks-carousel" id="freshPicksCarousel">
                 <?php foreach ($products as $p):
                     $isLastChance = ($p['freshness_level'] === 'LAST_CHANCE');
                     $barColor     = fresh_color($p['freshness_level']);
                 ?>
                     <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
-                       class="product-card-v2 <?= $isLastChance ? 'last-chance' : '' ?>">
+                       class="product-card-v2 carousel-slide <?= $isLastChance ? 'last-chance' : '' ?>">
 
                         <div class="product-card-image">
                             <?php if (!empty($p['primary_image'])): ?>
@@ -416,10 +518,174 @@ function fresh_color($level) {
                         </div>
                     </a>
                 <?php endforeach; ?>
+                </div>
+                <button type="button" class="carousel-nav carousel-nav-next" id="fpNext" aria-label="Next">
+                    ›
+                </button>
             </div>
+            <div class="carousel-dots" id="fpDots"></div>
         <?php endif; ?>
     </div>
 </section>
+
+<style>
+/* Fresh Picks Carousel */
+.fresh-picks-carousel-wrap {
+    position: relative;
+    margin-top: var(--space-4);
+}
+.fresh-picks-carousel {
+    display: flex;
+    gap: var(--space-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 4px 4px 12px 4px;
+}
+.fresh-picks-carousel::-webkit-scrollbar { display: none; }
+
+.fresh-picks-carousel .carousel-slide {
+    flex: 0 0 calc((100% - var(--space-4) * 3) / 4);
+    scroll-snap-align: start;
+    min-width: 220px;
+}
+@media (max-width: 1024px) {
+    .fresh-picks-carousel .carousel-slide {
+        flex: 0 0 calc((100% - var(--space-4) * 2) / 3);
+    }
+}
+@media (max-width: 768px) {
+    .fresh-picks-carousel .carousel-slide {
+        flex: 0 0 calc((100% - var(--space-4)) / 2);
+    }
+}
+@media (max-width: 480px) {
+    .fresh-picks-carousel .carousel-slide {
+        flex: 0 0 85%;
+    }
+}
+
+.carousel-nav {
+    position: absolute;
+    top: 40%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    cursor: pointer;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: var(--color-primary);
+    display: grid;
+    place-items: center;
+    z-index: 5;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    font-weight: 300;
+}
+.carousel-nav:hover:not(:disabled) {
+    transform: translateY(-50%) scale(1.08);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+.carousel-nav:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+.carousel-nav-prev { left: -22px; }
+.carousel-nav-next { right: -22px; }
+@media (max-width: 768px) {
+    .carousel-nav { display: none; }
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: var(--space-3);
+}
+.carousel-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-border);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+.carousel-dots .dot.is-active {
+    background: var(--color-primary);
+    width: 24px;
+    border-radius: 4px;
+}
+</style>
+
+<script>
+(function() {
+    const track = document.getElementById('freshPicksCarousel');
+    const prevBtn = document.getElementById('fpPrev');
+    const nextBtn = document.getElementById('fpNext');
+    const dotsWrap = document.getElementById('fpDots');
+    if (!track || !prevBtn || !nextBtn) return;
+
+    function getSlidesPerView() {
+        const w = window.innerWidth;
+        if (w <= 480) return 1;
+        if (w <= 768) return 2;
+        if (w <= 1024) return 3;
+        return 4;
+    }
+
+    function updateNav() {
+        prevBtn.disabled = track.scrollLeft <= 4;
+        nextBtn.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+        // Update dots
+        const slidesPerView = getSlidesPerView();
+        const totalSlides = track.children.length;
+        const totalPages = Math.max(1, Math.ceil(totalSlides / slidesPerView));
+        const currentPage = Math.round(track.scrollLeft / (track.clientWidth || 1));
+        [...dotsWrap.children].forEach((d, i) => {
+            d.classList.toggle('is-active', i === Math.min(currentPage, totalPages - 1));
+        });
+    }
+
+    function renderDots() {
+        const slidesPerView = getSlidesPerView();
+        const totalSlides = track.children.length;
+        const totalPages = Math.max(1, Math.ceil(totalSlides / slidesPerView));
+        dotsWrap.innerHTML = '';
+        for (let i = 0; i < totalPages; i++) {
+            const dot = document.createElement('button');
+            dot.className = 'dot' + (i === 0 ? ' is-active' : '');
+            dot.type = 'button';
+            dot.setAttribute('aria-label', 'Page ' + (i + 1));
+            dot.addEventListener('click', () => {
+                track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' });
+            });
+            dotsWrap.appendChild(dot);
+        }
+    }
+
+    function scrollByPage(direction) {
+        track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' });
+    }
+
+    prevBtn.addEventListener('click', () => scrollByPage(-1));
+    nextBtn.addEventListener('click', () => scrollByPage(1));
+    track.addEventListener('scroll', updateNav, { passive: true });
+    window.addEventListener('resize', () => {
+        renderDots();
+        updateNav();
+    });
+
+    renderDots();
+    setTimeout(updateNav, 100);
+})();
+</script>
 
 <!-- ============ RECENTLY VIEWED (only if any) ============ -->
 <?php if (!empty($recentlyViewed)): ?>
@@ -459,7 +725,7 @@ function fresh_color($level) {
 <section class="section" style="padding-top: 0;">
     <div class="container">
         <?= reco_render_section('Popular This Week', '🔥', $popularThisWeek,
-            'Best sellers in the last 7 days', 'carousel') ?>
+            'Best sellers in the last 7 days') ?>
     </div>
 </section>
 <?php endif; ?>
@@ -473,16 +739,59 @@ function fresh_color($level) {
 </section>
 <?php endif; ?>
 
+<!-- ============ SECTION: TESTIMONIALS ============ -->
+<?php if (!empty($testimonials)): ?>
+<section class="section">
+    <div class="container">
+        <div class="section-header" style="justify-content: center; text-align: center; flex-direction: column; gap: 4px;">
+            <h2>What our <span class="scribble">customers say</span></h2>
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin: 0;">Real reviews from verified buyers</p>
+        </div>
+        <div class="testimonials">
+            <?php foreach ($testimonials as $t): ?>
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <?= str_repeat('★', (int) $t['rating']) . str_repeat('☆', 5 - (int) $t['rating']) ?>
+                    </div>
+                    <?php if (!empty($t['title'])): ?>
+                        <div class="testimonial-title"><?= e($t['title']) ?></div>
+                    <?php endif; ?>
+                    <p class="testimonial-body">"<?= e($t['body']) ?>"</p>
+                    <div class="testimonial-author">
+                        <span class="testimonial-name"><?= e($t['reviewer_name'] ?? 'Verified Buyer') ?></span>
+                        <span class="testimonial-product">on <?= e($t['product_name']) ?></span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
+<!-- ============ SECTION: SERVICE BANNERS ============ -->
+<section class="section" style="padding-bottom: 0;">
+    <div class="container">
+        <div class="service-banners">
+            <div class="service-banner service-banner-green">
+                <div class="service-banner-icon">🚚</div>
+                <div class="service-banner-text">
+                    <div class="service-banner-title">Free shipping above RM50</div>
+                    <div class="service-banner-sub">Stock up and save — delivery's on us over RM50.</div>
+                </div>
+            </div>
+            <div class="service-banner service-banner-cream">
+                <div class="service-banner-icon">📅</div>
+                <div class="service-banner-text">
+                    <div class="service-banner-title">Choose your delivery date</div>
+                    <div class="service-banner-sub">Pick the day that suits you — freshness planned around it.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ============ FRESHNESS EXPLAINER (footer banner) ============ -->
-<div class="veg-divider" aria-hidden="true">
-    <svg viewBox="0 0 360 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 26 C 80 16 130 34 180 24 S 290 16 352 26" stroke="#cabfa7" stroke-width="2" stroke-linecap="round"/>
-        <g stroke="#6f8159" stroke-width="2" stroke-linecap="round">
-            <path d="M180 24 L180 9"/><path d="M180 16 C172 14 168 8 169 3 C176 5 181 11 180 16"/><path d="M180 13 C188 11 192 6 193 1"/>
-        </g>
-        <circle cx="128" cy="26" r="3" fill="#b85c38"/><circle cx="232" cy="24" r="3" fill="#c9a55a"/>
-    </svg>
-</div>
+<div class="section-gap" aria-hidden="true"></div>
 
 <section class="section freshness-banner reveal">
     <div class="container">

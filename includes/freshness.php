@@ -117,6 +117,20 @@ function freshness_get_exponent(int $productId): float
 }
 
 /**
+ * Get the retailer_id that owns a product. Cached per request.
+ * Used so per-retailer discount overrides apply even when the caller
+ * didn't join retailer_id into the row.
+ */
+function freshness_get_retailer_id(int $productId): ?int
+{
+    static $cache = [];
+    if (array_key_exists($productId, $cache)) return $cache[$productId];
+
+    $rid = db_scalar('SELECT retailer_id FROM products WHERE id = ?', [$productId]);
+    return $cache[$productId] = ($rid !== null ? (int) $rid : null);
+}
+
+/**
  * Cache the freshness_config table contents (loaded once per request).
  */
 function freshness_config(): array
@@ -148,13 +162,68 @@ function freshness_info(string $level): array
 }
 
 /**
- * Compute the selling price for a batch given its base price and freshness.
+ * Load a retailer's custom discount map, if they have custom discounts enabled.
+ * Returns an associative array [level_name => discount_pct], or null if the
+ * retailer uses the admin default (toggle off / no rows).
+ * Cached per request per retailer.
  */
-function apply_freshness_discount(float $basePrice, string $level): array
+function retailer_discount_config(int $retailerId): ?array
 {
-    $info = freshness_info($level);
-    $discountPct = (float) $info['auto_discount_pct'];
+    static $cache = [];
+    if (array_key_exists($retailerId, $cache)) return $cache[$retailerId];
 
+    // Only use custom discounts if the retailer has the toggle switched on.
+    $enabled = (int) db_scalar(
+        'SELECT use_custom_discounts FROM retailers WHERE id = ?',
+        [$retailerId]
+    );
+    if ($enabled !== 1) {
+        return $cache[$retailerId] = null;
+    }
+
+    $rows = db_all(
+        'SELECT level_name, discount_pct FROM retailer_freshness_discounts WHERE retailer_id = ?',
+        [$retailerId]
+    );
+    if (empty($rows)) {
+        return $cache[$retailerId] = null;   // Toggle on but nothing set → still fall back
+    }
+
+    $map = [];
+    foreach ($rows as $r) {
+        $map[$r['level_name']] = (float) $r['discount_pct'];
+    }
+    return $cache[$retailerId] = $map;
+}
+
+/**
+ * Compute the selling price for a batch given its base price and freshness.
+ *
+ * @param float    $basePrice
+ * @param string   $level        Freshness level (e.g. LAST_CHANCE)
+ * @param int|null $retailerId   If given and the retailer has custom discounts
+ *                               enabled, their discount % overrides the admin
+ *                               default. Otherwise the global freshness_config
+ *                               discount is used.
+ */
+function apply_freshness_discount(float $basePrice, string $level, ?int $retailerId = null): array
+{
+    // 1. Determine the discount % — retailer override first, else admin default.
+    $discountPct = null;
+
+    if ($retailerId !== null) {
+        $custom = retailer_discount_config($retailerId);
+        if ($custom !== null && isset($custom[$level])) {
+            $discountPct = (float) $custom[$level];
+        }
+    }
+
+    if ($discountPct === null) {
+        $info = freshness_info($level);
+        $discountPct = (float) $info['auto_discount_pct'];
+    }
+
+    // 2. Apply.
     if ($discountPct <= 0) {
         return ['final_price' => $basePrice, 'discount_pct' => 0.0, 'is_discounted' => false];
     }
@@ -211,7 +280,16 @@ function decorate_with_freshness(array $row): array
     $level   = freshness_level($row['received_date'], $row['expiry_date'], $exponent);
     $percent = freshness_percent($row['received_date'], $row['expiry_date'], $exponent);
     $info    = freshness_info($level);
-    $price   = apply_freshness_discount((float) ($row['base_price'] ?? 0), $level);
+    // Pass retailer_id so per-retailer discount overrides apply.
+    // If it's on the row, use it; otherwise look it up from the product id (cached).
+    if (isset($row['retailer_id'])) {
+        $retailerId = (int) $row['retailer_id'];
+    } elseif (isset($row['id'])) {
+        $retailerId = freshness_get_retailer_id((int) $row['id']);
+    } else {
+        $retailerId = null;
+    }
+    $price   = apply_freshness_discount((float) ($row['base_price'] ?? 0), $level, $retailerId);
 
     $row['freshness_level']     = $level;
     $row['freshness_percent']   = $percent;
@@ -280,7 +358,7 @@ function freshness_run_automation(): array
         }
 
         if ($level === 'LAST_CHANCE') {
-            $disc = apply_freshness_discount((float) $b['base_price'], $level);
+            $disc = apply_freshness_discount((float) $b['base_price'], $level, (int) $b['retailer_id']);
             if (empty($b['selling_price_override'])
                 || abs((float) $b['selling_price_override'] - $disc['final_price']) > 0.001) {
                 db_run(

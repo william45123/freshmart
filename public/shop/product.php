@@ -20,7 +20,7 @@ if ($slug === '') redirect('/shop/browse.php');
 $product = db_one(
     "SELECT p.*, c.name AS category_name, c.slug AS category_slug,
             COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent,
-            ut.code AS unit_code, ut.name AS unit_name,
+            ut.code AS unit_code, ut.name AS unit_name, ut.is_weight AS unit_is_weight,
             r.company_name AS retailer_name
      FROM products p
      JOIN categories c ON c.id = p.category_id
@@ -113,6 +113,24 @@ $reviewCount = (int) db_scalar(
     'SELECT COUNT(*) FROM reviews WHERE product_id = ? AND is_approved = 1',
     [$product['id']]
 );
+
+// Check if current user can review this product (bought it + not yet reviewed)
+$canReview = false;
+if (auth_check() && auth_role() === 'CUSTOMER') {
+    $canReview = (bool) db_scalar(
+        "SELECT COUNT(*) FROM orders o
+         JOIN order_items oi ON oi.order_id = o.id
+         WHERE o.user_id = ? AND oi.product_id = ?
+           AND o.status IN ('PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY','DELIVERED')
+           AND NOT EXISTS (
+               SELECT 1 FROM reviews r
+               WHERE r.user_id = o.user_id
+                 AND r.product_id = oi.product_id
+                 AND r.order_id = o.id
+           )",
+        [auth_id(), $product['id']]
+    );
+}
 
 // Related products (same category, different products)
 $related = db_all(
@@ -319,16 +337,34 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
             <?php if ($totalStock <= 0): ?>
                 <div class="flash flash-error">⚠️ Out of stock</div>
             <?php else: ?>
+                <?php
+                    // Sensible quantity stepping:
+                    //  - weight items (kg/g): step 0.1 (100g), minimum 0.1
+                    //  - countable items (piece/dozen/loaf...): step 1, minimum 1
+                    $isWeight = !empty($product['unit_is_weight']);
+                    $rawMin   = (float) $product['min_order_qty'];
+                    if ($isWeight) {
+                        $stepVal = '0.1';
+                        $minVal  = max(0.1, $rawMin);
+                        $startVal = number_format($minVal, 1, '.', '');
+                        $maxVal  = number_format($totalStock, 1, '.', '');
+                    } else {
+                        $stepVal = '1';
+                        $minVal  = max(1, ceil($rawMin));
+                        $startVal = (string) (int) $minVal;
+                        $maxVal  = (string) (int) floor($totalStock);
+                    }
+                ?>
                 <form method="post" action="<?= url('/shop/cart.php') ?>"
                       style="display: flex; gap: var(--space-3); margin-bottom: var(--space-5); align-items: stretch;">
                     <?= csrf_field() ?>
                     <input type="hidden" name="action" value="add">
                     <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
                     <input type="number" name="quantity"
-                           value="<?= attr((string) $product['min_order_qty']) ?>"
-                           min="<?= attr((string) $product['min_order_qty']) ?>"
-                           max="<?= number_format($totalStock, 2, '.', '') ?>"
-                           step="0.01"
+                           value="<?= attr($startVal) ?>"
+                           min="<?= attr($isWeight ? number_format($minVal, 1, '.', '') : (string)(int)$minVal) ?>"
+                           max="<?= attr($maxVal) ?>"
+                           step="<?= $stepVal ?>"
                            class="form-control" style="width: 100px; text-align: center;">
                     <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
                         Add to cart
@@ -352,9 +388,22 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
         </div>
     </div>
 
-    <?php if (!empty($reviews)): ?>
+    <?php if (!empty($reviews) || $canReview): ?>
     <section style="margin-top: var(--space-12);">
-        <h2 style="font-size: 1.5rem;">Customer reviews</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap;">
+            <h2 style="font-size: 1.5rem; margin: 0;">Customer reviews</h2>
+            <?php if ($canReview): ?>
+                <a href="<?= url('/shop/review.php?product_id=' . $product['id']) ?>"
+                   class="btn btn-primary btn-sm">
+                    ✏️ Write a Review
+                </a>
+            <?php endif; ?>
+        </div>
+        <?php if (empty($reviews) && $canReview): ?>
+            <p style="color: var(--color-text-muted); margin-top: var(--space-3);">
+                No reviews yet — be the first to share your experience!
+            </p>
+        <?php endif; ?>
         <div style="display: grid; gap: var(--space-3); margin-top: var(--space-4);">
             <?php foreach ($reviews as $r): ?>
                 <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">

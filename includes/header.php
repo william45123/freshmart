@@ -79,6 +79,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                 <a href="<?= url('/admin/users.php') ?>">Users</a>
                 <a href="<?= url('/admin/retailers.php') ?>">Retailers</a>
                 <a href="<?= url('/admin/orders.php') ?>">Orders</a>
+                <a href="<?= url('/admin/refunds.php') ?>">Refunds</a>
                 <a href="<?= url('/admin/reviews.php') ?>">Reviews</a>
                 <a href="<?= url('/admin/promos.php') ?>">Promos</a>
                 <a href="<?= url('/admin/settings.php') ?>">Settings</a>
@@ -88,8 +89,10 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                 <a href="<?= url('/retailer/products.php') ?>">Products</a>
                 <a href="<?= url('/retailer/inventory.php') ?>">Inventory</a>
                 <a href="<?= url('/retailer/orders.php') ?>">Orders</a>
+                <a href="<?= url('/retailer/refunds.php') ?>">Refunds</a>
                 <a href="<?= url('/retailer/reviews.php') ?>">Reviews</a>
                 <a href="<?= url('/retailer/reports.php') ?>">Reports</a>
+                <a href="<?= url('/retailer/discounts.php') ?>">Discounts</a>
             <?php else: ?>
                 <!-- CUSTOMER / GUEST NAV -->
                 <a href="<?= url('/shop/browse.php') ?>">Browse</a>
@@ -98,6 +101,15 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                 <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="label-ico"><?= icon('flame', 15) ?> Last Chance</a>
             <?php endif; ?>
         </nav>
+
+        <?php if (!$isAdmin && !$isRetailer): ?>
+        <!-- Header search (customer/guest) -->
+        <form class="nav-search" method="get" action="<?= url('/shop/browse.php') ?>" role="search">
+            <span class="nav-search-icon"><?= icon('search', 16) ?></span>
+            <input type="search" name="q" placeholder="Search fresh produce..."
+                   value="<?= attr($_GET['q'] ?? '') ?>" aria-label="Search products">
+        </form>
+        <?php endif; ?>
 
         <!-- Right-side actions (varies by role) -->
         <div class="nav-actions">
@@ -126,9 +138,10 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                 </a>
 
                 <?php if ($isCustomer): ?>
-                    <!-- Customer extras: wishlist + orders -->
+                    <!-- Customer extras: wishlist + orders + wallet -->
                     <a href="<?= url('/wishlist.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="Wishlist"><?= icon('heart') ?></a>
                     <a href="<?= url('/shop/orders.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="My orders"><?= icon('package') ?></a>
+                    <a href="<?= url('/wallet.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="My wallet" style="font-size:1.05rem;">💳</a>
                 <?php endif; ?>
 
                 <!-- Greeting + Profile link -->
@@ -158,12 +171,21 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         <button class="mobile-nav-close" type="button" aria-label="Close menu" data-mobile-close>&times;</button>
     </div>
 
+    <?php if (!$isAdmin && !$isRetailer): ?>
+        <form class="mobile-nav-search" method="get" action="<?= url('/shop/browse.php') ?>" role="search">
+            <input type="search" name="q" placeholder="Search fresh produce..."
+                   value="<?= attr($_GET['q'] ?? '') ?>" aria-label="Search products">
+            <button type="submit"><?= icon('search', 16) ?></button>
+        </form>
+    <?php endif; ?>
+
     <div class="mobile-nav-group">Menu</div>
     <?php if ($isAdmin): ?>
         <a href="<?= url('/admin/dashboard.php') ?>">Dashboard</a>
         <a href="<?= url('/admin/users.php') ?>">Users</a>
         <a href="<?= url('/admin/retailers.php') ?>">Retailers</a>
         <a href="<?= url('/admin/orders.php') ?>">Orders</a>
+        <a href="<?= url('/admin/refunds.php') ?>">Refunds</a>
         <a href="<?= url('/admin/reviews.php') ?>">Reviews</a>
         <a href="<?= url('/admin/promos.php') ?>">Promos</a>
         <a href="<?= url('/admin/settings.php') ?>">Settings</a>
@@ -172,8 +194,10 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         <a href="<?= url('/retailer/products.php') ?>">Products</a>
         <a href="<?= url('/retailer/inventory.php') ?>">Inventory</a>
         <a href="<?= url('/retailer/orders.php') ?>">Orders</a>
+        <a href="<?= url('/retailer/refunds.php') ?>">Refunds</a>
         <a href="<?= url('/retailer/reviews.php') ?>">Reviews</a>
         <a href="<?= url('/retailer/reports.php') ?>">Reports</a>
+        <a href="<?= url('/retailer/discounts.php') ?>">Discounts</a>
     <?php else: ?>
         <a href="<?= url('/shop/browse.php') ?>">Browse</a>
         <a href="<?= url('/shop/browse.php?category=vegetables') ?>">Vegetables</a>
@@ -190,6 +214,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         <?php if ($isCustomer): ?>
             <a href="<?= url('/wishlist.php') ?>"><?= icon('heart', 18) ?> Wishlist</a>
             <a href="<?= url('/shop/orders.php') ?>"><?= icon('package', 18) ?> My orders</a>
+            <a href="<?= url('/wallet.php') ?>">💳 My wallet</a>
         <?php endif; ?>
         <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>"><?= icon('user', 18) ?> <?= e(auth_name()) ?></a>
         <a class="btn btn-outline mobile-nav-cta" href="<?= url('/auth/logout.php') ?>">Logout</a>

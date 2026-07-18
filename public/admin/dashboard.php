@@ -27,6 +27,7 @@ $kpis = [
     'total_products'   => (int) db_scalar("SELECT COUNT(*) FROM products WHERE is_active=1 AND deleted_at IS NULL"),
     'total_orders'     => (int) db_scalar("SELECT COUNT(*) FROM orders"),
     'total_revenue'    => (float) db_scalar("SELECT COALESCE(SUM(total),0) FROM orders WHERE status IN ('PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY','DELIVERED')"),
+    'platform_commission' => (float) db_scalar("SELECT COALESCE(SUM(commission_amount),0) FROM orders WHERE status IN ('PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY','DELIVERED')"),
     'active_batches'   => (int) db_scalar("SELECT COUNT(*) FROM stock_batches WHERE status='ACTIVE'"),
     'expired_batches'  => (int) db_scalar("SELECT COUNT(*) FROM stock_batches WHERE status='EXPIRED'"),
 ];
@@ -177,11 +178,13 @@ echo '<meta http-equiv="refresh" content="300">' . "\n";
 admin_layout_start('dashboard', 'Platform Dashboard');
 ?>
 
-<!-- ===== Section 1: Hero stat (revenue) ===== -->
+<!-- ===== Section 1: Hero stat (platform earnings) ===== -->
 <div class="hero-stat">
-    <div class="hero-stat-label">Total revenue · all time</div>
-    <div class="hero-stat-value"><?= format_myr($kpis['total_revenue']) ?></div>
-    <div class="hero-stat-meta">from <?= number_format($kpis['total_orders']) ?> paid order<?= $kpis['total_orders'] === 1 ? '' : 's' ?></div>
+    <div class="hero-stat-label">Platform revenue · commission earned</div>
+    <div class="hero-stat-value"><?= format_myr($kpis['platform_commission']) ?></div>
+    <div class="hero-stat-meta">
+        from <?= format_myr($kpis['total_revenue']) ?> in sales (GMV) · <?= number_format($kpis['total_orders']) ?> paid order<?= $kpis['total_orders'] === 1 ? '' : 's' ?>
+    </div>
 </div>
 
 <!-- ===== Section 2: 3 main business stats ===== -->
@@ -198,7 +201,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
     </div>
     <div class="kpi-card kpi-card-accent">
         <div class="kpi-label"><span class="label-ico"><?= icon('leaf',16) ?> Saved from waste</span></div>
-        <div class="kpi-value"><?= number_format($kgSaved, 1) ?></div>
+        <div class="kpi-value"><?= number_format($kgSaved, 0) ?></div>
         <div class="kpi-meta">Last Chance units sold</div>
     </div>
 </div>
@@ -228,7 +231,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
 <div class="kpi-row-3">
     <div class="kpi-card kpi-card-accent">
         <div class="kpi-label">Rescued from waste</div>
-        <div class="kpi-value"><?= number_format($rescued30, 1) ?></div>
+        <div class="kpi-value"><?= number_format($rescued30, 0) ?></div>
         <div class="kpi-meta">Last Chance units sold</div>
     </div>
     <div class="kpi-card" style="background: #fbeee8; border-color: #b85c38;">

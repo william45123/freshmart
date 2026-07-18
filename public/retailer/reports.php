@@ -79,6 +79,24 @@ $totalUnits  = array_sum(array_column($report, 'units_sold'));
 $totalOrders = array_sum(array_column($report, 'order_count'));
 $totalSaved  = array_sum(array_column($report, 'units_saved_from_waste'));
 
+// Commission + net payout for this retailer's orders in the date range.
+// (Each order records commission_amount + retailer_payout at checkout.)
+$payoutAgg = db_one(
+    "SELECT COALESCE(SUM(o.commission_amount),0) AS commission,
+            COALESCE(SUM(o.retailer_payout),0)   AS payout
+     FROM orders o
+     WHERE o.id IN (
+        SELECT DISTINCT oi.order_id FROM order_items oi
+        JOIN products p ON p.id = oi.product_id
+        WHERE p.retailer_id = ?
+     )
+     AND DATE(o.placed_at) BETWEEN ? AND ?
+     AND o.status IN ('PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY','DELIVERED')",
+    [$retailerId, $from, $to]
+);
+$totalCommission = (float) ($payoutAgg['commission'] ?? 0);
+$totalPayout     = (float) ($payoutAgg['payout'] ?? 0);
+
 // CSV export branch
 if ($export === 'csv') {
     db_run("INSERT INTO audit_logs (user_id, action, entity_type, new_values)
@@ -161,8 +179,16 @@ retailer_layout_start('reports', 'Product Performance Report');
 <!-- KPI Summary -->
 <div class="kpi-grid" style="margin-bottom: var(--space-6);">
     <div class="kpi-card">
-        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-label">Gross Sales</div>
         <div class="kpi-value"><?= format_myr($totalRev) ?></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Platform Commission</div>
+        <div class="kpi-value" style="color: var(--color-accent);">−<?= format_myr($totalCommission) ?></div>
+    </div>
+    <div class="kpi-card" style="background: #e6f4ea; border-color: #1a7a3a;">
+        <div class="kpi-label">💰 Your Net Payout</div>
+        <div class="kpi-value" style="color: #1a7a3a;"><?= format_myr($totalPayout) ?></div>
     </div>
     <div class="kpi-card">
         <div class="kpi-label">Units Sold</div>

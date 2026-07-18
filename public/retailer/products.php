@@ -1,469 +1,300 @@
 <?php
 /**
- * Product Detail page.
+ * Retailer Products list — all products belonging to this retailer.
+ *
+ *  - Filter by category, status (active / inactive), stock level (low / out)
+ *  - Search by name / SKU
+ *  - Quick actions: edit, toggle active, delete (soft)
+ *  - Link to Add New Product
  */
 
-require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/retailer_layout.php';
 require_once __DIR__ . '/../../includes/helpers.php';
-require_once __DIR__ . '/../../includes/freshness.php';
-require_once __DIR__ . '/../../includes/fefo.php';
-require_once __DIR__ . '/../../includes/auth_helpers.php';
-require_once __DIR__ . '/../../includes/wishlist_helpers.php';
-require_once __DIR__ . '/../../includes/recently_viewed.php';
 
-auth_init();
+$retailer   = retailer_current();
+$retailerId = (int) $retailer['id'];
+$errors     = [];
 
-$slug = trim((string) input('slug', ''));
-if ($slug === '') redirect('/shop/browse.php');
+// ---- Handle actions (toggle active / soft delete) ----
+if (is_post() && csrf_verify()) {
+    $action    = (string) input('action', '');
+    $productId = (int) input('product_id', 0);
 
-$product = db_one(
-    "SELECT p.*, c.name AS category_name, c.slug AS category_slug,
-            COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent,
-            ut.code AS unit_code, ut.name AS unit_name,
-            r.company_name AS retailer_name
-     FROM products p
-     JOIN categories c ON c.id = p.category_id
-     JOIN unit_types ut ON ut.id = p.unit_type_id
-     JOIN retailers r ON r.id = p.retailer_id
-     WHERE p.slug = ? AND p.is_active = 1 AND p.deleted_at IS NULL",
-    [$slug]
-);
+    // Verify ownership
+    $owns = (int) db_scalar(
+        'SELECT COUNT(*) FROM products WHERE id = ? AND retailer_id = ? AND deleted_at IS NULL',
+        [$productId, $retailerId]
+    );
 
-if (!$product) {
-    http_response_code(404);
-    flash_set('error', 'Product not found.');
-    redirect('/shop/browse.php');
-}
-
-// Increment view counter (best-effort, not awaited)
-db_run('UPDATE products SET view_count = view_count + 1 WHERE id = ?', [$product['id']]);
-
-// Track in session for "Recently Viewed" feature
-recently_viewed_track((int) $product['id']);
-
-// Pull recently viewed (excluding current product)
-$recentlyViewed = recently_viewed_products(excludeProductId: (int) $product['id'], limit: 6);
-$recentlyViewed = array_map('decorate_with_freshness', $recentlyViewed);
-
-// Available stock + display batch
-$displayBatch = fefo_display_batch((int) $product['id']);
-$totalStock   = fefo_total_stock((int) $product['id']);
-
-// Compute freshness from display batch
-$freshness = null;
-$forecast  = [];   // 7-day freshness forecast for the trend chart
-if ($displayBatch) {
-    $freshness = decorate_with_freshness([
-        'id'              => $product['id'],
-        'base_price'      => $product['base_price'],
-        'received_date'   => $displayBatch['received_date'],
-        'expiry_date'     => $displayBatch['expiry_date'],
-        'decay_exponent'  => $product['decay_exponent'],
-    ]);
-
-    // Build a forecast of how freshness % will decay over the next 7 days,
-    // using the SAME power-law model (freshness% = (1 - t/T)^n × 100).
-    $expN     = (float) $product['decay_exponent'];
-    $recTs    = strtotime($displayBatch['received_date'] . ' 00:00:00');
-    $expTs    = strtotime($displayBatch['expiry_date'] . ' 23:59:59');
-    $totalSec = max(1, $expTs - $recTs);
-    for ($d = 0; $d <= 7; $d++) {
-        $pointTs   = strtotime("+$d days", strtotime(date('Y-m-d') . ' 00:00:00'));
-        $elapsed   = $pointTs - $recTs;
-        $ratio     = min(1, max(0, $elapsed / $totalSec));
-        $pct       = ($elapsed >= $totalSec) ? 0.0 : round(pow(1 - $ratio, max(0.1, $expN)) * 100, 1);
-        // Determine level for that day (for coloring/annotation)
-        $lvl = $pct <= 0 ? 'EXPIRED' : ($pct < 25 ? 'LAST_CHANCE' : ($pct < 50 ? 'ENJOY_SOON' : ($pct < 75 ? 'FRESH' : 'VERY_FRESH')));
-        $forecast[] = [
-            'label' => $d === 0 ? 'Today' : ('+' . $d . 'd'),
-            'date'  => date('d M', $pointTs),
-            'pct'   => $pct,
-            'level' => $lvl,
-        ];
+    if ($productId > 0 && $owns > 0) {
+        if ($action === 'toggle_active') {
+            db_run('UPDATE products SET is_active = NOT is_active WHERE id = ?', [$productId]);
+            flash_set('success', 'Product status updated.');
+        } elseif ($action === 'delete') {
+            // R-APP-09: deletion not allowed if there are active orders
+            $activeOrders = (int) db_scalar(
+                "SELECT COUNT(DISTINCT o.id) FROM orders o
+                 JOIN order_items oi ON oi.order_id = o.id
+                 WHERE oi.product_id = ?
+                   AND o.status IN ('PLACED','PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY')",
+                [$productId]
+            );
+            if ($activeOrders > 0) {
+                flash_set('error', "Cannot delete — $activeOrders active order(s) contain this product. Deactivate it instead.");
+            } else {
+                db_run('UPDATE products SET deleted_at = NOW(), is_active = 0 WHERE id = ?', [$productId]);
+                flash_set('info', 'Product removed.');
+            }
+        }
+        redirect('/retailer/products.php');
+    } else {
+        $errors[] = 'Product not found or not yours.';
     }
 }
 
-// Product images
-$images = db_all(
-    'SELECT image_path, alt_text FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, display_order',
-    [$product['id']]
-);
+// ---- Filters ----
+$q            = trim((string) input('q', ''));
+$catFilter    = (int) input('category', 0);
+$statusFilter = (string) input('status', '');   // '', active, inactive
+$stockFilter  = (string) input('stock', '');    // '', low, out
 
-// Reviews (verified purchases only)
-$reviews = db_all(
-    "SELECT r.*, p.full_name AS reviewer_name
-     FROM reviews r
-     LEFT JOIN profiles p ON p.user_id = r.user_id
-     WHERE r.product_id = ? AND r.is_approved = 1
-     ORDER BY r.created_at DESC LIMIT 5",
-    [$product['id']]
-);
-$avgRating = (float) db_scalar(
-    'SELECT AVG(rating) FROM reviews WHERE product_id = ? AND is_approved = 1',
-    [$product['id']]
-);
-$reviewCount = (int) db_scalar(
-    'SELECT COUNT(*) FROM reviews WHERE product_id = ? AND is_approved = 1',
-    [$product['id']]
-);
+$where = ['p.retailer_id = ?', 'p.deleted_at IS NULL'];
+$args  = [$retailerId];
 
-// Related products (same category, different products)
-$related = db_all(
-    "SELECT p.id, p.name, p.slug, p.base_price,
-            (SELECT image_path FROM product_images pi WHERE pi.product_id = p.id AND is_primary = 1 LIMIT 1) AS primary_image
+if ($q !== '') {
+    $where[] = '(p.name LIKE ? OR p.sku LIKE ?)';
+    $args[]  = "%$q%";
+    $args[]  = "%$q%";
+}
+if ($catFilter > 0) {
+    $where[] = 'p.category_id = ?';
+    $args[]  = $catFilter;
+}
+if ($statusFilter === 'active') {
+    $where[] = 'p.is_active = 1';
+} elseif ($statusFilter === 'inactive') {
+    $where[] = 'p.is_active = 0';
+}
+
+$products = db_all(
+    "SELECT p.id, p.name, p.sku, p.base_price, p.is_active, p.is_featured,
+            p.view_count, p.min_order_qty, p.created_at,
+            c.name AS category_name,
+            ut.code AS unit_code,
+            (SELECT image_path FROM product_images pi
+             WHERE pi.product_id = p.id AND pi.is_primary = 1 LIMIT 1) AS primary_image,
+            COALESCE((SELECT SUM(quantity_remaining) FROM stock_batches sb
+                      WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'), 0) AS current_stock,
+            (SELECT COUNT(*) FROM stock_batches sb
+             WHERE sb.product_id = p.id AND sb.status = 'ACTIVE') AS active_batches
      FROM products p
-     WHERE p.category_id = ? AND p.id != ? AND p.is_active = 1 AND p.deleted_at IS NULL
-     LIMIT 4",
-    [$product['category_id'], $product['id']]
+     JOIN categories c ON c.id = p.category_id
+     JOIN unit_types ut ON ut.id = p.unit_type_id
+     WHERE " . implode(' AND ', $where) . "
+     ORDER BY p.is_active DESC, p.created_at DESC",
+    $args
 );
 
-$pageTitle = $product['name'] . ' — FreshMart';
+// Post-filter for stock (needs calculated current_stock)
+if ($stockFilter === 'low') {
+    $products = array_values(array_filter($products, fn($p) =>
+        (float) $p['current_stock'] > 0 && (float) $p['current_stock'] <= (float) $p['min_order_qty'] * 10
+    ));
+} elseif ($stockFilter === 'out') {
+    $products = array_values(array_filter($products, fn($p) => (float) $p['current_stock'] <= 0));
+}
+
+// KPIs
+$totalProducts = (int) db_scalar(
+    'SELECT COUNT(*) FROM products WHERE retailer_id = ? AND deleted_at IS NULL', [$retailerId]
+);
+$activeProducts = (int) db_scalar(
+    'SELECT COUNT(*) FROM products WHERE retailer_id = ? AND is_active = 1 AND deleted_at IS NULL',
+    [$retailerId]
+);
+$outOfStock = (int) db_scalar(
+    "SELECT COUNT(*) FROM products p
+     WHERE p.retailer_id = ? AND p.is_active = 1 AND p.deleted_at IS NULL
+       AND COALESCE((SELECT SUM(quantity_remaining) FROM stock_batches sb
+                     WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'), 0) <= 0",
+    [$retailerId]
+);
+
+// Categories for filter dropdown
+$categories = db_all('SELECT id, name FROM categories WHERE is_active = 1 ORDER BY display_order');
+
+$pageTitle = 'My Products — Retailer';
 require_once __DIR__ . '/../../includes/header.php';
+retailer_layout_start('products', 'My Products');
 ?>
 
-<section class="container" style="padding: var(--space-6) 0;">
+<?php foreach ($errors as $err): ?>
+    <div class="flash flash-error"><?= e($err) ?></div>
+<?php endforeach; ?>
 
-    <!-- Breadcrumb -->
-    <nav style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: var(--space-4);">
-        <a href="<?= url('/shop/browse.php') ?>">Browse</a>
-        →
-        <a href="<?= url('/shop/browse.php?category=' . $product['category_slug']) ?>"><?= e($product['category_name']) ?></a>
-        →
-        <span><?= e($product['name']) ?></span>
-    </nav>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8);">
-
-        <!-- Image gallery -->
-        <div>
-            <div style="aspect-ratio: 1; background: var(--color-bg); border-radius: var(--radius-lg); overflow: hidden; display: grid; place-items: center; position: relative;">
-                <?php if (!empty($images)): ?>
-                    <img id="mainImage" src="<?= upload_url($images[0]['image_path']) ?>"
-                         alt="<?= attr($images[0]['alt_text']) ?>"
-                         style="width: 100%; height: 100%; object-fit: cover;">
-                <?php else: ?>
-                    <span style="font-size: 6rem;">🥬</span>
-                <?php endif; ?>
-
-                <?php if ($freshness): ?>
-                    <div style="position: absolute; top: var(--space-4); left: var(--space-4);">
-                        <?= freshness_badge_html($freshness['freshness_level'], $freshness['days_remaining']) ?>
-                    </div>
-                <?php endif; ?>
-                <?php if ($freshness && !empty($freshness['is_discounted'])): ?>
-                    <div class="discount-tag" style="top: var(--space-4); right: var(--space-4); position: absolute;">
-                        -<?= (int) $freshness['discount_pct'] ?>%
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <?php if (count($images) > 1): ?>
-                <div style="display: grid; grid-template-columns: repeat(<?= min(5, count($images)) ?>, 1fr); gap: var(--space-2); margin-top: var(--space-3);">
-                    <?php foreach ($images as $img): ?>
-                        <button onclick="document.getElementById('mainImage').src='<?= upload_url($img['image_path']) ?>'"
-                                style="aspect-ratio: 1; border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; padding: 0; background: var(--color-bg); cursor: pointer;">
-                            <img src="<?= upload_url($img['image_path']) ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
-                        </button>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Info & buy -->
-        <div>
-            <div style="font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: var(--space-2);">
-                <?= e($product['retailer_name']) ?>
-                <?php if (!empty($product['origin'])): ?>
-                    · 📍 <?= e($product['origin']) ?>
-                <?php endif; ?>
-            </div>
-            <h1 style="margin-bottom: var(--space-3);"><?= e($product['name']) ?></h1>
-
-            <?php if ($reviewCount > 0): ?>
-                <div style="margin-bottom: var(--space-4); color: var(--color-text-muted); font-size: 0.9375rem;">
-                    <?= str_repeat('★', round($avgRating)) ?><?= str_repeat('☆', 5 - (int) round($avgRating)) ?>
-                    · <?= number_format($avgRating, 1) ?> · <?= $reviewCount ?> review<?= $reviewCount === 1 ? '' : 's' ?>
-                </div>
-            <?php endif; ?>
-
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-4);">
-                <div>
-                <?php if ($freshness && !empty($freshness['is_discounted'])): ?>
-                    <span style="font-size: 2rem; font-weight: 700; color: var(--color-accent);">
-                        <?= format_myr($freshness['final_price']) ?>
-                    </span>
-                    <span style="font-size: 1.125rem; color: var(--color-text-muted); text-decoration: line-through; margin-left: var(--space-2);">
-                        <?= format_myr($product['base_price']) ?>
-                    </span>
-                <?php else: ?>
-                    <span style="font-size: 2rem; font-weight: 700;">
-                        <?= format_myr($freshness['final_price'] ?? $product['base_price']) ?>
-                    </span>
-                <?php endif; ?>
-                <span style="color: var(--color-text-muted); margin-left: var(--space-2);">
-                    per <?= e($product['unit_code']) ?>
-                </span>
-                </div>
-                <?php if (auth_check() && auth_role() === 'CUSTOMER'):
-                    $inWishlist = wishlist_has(auth_id(), (int) $product['id']);
-                ?>
-                <form method="post" action="<?= url('/wishlist.php') ?>">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="toggle">
-                    <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                    <input type="hidden" name="return_to" value="<?= attr('/shop/product.php?slug=' . urlencode($slug)) ?>">
-                    <button type="submit"
-                            title="<?= $inWishlist ? 'Remove from wishlist' : 'Add to wishlist' ?>"
-                            style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 50%; width: 44px; height: 44px; font-size: 1.25rem; cursor: pointer; color: <?= $inWishlist ? 'var(--color-danger)' : 'var(--color-text-muted)' ?>;">
-                        <?= $inWishlist ? '❤️' : '🤍' ?>
-                    </button>
-                </form>
-                <?php endif; ?>
-            </div>
-
-            <?php if ($freshness): ?>
-                <?php
-                    $fPct   = (float) $freshness['freshness_percent'];
-                    $fColor = $freshness['freshness_color'];
-                    $fLabel = $freshness['freshness_label'];
-                    $fDays  = (int) $freshness['days_remaining'];
-                ?>
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); margin-bottom: var(--space-4);">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-2);">
-                        <span style="font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted);">Freshness</span>
-                        <span style="font-size: 0.8125rem; color: var(--color-text-muted);"><?= e($fLabel) ?> · <?= $fDays ?>d left</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: var(--space-3);">
-                        <div style="flex: 1; height: 10px; background: var(--color-bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--color-border);">
-                            <div style="height: 100%; width: <?= max(2, min(100, $fPct)) ?>%; background: <?= e($fColor) ?>; border-radius: 999px; transition: width 0.4s ease;"></div>
-                        </div>
-                        <span style="font-size: 1.375rem; font-weight: 700; color: <?= e($fColor) ?>; min-width: 56px; text-align: right; font-variant-numeric: tabular-nums;">
-                            <?= number_format($fPct, 0) ?>%
-                        </span>
-                    </div>
-                    <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--space-2);">
-                        Calculated live from this batch's age using our
-                        <a href="<?= url('/shop/freshness.php') ?>" style="color: var(--color-text-muted); text-decoration: underline;">power-law decay model</a>
-                        (decay exponent n=<?= number_format((float) $freshness['freshness_exponent'], 1) ?> for <?= e($product['category_name']) ?>).
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <?php if (!empty($forecast)): ?>
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); margin-bottom: var(--space-4);">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-3);">
-                        <span style="font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted);">Freshness forecast</span>
-                        <span style="font-size: 0.75rem; color: var(--color-text-muted);">next 7 days</span>
-                    </div>
-                    <div style="position: relative; height: 180px;">
-                        <canvas id="freshnessChart"></canvas>
-                    </div>
-                    <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: var(--space-2);">
-                        Projected using our power-law model (n=<?= number_format((float) $product['decay_exponent'], 1) ?> for <?= e($product['category_name']) ?>). Buy sooner for peak freshness.
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($displayBatch): ?>
-                <div style="background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-4); font-size: 0.9375rem;">
-                    <div style="color: var(--color-text-muted); font-size: 0.8125rem; margin-bottom: 2px;">Batch info (FEFO will fulfil first)</div>
-                    <div><strong>Best before:</strong> <?= format_date($displayBatch['expiry_date']) ?>
-                        (<?= relative_date($displayBatch['expiry_date']) ?>)</div>
-                    <div style="color: var(--color-text-muted); font-size: 0.8125rem;">
-                        Received <?= format_date($displayBatch['received_date']) ?>
-                        · <?= number_format($totalStock, 2) ?> <?= e($product['unit_code']) ?> in stock
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($totalStock <= 0): ?>
-                <div class="flash flash-error">⚠️ Out of stock</div>
-            <?php else: ?>
-                <form method="post" action="<?= url('/shop/cart.php') ?>"
-                      style="display: flex; gap: var(--space-3); margin-bottom: var(--space-5); align-items: stretch;">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="action" value="add">
-                    <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
-                    <input type="number" name="quantity"
-                           value="<?= attr((string) $product['min_order_qty']) ?>"
-                           min="<?= attr((string) $product['min_order_qty']) ?>"
-                           max="<?= number_format($totalStock, 2, '.', '') ?>"
-                           step="0.01"
-                           class="form-control" style="width: 100px; text-align: center;">
-                    <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
-                        Add to cart
-                    </button>
-                </form>
-            <?php endif; ?>
-
-            <?php if (!empty($product['description'])): ?>
-                <h3 style="font-size: 1rem; margin-bottom: var(--space-2);">About this product</h3>
-                <p style="color: var(--color-text-muted); margin-bottom: var(--space-4);">
-                    <?= nl2br(e($product['description'])) ?>
-                </p>
-            <?php endif; ?>
-
-            <?php if (!empty($product['storage_instruction'])): ?>
-                <h3 style="font-size: 1rem; margin-bottom: var(--space-2);">Storage</h3>
-                <p style="color: var(--color-text-muted);">
-                    <?= nl2br(e($product['storage_instruction'])) ?>
-                </p>
-            <?php endif; ?>
+<!-- KPIs -->
+<div class="kpi-grid" style="margin-bottom: var(--space-4); max-width: 800px;">
+    <div class="kpi-card">
+        <div class="kpi-label">Total Products</div>
+        <div class="kpi-value"><?= number_format($totalProducts) ?></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Active Listings</div>
+        <div class="kpi-value"><?= number_format($activeProducts) ?></div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Out of Stock</div>
+        <div class="kpi-value <?= $outOfStock > 0 ? 'is-danger' : '' ?>">
+            <?= number_format($outOfStock) ?>
         </div>
     </div>
+</div>
 
-    <?php if (!empty($reviews)): ?>
-    <section style="margin-top: var(--space-12);">
-        <h2 style="font-size: 1.5rem;">Customer reviews</h2>
-        <div style="display: grid; gap: var(--space-3); margin-top: var(--space-4);">
-            <?php foreach ($reviews as $r): ?>
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
-                    <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);">
-                        <strong><?= e($r['reviewer_name'] ?? 'Customer') ?></strong>
-                        <span style="color: var(--color-warning);">
-                            <?= str_repeat('★', (int) $r['rating']) ?><?= str_repeat('☆', 5 - (int) $r['rating']) ?>
-                        </span>
-                        <span style="color: var(--color-text-muted); font-size: 0.8125rem;">
-                            <?= format_date($r['created_at']) ?>
-                        </span>
-                    </div>
-                    <?php if (!empty($r['title'])): ?>
-                        <div style="font-weight: 600; margin-bottom: var(--space-1);"><?= e($r['title']) ?></div>
-                    <?php endif; ?>
-                    <p style="margin: 0; color: var(--color-text);"><?= nl2br(e($r['body'])) ?></p>
-                </div>
+<!-- Top action bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-3);">
+    <form method="get" style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
+        <input type="search" name="q" value="<?= attr($q) ?>"
+               placeholder="Search name or SKU..."
+               class="form-control" style="width: 240px;">
+        <select name="category" class="form-control" style="width: 160px;" onchange="this.form.submit()">
+            <option value="0">All categories</option>
+            <?php foreach ($categories as $c): ?>
+                <option value="<?= $c['id'] ?>" <?= $catFilter === (int) $c['id'] ? 'selected' : '' ?>>
+                    <?= e($c['name']) ?>
+                </option>
             <?php endforeach; ?>
-        </div>
-    </section>
-    <?php endif; ?>
+        </select>
+        <select name="status" class="form-control" style="width: 130px;" onchange="this.form.submit()">
+            <option value="">All status</option>
+            <option value="active"   <?= $statusFilter === 'active' ? 'selected' : '' ?>>Active</option>
+            <option value="inactive" <?= $statusFilter === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+        </select>
+        <select name="stock" class="form-control" style="width: 140px;" onchange="this.form.submit()">
+            <option value="">Any stock</option>
+            <option value="low" <?= $stockFilter === 'low' ? 'selected' : '' ?>>⚠️ Low stock</option>
+            <option value="out" <?= $stockFilter === 'out' ? 'selected' : '' ?>>❌ Out of stock</option>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        <?php if ($q || $catFilter || $statusFilter || $stockFilter): ?>
+            <a href="<?= url('/retailer/products.php') ?>" class="btn btn-ghost btn-sm">Clear</a>
+        <?php endif; ?>
+    </form>
+    <a href="<?= url('/retailer/product_edit.php') ?>" class="btn btn-primary">
+        + Add New Product
+    </a>
+</div>
 
-    <?php if (!empty($recentlyViewed)): ?>
-    <section style="margin-top: var(--space-12);">
-        <h2 style="font-size: 1.5rem;">Recently viewed</h2>
-        <div class="product-grid-4" style="margin-top: var(--space-4);">
-            <?php foreach ($recentlyViewed as $rv): ?>
-                <a href="<?= url('/shop/product.php?slug=' . urlencode($rv['slug'])) ?>"
-                   class="product-card-v2" style="color: inherit;">
-                    <div class="product-card-image">
-                        <?php if (!empty($rv['primary_image'])): ?>
-                            <img src="<?= upload_url($rv['primary_image']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
-                        <?php else: ?>
-                            <span>🥬</span>
-                        <?php endif; ?>
-                        <?php if (!empty($rv['expiry_date'])): ?>
-                            <?= freshness_badge_html($rv['freshness_level'], $rv['days_remaining']) ?>
-                        <?php endif; ?>
-                    </div>
-                    <div class="product-card-body">
-                        <div class="product-card-name"><?= e($rv['name']) ?></div>
-                        <div class="product-card-pricing">
-                            <span class="price-final"><?= format_myr($rv['final_price'] ?? $rv['base_price']) ?></span>
+<?php if (empty($products)): ?>
+    <div class="empty-state">
+        <?php if ($q || $catFilter || $statusFilter || $stockFilter): ?>
+            <p style="font-size: 1.0625rem;">No products match your filters.</p>
+            <a href="<?= url('/retailer/products.php') ?>" class="btn btn-secondary btn-sm">Clear filters</a>
+        <?php else: ?>
+            <p style="font-size: 1.0625rem;">📦 No products yet.</p>
+            <a href="<?= url('/retailer/product_edit.php') ?>" class="btn btn-primary" style="margin-top: var(--space-2);">
+                Add your first product
+            </a>
+        <?php endif; ?>
+    </div>
+<?php else: ?>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 60px;">Image</th>
+                <th>Product</th>
+                <th>Category</th>
+                <th style="text-align: right;">Price</th>
+                <th style="text-align: right;">Stock</th>
+                <th style="text-align: center;">Batches</th>
+                <th style="text-align: right;">Views</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($products as $p):
+                $stockLow = (float) $p['current_stock'] > 0
+                            && (float) $p['current_stock'] <= (float) $p['min_order_qty'] * 10;
+                $stockOut = (float) $p['current_stock'] <= 0;
+            ?>
+                <tr>
+                    <td>
+                        <div style="width: 44px; height: 44px; background: var(--color-bg); border-radius: var(--radius); display: grid; place-items: center; overflow: hidden;">
+                            <?php if (!empty($p['primary_image'])): ?>
+                                <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>"
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            <?php else: ?>
+                                <span style="font-size: 1.25rem;">🥬</span>
+                            <?php endif; ?>
                         </div>
-                    </div>
-                </a>
-            <?php endforeach; ?>
-        </div>
-    </section>
-    <?php endif; ?>
-
-    <?php if (!empty($related)): ?>
-    <section style="margin-top: var(--space-12);">
-        <h2 style="font-size: 1.5rem;">Related products</h2>
-        <div class="product-grid-4" style="margin-top: var(--space-4);">
-            <?php foreach ($related as $r): ?>
-                <a href="<?= url('/shop/product.php?slug=' . urlencode($r['slug'])) ?>"
-                   class="product-card-v2" style="color: inherit;">
-                    <div class="product-card-image">
-                        <?php if (!empty($r['primary_image'])): ?>
-                            <img src="<?= upload_url($r['primary_image']) ?>" alt="" style="width:100%;height:100%;object-fit:cover;">
-                        <?php else: ?>
-                            <span>🥬</span>
+                    </td>
+                    <td>
+                        <strong><?= e($p['name']) ?></strong>
+                        <?php if ($p['is_featured']): ?>
+                            <span style="background: var(--color-mustard, #c9a55a); color: white; font-size: 0.625rem; padding: 2px 6px; border-radius: 999px; letter-spacing: 0.05em; text-transform: uppercase; margin-left: 4px;">★ Featured</span>
                         <?php endif; ?>
-                    </div>
-                    <div class="product-card-body">
-                        <div class="product-card-name"><?= e($r['name']) ?></div>
-                        <div class="product-card-pricing">
-                            <span class="price-final"><?= format_myr($r['base_price']) ?></span>
+                        <br><small style="color: var(--color-text-muted);"><code><?= e($p['sku']) ?></code></small>
+                    </td>
+                    <td style="font-size: 0.875rem;"><?= e($p['category_name']) ?></td>
+                    <td style="text-align: right;">
+                        <strong><?= format_myr($p['base_price']) ?></strong>
+                        <br><small style="color: var(--color-text-muted);">/ <?= e($p['unit_code']) ?></small>
+                    </td>
+                    <td style="text-align: right;">
+                        <?php if ($stockOut): ?>
+                            <span style="color: #b85c38; font-weight: 600;">Out of stock</span>
+                        <?php elseif ($stockLow): ?>
+                            <span style="color: #c9a55a; font-weight: 600;">
+                                <?= number_format((float) $p['current_stock'], 1) ?> <?= e($p['unit_code']) ?> ⚠️
+                            </span>
+                        <?php else: ?>
+                            <?= number_format((float) $p['current_stock'], 1) ?> <?= e($p['unit_code']) ?>
+                        <?php endif; ?>
+                    </td>
+                    <td style="text-align: center;">
+                        <?= (int) $p['active_batches'] ?>
+                    </td>
+                    <td style="text-align: right; color: var(--color-text-muted);">
+                        <?= number_format((int) $p['view_count']) ?>
+                    </td>
+                    <td>
+                        <?php if ($p['is_active']): ?>
+                            <span class="status-pill status-active">Active</span>
+                        <?php else: ?>
+                            <span class="status-pill status-suspended">Inactive</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 4px;">
+                            <a href="<?= url('/retailer/product_edit.php?id=' . $p['id']) ?>"
+                               class="btn btn-secondary btn-sm">Edit</a>
+                            <form method="post" style="display: inline;">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="toggle_active">
+                                <input type="hidden" name="product_id" value="<?= $p['id'] ?>">
+                                <button type="submit" class="btn btn-ghost btn-sm"
+                                        title="<?= $p['is_active'] ? 'Deactivate' : 'Activate' ?>">
+                                    <?= $p['is_active'] ? '🚫' : '✓' ?>
+                                </button>
+                            </form>
+                            <form method="post" style="display: inline;">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="product_id" value="<?= $p['id'] ?>">
+                                <button type="submit" class="btn btn-ghost btn-sm"
+                                        style="color: var(--color-danger);"
+                                        onclick="return confirm('Delete <?= attr($p['name']) ?>? This can be undone by contacting admin.')">
+                                    🗑
+                                </button>
+                            </form>
                         </div>
-                    </div>
-                </a>
+                    </td>
+                </tr>
             <?php endforeach; ?>
-        </div>
-    </section>
-    <?php endif; ?>
-</section>
-
-<?php if (!empty($forecast)): ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-(function () {
-    var canvas = document.getElementById('freshnessChart');
-    if (!canvas || typeof Chart === 'undefined') return;
-
-    var forecast = <?= json_encode($forecast) ?>;
-    var labels = forecast.map(function (f) { return f.label; });
-    var data   = forecast.map(function (f) { return f.pct; });
-
-    // Boutique palette to match the freshness levels
-    var levelColor = {
-        VERY_FRESH:  '#4a5a3a',
-        FRESH:       '#7a8467',
-        ENJOY_SOON:  '#c9a55a',
-        LAST_CHANCE: '#b85c38',
-        EXPIRED:     '#9a3b22'
-    };
-    var pointColors = forecast.map(function (f) { return levelColor[f.level] || '#7a8467'; });
-
-    new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                borderColor: '#4a5a3a',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                backgroundColor: 'rgba(74,90,58,0.08)',
-                pointBackgroundColor: pointColors,
-                pointBorderColor: pointColors,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        title: function (items) {
-                            var f = forecast[items[0].dataIndex];
-                            return f.label + ' (' + f.date + ')';
-                        },
-                        label: function (item) {
-                            var f = forecast[item.dataIndex];
-                            return f.pct + '% · ' + f.level.replace('_', ' ').toLowerCase();
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    min: 0, max: 100,
-                    ticks: { callback: function (v) { return v + '%'; }, font: { size: 10 } },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 10 } }
-                }
-            }
-        }
-    });
-})();
-</script>
+        </tbody>
+    </table>
 <?php endif; ?>
 
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+<?php
+retailer_layout_end();
+require_once __DIR__ . '/../../includes/footer.php';

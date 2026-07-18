@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/helpers.php';
 require_once __DIR__ . '/../../includes/auth_helpers.php';
+require_once __DIR__ . '/../../includes/wallet_helpers.php';
 
 require_login();
 
@@ -32,6 +33,46 @@ if (is_post() && input('action') === 'reorder' && csrf_verify()) {
         foreach ($errs as $err) flash_set('error', $err);
         redirect('/shop/cart.php');
     }
+}
+
+// Handle cancel order (before it ships)
+if (is_post() && input('action') === 'cancel_order' && csrf_verify()) {
+    $oid = (int) input('order_id');
+    try {
+        order_cancel($oid, auth_id(), trim((string) input('cancel_reason', '')) ?: null);
+        flash_set('success', 'Order cancelled. Your payment has been refunded to your wallet.');
+    } catch (Throwable $e) {
+        flash_set('error', $e->getMessage());
+    }
+    redirect('/shop/orders.php?id=' . $oid);
+}
+
+// Handle refund request (full or partial) for a delivered order
+if (is_post() && input('action') === 'request_refund' && csrf_verify()) {
+    $oid   = (int) input('order_id');
+    $scope = input('scope') === 'PARTIAL' ? 'PARTIAL' : 'FULL';
+    $reason = (string) input('reason', 'NOT_FRESH');
+    $detail = trim((string) input('detail', '')) ?: null;
+
+    $items = [];
+    if ($scope === 'PARTIAL') {
+        $selected = $_POST['refund_item'] ?? [];   // [order_item_id => qty]
+        if (is_array($selected)) {
+            foreach ($selected as $oiId => $qty) {
+                if ((float) $qty > 0) {
+                    $items[] = ['order_item_id' => (int) $oiId, 'quantity' => (float) $qty];
+                }
+            }
+        }
+    }
+
+    try {
+        refund_create($oid, auth_id(), $scope, $reason, $detail, $items);
+        flash_set('success', 'Refund request submitted. The seller will review it shortly.');
+    } catch (Throwable $e) {
+        flash_set('error', $e->getMessage());
+    }
+    redirect('/shop/orders.php?id=' . $oid);
 }
 
 if ($orderId > 0) {
@@ -101,6 +142,121 @@ if ($orderId > 0) {
                 · Preferred delivery: <strong><?= format_date($order['preferred_delivery_date']) ?></strong>
             <?php endif; ?>
         </p>
+
+        <?php
+        // Refund state for this order
+        $openRefund = db_one(
+            "SELECT * FROM refund_requests WHERE order_id = ? ORDER BY id DESC LIMIT 1",
+            [$order['id']]
+        );
+        $hasOpenRefund = $openRefund && in_array($openRefund['status'], ['REQUESTED','ESCALATED'], true);
+        $canCancel = order_can_cancel($order);
+        $canRefund = ($order['status'] === 'DELIVERED') && !$hasOpenRefund
+                     && (!$openRefund || $openRefund['status'] !== 'APPROVED');
+        ?>
+
+        <?php if ($openRefund): ?>
+            <div class="refund-status-banner refund-status-<?= strtolower($openRefund['status']) ?>">
+                <?php
+                $statusText = [
+                    'REQUESTED' => '⏳ Refund requested — the seller is reviewing your request.',
+                    'ESCALATED' => '⏳ Refund escalated — an admin is making a final decision.',
+                    'APPROVED'  => '✓ Refund approved — ' . format_myr((float)$openRefund['amount']) . ' credited to your wallet.',
+                    'REJECTED'  => '✕ Refund declined.' . (!empty($openRefund['decision_note']) ? ' Reason: ' . e($openRefund['decision_note']) : ''),
+                    'CANCELLED' => 'Refund request cancelled.',
+                ][$openRefund['status']] ?? $openRefund['status'];
+                echo $statusText;
+                ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($canCancel || $canRefund): ?>
+            <div class="order-actions-bar">
+                <?php if ($canCancel): ?>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('cancelBox').style.display='block';this.style.display='none';">
+                        Cancel order
+                    </button>
+                <?php endif; ?>
+                <?php if ($canRefund): ?>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('refundBox').style.display='block';this.style.display='none';">
+                        Request refund
+                    </button>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($canCancel): ?>
+            <div id="cancelBox" class="action-box" style="display:none;">
+                <h3 style="margin:0 0 var(--space-2); font-size:1rem;">Cancel this order?</h3>
+                <p style="color:var(--color-text-muted); font-size:0.875rem; margin:0 0 var(--space-3);">
+                    Your payment of <strong><?= format_myr((float)$order['total']) ?></strong> will be refunded to your wallet, and the items returned to stock. This can't be undone.
+                </p>
+                <form method="post">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="cancel_order">
+                    <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
+                    <input type="text" name="cancel_reason" placeholder="Reason (optional)" class="form-control" style="margin-bottom:var(--space-3);">
+                    <div style="display:flex; gap:var(--space-2);">
+                        <button type="submit" class="btn btn-primary btn-sm">Confirm cancellation</button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('cancelBox').style.display='none';">Keep order</button>
+                    </div>
+                </form>
+            </div>
+        <?php endif; ?>
+
+        <?php if ($canRefund): ?>
+            <div id="refundBox" class="action-box" style="display:none;">
+                <h3 style="margin:0 0 var(--space-3); font-size:1rem;">Request a refund</h3>
+                <form method="post">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="request_refund">
+                    <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
+
+                    <label style="display:block; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">What's the issue?</label>
+                    <select name="reason" class="form-control" style="margin-bottom:var(--space-3);">
+                        <option value="NOT_FRESH">Item not fresh</option>
+                        <option value="DAMAGED">Item damaged</option>
+                        <option value="MISSING_ITEM">Item missing</option>
+                        <option value="WRONG_ITEM">Wrong item received</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+
+                    <label style="display:block; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Refund type</label>
+                    <div style="display:flex; gap:var(--space-4); margin-bottom:var(--space-3);">
+                        <label style="font-size:0.9rem; cursor:pointer;">
+                            <input type="radio" name="scope" value="FULL" checked onclick="document.getElementById('partialItems').style.display='none';">
+                            Whole order (<?= format_myr((float)$order['subtotal'] - (float)$order['discount_amount']) ?>)
+                        </label>
+                        <label style="font-size:0.9rem; cursor:pointer;">
+                            <input type="radio" name="scope" value="PARTIAL" onclick="document.getElementById('partialItems').style.display='block';">
+                            Selected items
+                        </label>
+                    </div>
+
+                    <div id="partialItems" style="display:none; background:var(--color-bg-warm); border-radius:12px; padding:var(--space-3); margin-bottom:var(--space-3);">
+                        <p style="font-size:0.8rem; color:var(--color-text-muted); margin:0 0 var(--space-2);">Tick items and set the quantity to refund:</p>
+                        <?php foreach ($items as $it): ?>
+                            <div style="display:flex; align-items:center; gap:var(--space-2); margin-bottom:var(--space-2);">
+                                <span style="flex:1; font-size:0.875rem;"><?= e($it['product_name']) ?> <span style="color:var(--color-text-light);">(<?= rtrim(rtrim(number_format((float)$it['quantity'],2), '0'), '.') ?> × <?= format_myr((float)$it['unit_price']) ?>)</span></span>
+                                <input type="number" name="refund_item[<?= $it['id'] ?>]" min="0" max="<?= (float)$it['quantity'] ?>" step="0.1" value="0"
+                                       style="width:70px; padding:4px 8px; border:1px solid var(--color-border); border-radius:6px; text-align:center;">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <label style="display:block; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Details (optional)</label>
+                    <textarea name="detail" rows="2" class="form-control" placeholder="Tell the seller what went wrong..." style="margin-bottom:var(--space-3);"></textarea>
+
+                    <div style="display:flex; gap:var(--space-2);">
+                        <button type="submit" class="btn btn-primary btn-sm">Submit request</button>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('refundBox').style.display='none';">Cancel</button>
+                    </div>
+                    <p style="font-size:0.75rem; color:var(--color-text-light); margin:var(--space-3) 0 0;">
+                        Approved refunds are credited to your FreshMart wallet. Shipping fees aren't refundable.
+                    </p>
+                </form>
+            </div>
+        <?php endif; ?>
 
         <?php
         // Visual 6-step progress

@@ -68,13 +68,19 @@ function cart_add(int $productId, float $quantity): void
 
     $cart = cart_get_or_create();
 
-    // Compute effective price (using earliest-expiry batch's freshness-adjusted price)
+    // Compute effective price live from the earliest-expiry batch's freshness.
+    // decorate_with_freshness() auto-resolves the retailer's discount settings,
+    // so the price always reflects current discounts (no cron dependency).
     $batch = fefo_display_batch($productId);
     $effectivePrice = (float) $product['base_price'];
     if ($batch) {
-        if (!empty($batch['selling_price_override'])) {
-            $effectivePrice = (float) $batch['selling_price_override'];
-        }
+        $decorated = decorate_with_freshness([
+            'id'            => $productId,
+            'base_price'    => (float) $product['base_price'],
+            'received_date' => $batch['received_date'],
+            'expiry_date'   => $batch['expiry_date'],
+        ]);
+        $effectivePrice = (float) ($decorated['final_price'] ?? $product['base_price']);
     }
 
     $existing = db_one(

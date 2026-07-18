@@ -24,7 +24,7 @@ $availability = trim((string) input('availability', ''));    // R-APP-19
 $query      = trim((string) input('q', ''));
 $sort       = (string) input('sort', 'newest');
 $page       = max(1, (int) input('page', 1));
-$perPage    = 24;
+$perPage    = 48;
 $offset     = ($page - 1) * $perPage;
 
 // Build WHERE clauses
@@ -61,6 +61,17 @@ $orderBy = match($sort) {
     default      => 'p.is_featured DESC, p.created_at DESC',
 };
 
+// Count total matching products (for pagination)
+$countSql = "
+    SELECT COUNT(*)
+    FROM products p
+    JOIN categories c ON c.id = p.category_id
+    LEFT JOIN subcategories sc ON sc.id = p.subcategory_id
+    JOIN unit_types ut ON ut.id = p.unit_type_id
+    WHERE " . implode(' AND ', $where);
+$totalProducts = (int) db_scalar($countSql, $args);
+$totalPages    = max(1, (int) ceil($totalProducts / $perPage));
+
 // Pull products with their display batch (earliest expiry)
 $sql = "
     SELECT
@@ -81,7 +92,11 @@ $sql = "
          ORDER BY sb.expiry_date ASC LIMIT 1) AS received_date,
         (SELECT MIN(sb.expiry_date) FROM stock_batches sb
          WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-           AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()) AS earliest_expiry
+           AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()) AS earliest_expiry,
+        (SELECT ROUND(AVG(r.rating),1) FROM reviews r
+         WHERE r.product_id = p.id AND r.is_approved = 1) AS avg_rating,
+        (SELECT COUNT(*) FROM reviews r
+         WHERE r.product_id = p.id AND r.is_approved = 1) AS review_count
     FROM products p
     JOIN categories c ON c.id = p.category_id
     LEFT JOIN subcategories sc ON sc.id = p.subcategory_id
@@ -251,6 +266,12 @@ function url_with($overrides = []): string {
                         </div>
                         <div class="product-card-body">
                             <div class="product-card-name"><?= e($p['name']) ?></div>
+                            <?php if (!empty($p['review_count']) && (int)$p['review_count'] > 0): ?>
+                                <div class="product-card-rating">
+                                    <span class="pcr-stars"><?= str_repeat('★', (int) round($p['avg_rating'])) ?><?= str_repeat('☆', 5 - (int) round($p['avg_rating'])) ?></span>
+                                    <span class="pcr-count"><?= number_format((float)$p['avg_rating'], 1) ?> (<?= (int)$p['review_count'] ?>)</span>
+                                </div>
+                            <?php endif; ?>
                             <?php if (!empty($p['origin'])): ?>
                                 <div class="product-card-origin"><?= icon('pin', 14) ?> <?= e($p['origin']) ?></div>
                             <?php endif; ?>
@@ -279,7 +300,100 @@ function url_with($overrides = []): string {
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
+
+        <?php if ($totalPages > 1 && $freshness === ''): ?>
+            <nav class="pagination" aria-label="Product pages">
+                <?php if ($page > 1): ?>
+                    <a class="page-btn page-nav" href="<?= url_with(['page' => $page - 1]) ?>">← Prev</a>
+                <?php else: ?>
+                    <span class="page-btn page-nav is-disabled">← Prev</span>
+                <?php endif; ?>
+
+                <?php
+                // Show a compact page window: first, current-1..current+1, last
+                $window = [];
+                for ($i = 1; $i <= $totalPages; $i++) {
+                    if ($i == 1 || $i == $totalPages || abs($i - $page) <= 1) {
+                        $window[] = $i;
+                    }
+                }
+                $prev = 0;
+                foreach ($window as $i):
+                    if ($prev && $i - $prev > 1): ?>
+                        <span class="page-ellipsis">…</span>
+                    <?php endif; ?>
+                    <?php if ($i == $page): ?>
+                        <span class="page-btn is-current"><?= $i ?></span>
+                    <?php else: ?>
+                        <a class="page-btn" href="<?= url_with(['page' => $i]) ?>"><?= $i ?></a>
+                    <?php endif; ?>
+                    <?php $prev = $i;
+                endforeach; ?>
+
+                <?php if ($page < $totalPages): ?>
+                    <a class="page-btn page-nav" href="<?= url_with(['page' => $page + 1]) ?>">Next →</a>
+                <?php else: ?>
+                    <span class="page-btn page-nav is-disabled">Next →</span>
+                <?php endif; ?>
+            </nav>
+            <p class="pagination-info">
+                Showing page <?= $page ?> of <?= $totalPages ?> · <?= $totalProducts ?> products total
+            </p>
+        <?php endif; ?>
     </div>
 </section>
+
+<style>
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: var(--space-6, 2rem);
+}
+.page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.15s ease;
+}
+.page-btn:hover:not(.is-current):not(.is-disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+}
+.page-btn.is-current {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    cursor: default;
+}
+.page-btn.is-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.page-nav { font-weight: 700; }
+.page-ellipsis {
+    padding: 0 4px;
+    color: var(--color-text-muted);
+}
+.pagination-info {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-top: var(--space-3, 1rem);
+}
+</style>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

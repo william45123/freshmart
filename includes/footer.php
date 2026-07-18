@@ -1,11 +1,26 @@
 </main>
 <footer class="site-footer">
     <div class="container">
-        <div class="footer-col">
+        <div class="footer-col footer-col-about">
             <h4>FreshMart</h4>
+            <p class="footer-about">
+                A freshness-first online grocery for Malaysia. Every product shows a live
+                freshness score, backed by first-expired-first-out inventory and automatic
+                Last Chance discounts — so you shop with confidence and we cut food waste together.
+            </p>
+            <div class="footer-social">
+                <a href="https://facebook.com/freshmart.my" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook">f</a>
+                <a href="https://instagram.com/freshmart.my" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">◎</a>
+                <a href="https://tiktok.com/@freshmart.my" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok">♪</a>
+            </div>
+        </div>
+        <div class="footer-col">
+            <h4>Shop</h4>
             <ul>
                 <li><a href="<?= url('/') ?>">Home</a></li>
                 <li><a href="<?= url('/shop/browse.php') ?>">Browse Products</a></li>
+                <li><a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>">Last Chance Deals</a></li>
+                <li><a href="<?= url('/shop/freshness.php') ?>">How Freshness Works</a></li>
             </ul>
         </div>
         <div class="footer-col">
@@ -16,9 +31,11 @@
             </ul>
         </div>
         <div class="footer-col">
-            <h4>Learn More</h4>
-            <ul>
-                <li><a href="<?= url('/shop/freshness.php') ?>">About Freshness Levels</a></li>
+            <h4>Contact</h4>
+            <ul class="footer-contact">
+                <li>📧 hello@freshmart.my</li>
+                <li>📞 +60 3-8888 1234</li>
+                <li>📍 Cyberjaya, Selangor,<br>&nbsp;&nbsp;&nbsp;&nbsp;Malaysia</li>
             </ul>
         </div>
     </div>

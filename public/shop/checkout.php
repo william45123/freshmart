@@ -21,6 +21,7 @@ require_once __DIR__ . '/../../includes/cart_helpers.php';
 require_once __DIR__ . '/../../includes/helpers.php';
 require_once __DIR__ . '/../../includes/freshness.php';
 require_once __DIR__ . '/../../includes/fefo.php';
+require_once __DIR__ . '/../../includes/wallet_helpers.php';
 
 require_login();
 
@@ -177,22 +178,50 @@ if (is_post() && input('action') === 'place_order') {
                 }
                 $commitTotal = round((float) $cart['subtotal'] - $commitDiscount + (float) $cart['shipping'], 2);
 
+                // If paying by wallet, make sure the balance covers the order
+                if ($paymentMethod === 'WALLET') {
+                    $walletBal = wallet_balance($userId);
+                    if ($walletBal < $commitTotal) {
+                        $errors[] = 'Your wallet balance (' . format_myr($walletBal)
+                            . ') is not enough for this order (' . format_myr($commitTotal)
+                            . '). Please top up or choose another payment method.';
+                    }
+                }
+
                 if (empty($errors)) {
                 $orderId = db_transaction(function () use ($cart, $allocations, $userId, $shippingAddressId, $paymentMethod, $deliveryDate, $commitDiscount, $commitPromoId, $commitTotal) {
 
-                    // 1. Create order
+                    // Commission: platform takes a % of goods subtotal (after discount).
+                    // Rate = the retailer's override, else the global default in settings.
+                    $goodsNet = round((float) $cart['subtotal'] - (float) $commitDiscount, 2);
+                    $retailerId = null;
+                    foreach ($cart['items'] as $ci) {
+                        $rid = db_scalar('SELECT retailer_id FROM products WHERE id = ?', [(int) $ci['product_id']]);
+                        if ($rid) { $retailerId = (int) $rid; break; }
+                    }
+                    $globalRate = (float) (db_scalar("SELECT config_value FROM system_config WHERE config_key = 'commission_rate'") ?? 10.0);
+                    $rateOverride = $retailerId
+                        ? db_scalar('SELECT commission_rate FROM retailers WHERE id = ?', [$retailerId])
+                        : null;
+                    $commissionRate   = $rateOverride !== null ? (float) $rateOverride : $globalRate;
+                    $commissionAmount = round($goodsNet * $commissionRate / 100, 2);
+                    $retailerPayout   = round($goodsNet - $commissionAmount, 2);
+
+                    // 1. Create order (with commission snapshot)
                     $orderNumber = generate_order_number();
                     db_run(
                         "INSERT INTO orders
                             (order_number, user_id, shipping_address_id, preferred_delivery_date,
                              billing_address_id, promo_code_id,
                              subtotal, discount_amount, shipping_fee, tax_amount, total,
+                             commission_rate, commission_amount, retailer_payout,
                              status, placed_at)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0.00, ?, 'PLACED', NOW())",
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0.00, ?, ?, ?, ?, 'PLACED', NOW())",
                         [
                             $orderNumber, $userId, $shippingAddressId, $deliveryDate, $shippingAddressId,
                             $commitPromoId,
                             $cart['subtotal'], $commitDiscount, $cart['shipping'], $commitTotal,
+                            $commissionRate, $commissionAmount, $retailerPayout,
                         ]
                     );
                     $orderId = db_last_id();
@@ -239,6 +268,20 @@ if (is_post() && input('action') === 'place_order') {
                          VALUES (?, ?, ?, 'SUCCESS', ?, NOW())",
                         [$orderId, $paymentMethod, $commitTotal, 'SIM-' . strtoupper(random_token(6))]
                     );
+
+                    // 3a. If paying by wallet, actually debit the wallet balance.
+                    //     (Balance was already checked above; this happens inside
+                    //     the same transaction so it's all-or-nothing.)
+                    if ($paymentMethod === 'WALLET') {
+                        wallet_apply(
+                            $userId,
+                            'DEBIT',
+                            $commitTotal,
+                            'ORDER_PAYMENT',
+                            $orderNumber,
+                            'Paid with wallet for order ' . $orderNumber
+                        );
+                    }
 
                     // 3b. Increment voucher usage if one was applied
                     if ($commitPromoId !== null) {
@@ -390,6 +433,21 @@ require_once __DIR__ . '/../../includes/header.php';
                 <!-- Payment Method (simulated) -->
                 <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4);">
                     <h3 style="margin-top: 0; font-size: 1.125rem;">Payment Method</h3>
+                    <?php $walletBalance = wallet_balance($userId); ?>
+                    <!-- Wallet payment (real balance) -->
+                    <label style="display:block; padding: var(--space-3); border: 2px solid var(--color-primary); border-radius: var(--radius); cursor: pointer; margin-bottom: var(--space-2); background: #f4f8ee;">
+                        <input type="radio" name="payment_method" value="WALLET" style="margin-right: 6px;"
+                               <?= $walletBalance <= 0 ? 'disabled' : '' ?>>
+                        💰 <strong>FreshMart Wallet</strong>
+                        <span style="float:right; font-weight:600; color: var(--color-primary);">
+                            Balance: <?= format_myr($walletBalance) ?>
+                        </span>
+                        <?php if ($walletBalance <= 0): ?>
+                            <div style="font-size:0.78rem; color: var(--color-text-light); margin-top:4px;">
+                                Your wallet is empty — top up on the Wallet page, or use another method.
+                            </div>
+                        <?php endif; ?>
+                    </label>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-2);">
                         <?php foreach ([
                             'FPX'           => '🏦 FPX',

@@ -97,13 +97,31 @@ function db_last_id(): int
 function db_transaction(callable $fn)
 {
     $pdo = db();
-    $pdo->beginTransaction();
+
+    // Support nested transactions: only the OUTERMOST call actually
+    // begins/commits. Inner calls just run within the existing one.
+    // (PDO/MySQL don't support real nested transactions, so this
+    // prevents "There is already an active transaction" errors when a
+    // function that opens a transaction calls another that also does.)
+    static $depth = 0;
+
+    if ($depth === 0) {
+        $pdo->beginTransaction();
+    }
+    $depth++;
+
     try {
         $result = $fn($pdo);
-        $pdo->commit();
+        $depth--;
+        if ($depth === 0) {
+            $pdo->commit();
+        }
         return $result;
     } catch (Throwable $e) {
-        $pdo->rollBack();
+        $depth--;
+        if ($depth === 0 && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         throw $e;
     }
 }

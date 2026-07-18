@@ -53,7 +53,7 @@ function fefo_plan_allocation(int $productId, float $quantity): array
 
     // 1. Get the product's base price + decay exponent (for freshness pricing logic)
     $product = db_one(
-        'SELECT p.id, p.base_price,
+        'SELECT p.id, p.base_price, p.retailer_id,
                 COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent
          FROM products p
          JOIN categories c ON c.id = p.category_id
@@ -63,8 +63,9 @@ function fefo_plan_allocation(int $productId, float $quantity): array
     if (!$product) {
         throw new RuntimeException("Product #{$productId} not found or inactive.");
     }
-    $basePrice    = (float) $product['base_price'];
+    $basePrice     = (float) $product['base_price'];
     $decayExponent = (float) $product['decay_exponent'];
+    $retailerId    = (int) $product['retailer_id'];
 
     // 2. Get all eligible batches ordered by earliest expiry first.
     //    Tiebreaker: earlier received_date → batch_code ASC for deterministic order.
@@ -93,10 +94,9 @@ function fefo_plan_allocation(int $productId, float $quantity): array
         $level = freshness_level($batch['received_date'], $batch['expiry_date'], $decayExponent);
         if ($level === 'EXPIRED') continue;     // Safety guard
 
-        // Apply freshness-based pricing
-        $effectivePrice = $batch['selling_price_override'] !== null
-            ? (float) $batch['selling_price_override']
-            : apply_freshness_discount($basePrice, $level)['final_price'];
+        // Apply freshness-based pricing — computed live so it always reflects
+        // the retailer's current discount settings (no cron dependency).
+        $effectivePrice = apply_freshness_discount($basePrice, $level, $retailerId)['final_price'];
 
         $allocations[] = [
             'stock_batch_id'  => (int) $batch['id'],

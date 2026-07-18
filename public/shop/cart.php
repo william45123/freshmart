@@ -69,10 +69,11 @@ require_once __DIR__ . '/../../includes/header.php';
     <?php endforeach; ?>
 
     <?php if ($cart['count'] === 0): ?>
-        <div class="empty-state" style="margin-top: var(--space-6);">
-            <div class="empty-ico"><?= icon('cart', 44) ?></div>
-            <p style="font-size: 1.0625rem; margin-bottom: var(--space-3);">Your cart is empty</p>
-            <a href="<?= url('/shop/browse.php') ?>" class="btn btn-primary">Browse products</a>
+        <div class="empty-state">
+            <div class="empty-state-icon">🛒</div>
+            <div class="empty-state-title">Your cart is empty</div>
+            <div class="empty-state-text">Looks like you haven't added anything yet. Explore our fresh produce and Last Chance deals.</div>
+            <a href="<?= url('/shop/browse.php') ?>" class="btn btn-primary btn-lg">Browse products</a>
         </div>
     <?php else: ?>
         <div class="cart-layout">

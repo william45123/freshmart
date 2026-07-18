@@ -24,6 +24,9 @@ $groups = [
         'shipping_free_threshold' => ['label' => 'Free Shipping Above (MYR)', 'type' => 'number', 'step' => '0.01'],
         'tax_rate'                => ['label' => 'Tax Rate (%)', 'type' => 'number', 'step' => '0.01'],
     ],
+    'Platform Revenue' => [
+        'commission_rate'         => ['label' => 'Commission Rate (%)', 'type' => 'number', 'step' => '0.01'],
+    ],
     'Cart & Products' => [
         'guest_cart_hours'        => ['label' => 'Guest Cart Lifetime (hours)', 'type' => 'number', 'step' => '1'],
         'product_image_max_size'  => ['label' => 'Max Image Size (bytes)', 'type' => 'number', 'step' => '1'],
