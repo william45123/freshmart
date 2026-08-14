@@ -102,7 +102,7 @@ admin_layout_start('reviews', 'Review Moderation');
 <?php endforeach; ?>
 
 <!-- KPIs -->
-<div class="kpi-grid" style="margin-bottom: var(--space-4);">
+<div class="kpi-grid u-mb-4">
     <div class="kpi-card">
         <div class="kpi-label">Total reviews</div>
         <div class="kpi-value"><?= number_format($totalReviews) ?></div>
@@ -122,7 +122,7 @@ admin_layout_start('reviews', 'Review Moderation');
 </div>
 
 <!-- Filter pills -->
-<div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+<div class="u-flex u-gap-2 u-mb-4 u-wrap">
     <?php foreach ([
         'pending'  => "⏳ Pending ({$pendingCount})",
         'approved' => "✅ Approved ({$approvedCount})",
@@ -138,72 +138,72 @@ admin_layout_start('reviews', 'Review Moderation');
 
 <?php if (empty($reviews)): ?>
     <div class="empty-state">
-        <p style="font-size: 1.0625rem;">⭐ No reviews in this filter.</p>
+        <p class="u-t-17">⭐ No reviews in this filter.</p>
     </div>
 <?php else: ?>
-    <div style="display: flex; flex-direction: column; gap: var(--space-3); max-width: 900px;">
+    <div class="u-flex u-col u-gap-3 u-maxw-900">
         <?php foreach ($reviews as $r): ?>
-            <div style="background: var(--color-surface); border: 1px solid <?= $r['is_approved'] ? 'var(--color-border)' : 'var(--color-mustard, #c9a55a)' ?>; border-radius: var(--radius-lg); padding: var(--space-4);">
-                <div style="display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 260px;">
+            <div class="review-card u-p-4<?= $r['is_approved'] ? '' : ' is-pending' ?>">
+                <div class="u-flex u-jc-between u-ai-start u-gap-3 u-wrap">
+                    <div class="u-flex-1 u-minw-260">
                         <!-- Status + rating -->
-                        <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); flex-wrap: wrap;">
+                        <div class="u-flex u-ai-center u-gap-2 u-mb-2 u-wrap">
                             <?php if (!$r['is_approved']): ?>
-                                <span style="background: var(--color-mustard, #c9a55a); color: white; font-size: 0.6875rem; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.05em; text-transform: uppercase;">⏳ Pending</span>
+                                <span class="u-bg-mustard u-fg-white u-t-11 u-p-pill-xs u-r-pill u-ls-05 u-upper">⏳ Pending</span>
                             <?php else: ?>
-                                <span style="background: var(--color-primary); color: white; font-size: 0.6875rem; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.05em; text-transform: uppercase;">✓ Approved</span>
+                                <span class="u-bg-primary u-fg-white u-t-11 u-p-pill-xs u-r-pill u-ls-05 u-upper">✓ Approved</span>
                             <?php endif; ?>
-                            <span style="color: #c9a55a; font-size: 1rem;">
-                                <?= str_repeat('★', (int) $r['rating']) ?><span style="color: var(--color-border);"><?= str_repeat('★', 5 - (int) $r['rating']) ?></span>
+                            <span class="u-fg-mustard u-t-16">
+                                <?= str_repeat('★', (int) $r['rating']) ?><span class="u-fg-border"><?= str_repeat('★', 5 - (int) $r['rating']) ?></span>
                             </span>
-                            <span style="font-size: 0.8125rem; color: var(--color-text-muted);">
+                            <span class="u-t-13 u-muted">
                                 <?= format_datetime($r['created_at'], 'd M Y, H:i') ?>
                             </span>
                         </div>
 
                         <!-- Reviewer + product -->
-                        <div style="font-size: 0.875rem; margin-bottom: var(--space-2);">
+                        <div class="u-t-14 u-mb-2">
                             <strong><?= e($r['reviewer_name'] ?? 'Customer') ?></strong>
-                            <span style="color: var(--color-text-muted);"> (<?= e($r['reviewer_email']) ?>)</span>
+                            <span class="u-muted"> (<?= e($r['reviewer_email']) ?>)</span>
                             on
-                            <a href="<?= url('/shop/product.php?slug=' . urlencode($r['product_slug'])) ?>" style="font-weight: 600;">
+                            <a href="<?= url('/shop/product.php?slug=' . urlencode($r['product_slug'])) ?>" class="u-fw-600">
                                 <?= e($r['product_name']) ?>
                             </a>
-                            <span style="color: var(--color-text-muted); font-size: 0.8125rem;"> · sold by <?= e($r['retailer_name']) ?></span>
+                            <span class="u-muted u-t-13"> · sold by <?= e($r['retailer_name']) ?></span>
                         </div>
 
                         <!-- Body -->
                         <?php if (!empty($r['title'])): ?>
-                            <div style="font-weight: 600; margin-bottom: 4px;"><?= e($r['title']) ?></div>
+                            <div class="u-fw-600 u-mb-1"><?= e($r['title']) ?></div>
                         <?php endif; ?>
-                        <p style="margin: 0; color: var(--color-text); line-height: 1.55;"><?= nl2br(e($r['body'])) ?></p>
+                        <p class="u-m-0 u-ink u-lh-155"><?= nl2br(e($r['body'])) ?></p>
                     </div>
 
                     <!-- Actions -->
-                    <div style="display: flex; flex-direction: column; gap: var(--space-2); min-width: 110px;">
+                    <div class="u-flex u-col u-gap-2 u-minw-110">
                         <?php if (!$r['is_approved']): ?>
-                            <form method="post" style="margin:0;">
+                            <form method="post" class="u-m-0">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="approve">
                                 <input type="hidden" name="review_id" value="<?= $r['id'] ?>">
                                 <input type="hidden" name="filter" value="<?= attr($filter) ?>">
-                                <button type="submit" class="btn btn-primary btn-sm" style="width:100%;">✓ Approve</button>
+                                <button type="submit" class="btn btn-primary btn-sm u-w-full">✓ Approve</button>
                             </form>
                         <?php else: ?>
-                            <form method="post" style="margin:0;">
+                            <form method="post" class="u-m-0">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="unapprove">
                                 <input type="hidden" name="review_id" value="<?= $r['id'] ?>">
                                 <input type="hidden" name="filter" value="<?= attr($filter) ?>">
-                                <button type="submit" class="btn btn-secondary btn-sm" style="width:100%;">Unapprove</button>
+                                <button type="submit" class="btn btn-secondary btn-sm u-w-full">Unapprove</button>
                             </form>
                         <?php endif; ?>
-                        <form method="post" style="margin:0;" onsubmit="return confirm('Delete this review permanently?');">
+                        <form method="post" class="u-m-0" onsubmit="return confirm('Delete this review permanently?');">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="review_id" value="<?= $r['id'] ?>">
                             <input type="hidden" name="filter" value="<?= attr($filter) ?>">
-                            <button type="submit" class="btn btn-ghost btn-sm" style="width:100%; color: var(--color-danger);">🗑 Delete</button>
+                            <button type="submit" class="btn btn-ghost btn-sm u-w-full u-fg-danger">🗑 Delete</button>
                         </form>
                     </div>
                 </div>

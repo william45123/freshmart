@@ -64,9 +64,9 @@ $pageTitle = 'Review · ' . $product['name'];
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<section class="container" style="padding: var(--space-6) 0 var(--space-12); max-width: 600px;">
+<section class="container u-page-head u-maxw-600">
     <h1>Review <em><?= e($product['name']) ?></em></h1>
-    <p style="color: var(--color-text-muted);">
+    <p class="u-muted">
         From your order <code><?= e($eligibleOrder['order_number']) ?></code>
     </p>
 
@@ -74,16 +74,16 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="flash flash-error"><?= e($err) ?></div>
     <?php endforeach; ?>
 
-    <form method="post" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-top: var(--space-4);">
+    <form method="post" class="panel u-p-6 u-mt-4">
         <?= csrf_field() ?>
 
         <div class="form-group">
             <label>Rating *</label>
-            <div style="display: flex; gap: var(--space-1); font-size: 2rem;">
+            <div class="u-flex u-gap-1 u-t-32">
                 <?php for ($i = 1; $i <= 5; $i++): ?>
-                    <label style="cursor: pointer;">
-                        <input type="radio" name="rating" value="<?= $i ?>" style="display: none;" required>
-                        <span class="star-rating" data-val="<?= $i ?>" style="color: #d4d4d4; user-select: none;">★</span>
+                    <label class="u-pointer">
+                        <input type="radio" name="rating" value="<?= $i ?>" class="u-hidden" required>
+                        <span class="star-rating u-fg-star-empty u-noselect" data-val="<?= $i ?>">★</span>
                     </label>
                 <?php endfor; ?>
             </div>
@@ -101,7 +101,7 @@ require_once __DIR__ . '/../../includes/header.php';
                       placeholder="Share your experience..."></textarea>
         </div>
 
-        <div class="form-actions" style="display: flex; gap: var(--space-2);">
+        <div class="form-actions u-flex u-gap-2">
             <button type="submit" class="btn btn-primary">Submit review</button>
             <a href="<?= url('/shop/product.php?slug=' . urlencode($product['slug'])) ?>" class="btn btn-ghost">Cancel</a>
         </div>

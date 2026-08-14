@@ -126,9 +126,8 @@ require_once __DIR__ . '/../../includes/header.php';
                        class="form-control" minlength="8">
             </div>
 
-            <div class="retailer-fields" id="retailer-fields"
-                 style="<?= $preselect === 'RETAILER' ? 'display:block' : '' ?>">
-                <h3 style="font-size: 1rem; margin: var(--space-4) 0 var(--space-3);">
+            <div class="retailer-fields<?= $preselect === 'RETAILER' ? ' is-open' : '' ?>" id="retailer-fields">
+                <h3 class="u-t-16 u-m-4-0-3">
                     Business details
                 </h3>
                 <div class="form-group">
@@ -165,7 +164,7 @@ require_once __DIR__ . '/../../includes/header.php';
     const fields = document.getElementById('retailer-fields');
     const cust   = document.getElementById('role-customer');
     const ret    = document.getElementById('role-retailer');
-    function toggle() { fields.style.display = ret.checked ? 'block' : 'none'; }
+    function toggle() { fields.classList.toggle('is-open', ret.checked); }
     cust.addEventListener('change', toggle);
     ret.addEventListener('change', toggle);
 </script>

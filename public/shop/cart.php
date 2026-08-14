@@ -60,9 +60,9 @@ $pageTitle = 'Cart — FreshMart';
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<section class="container" style="padding: var(--space-6) 0 var(--space-12);">
+<section class="container u-page-head">
 
-    <h1>Your cart <?php if ($cart['count'] > 0): ?><span style="color: var(--color-text-muted); font-weight: 400;">(<?= $cart['count'] ?>)</span><?php endif; ?></h1>
+    <h1>Your cart <?php if ($cart['count'] > 0): ?><span class="u-muted u-fw-400">(<?= $cart['count'] ?>)</span><?php endif; ?></h1>
 
     <?php foreach ($errors as $err): ?>
         <div class="flash flash-error"><?= e($err) ?></div>
@@ -84,51 +84,51 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="cart-item">
 
                         <a href="<?= url('/shop/product.php?slug=' . urlencode($item['slug'])) ?>"
-                           style="aspect-ratio: 1; background: var(--color-bg); border-radius: var(--radius); display: grid; place-items: center; overflow: hidden;">
+                           class="u-square u-bg-page u-r u-grid u-place-center u-ovh">
                             <?php if (!empty($item['primary_image'])): ?>
-                                <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+                                <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" class="media-fill">
                             <?php else: ?>
-                                <span style="font-size: 2rem;">🥬</span>
+                                <span class="u-t-32">🥬</span>
                             <?php endif; ?>
                         </a>
 
                         <div>
                             <a href="<?= url('/shop/product.php?slug=' . urlencode($item['slug'])) ?>"
-                               style="color: var(--color-text); font-weight: 600; font-size: 1rem; display: block; margin-bottom: var(--space-1);">
+                               class="u-ink u-fw-600 u-t-16 u-block u-mb-1">
                                 <?= e($item['name']) ?>
                             </a>
                             <?php if (!empty($item['origin'])): ?>
-                                <div style="color: var(--color-text-muted); font-size: 0.8125rem; margin-bottom: var(--space-2);">
+                                <div class="u-muted u-t-13 u-mb-2">
                                     📍 <?= e($item['origin']) ?>
                                 </div>
                             <?php endif; ?>
-                            <div style="color: var(--color-text-muted); font-size: 0.875rem;">
+                            <div class="u-muted u-t-14">
                                 <?= format_myr($item['price_snapshot']) ?> / <?= e($item['unit_code']) ?>
                             </div>
 
-                            <form method="post" style="margin-top: var(--space-2); display: flex; gap: var(--space-2); align-items: center;">
+                            <form method="post" class="u-mt-2 u-flex u-gap-2 u-ai-center">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
                                 <input type="number" name="quantity"
                                        value="<?= attr((string) $item['quantity']) ?>"
                                        step="0.01" min="0.01"
-                                       class="form-control" style="width: 90px;"
+                                       class="form-control u-w-90"
                                        onchange="this.form.submit()">
-                                <span style="color: var(--color-text-muted); font-size: 0.875rem;"><?= e($item['unit_code']) ?></span>
+                                <span class="u-muted u-t-14"><?= e($item['unit_code']) ?></span>
                             </form>
                         </div>
 
-                        <div class="cart-item-total" style="text-align: right;">
-                            <div style="font-size: 1.125rem; font-weight: 700;">
+                        <div class="cart-item-total u-ta-r">
+                            <div class="u-t-18 u-fw-700">
                                 <?= format_myr((float) $item['quantity'] * (float) $item['price_snapshot']) ?>
                             </div>
-                            <form method="post" style="margin-top: var(--space-2);">
+                            <form method="post" class="u-mt-2">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="remove">
                                 <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
-                                <button type="submit" class="btn btn-ghost btn-sm"
-                                        style="color: var(--color-danger);"
+                                <button type="submit" class="btn btn-ghost btn-sm u-fg-danger"
+                                       
                                         onclick="return confirm('Remove this item?')">
                                     Remove
                                 </button>
@@ -139,18 +139,18 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
 
             <!-- Summary -->
-            <aside style="position: sticky; top: calc(var(--header-h) + var(--space-4)); align-self: start;">
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-                    <h3 style="font-size: 1.125rem; margin-bottom: var(--space-4);">Order Summary</h3>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
-                        <span style="color: var(--color-text-muted);">Subtotal</span>
+            <aside class="u-sticky u-top-sticky u-as-start">
+                <div class="panel u-p-5">
+                    <h3 class="u-t-18 u-mb-4">Order Summary</h3>
+                    <div class="u-flex u-jc-between u-mb-2">
+                        <span class="u-muted">Subtotal</span>
                         <span><?= format_myr($cart['subtotal']) ?></span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2);">
-                        <span style="color: var(--color-text-muted);">Shipping</span>
+                    <div class="u-flex u-jc-between u-mb-2">
+                        <span class="u-muted">Shipping</span>
                         <span>
                             <?php if ($cart['shipping'] == 0): ?>
-                                <strong style="color: var(--color-primary);">FREE</strong>
+                                <strong class="u-fg-primary">FREE</strong>
                             <?php else: ?>
                                 <?= format_myr($cart['shipping']) ?>
                             <?php endif; ?>
@@ -171,35 +171,35 @@ require_once __DIR__ . '/../../includes/header.php';
                             <?php endif; ?>
                         </div>
                         <div class="ship-progress-track">
-                            <div class="ship-progress-fill" style="width: <?= number_format($pct, 1) ?>%;"></div>
+                            <div class="ship-progress-fill" style="--pct: <?= number_format($pct, 1) ?>%"></div>
                         </div>
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; padding-top: var(--space-3); border-top: 1px solid var(--color-border); margin-bottom: var(--space-4);">
+                    <div class="u-flex u-jc-between u-pt-3 u-bt u-mb-4">
                         <strong>Total</strong>
-                        <strong style="font-size: 1.25rem;"><?= format_myr($cart['total']) ?></strong>
+                        <strong class="u-t-20"><?= format_myr($cart['total']) ?></strong>
                     </div>
 
                     <?php if (auth_check()): ?>
-                        <a href="<?= url('/shop/checkout.php') ?>" class="btn btn-primary btn-lg" style="width: 100%;">
+                        <a href="<?= url('/shop/checkout.php') ?>" class="btn btn-primary btn-lg u-w-full">
                             Proceed to checkout →
                         </a>
                     <?php else: ?>
-                        <a href="<?= url('/auth/login.php') ?>" class="btn btn-primary btn-lg" style="width: 100%;">
+                        <a href="<?= url('/auth/login.php') ?>" class="btn btn-primary btn-lg u-w-full">
                             Log in to checkout
                         </a>
-                        <p style="text-align: center; font-size: 0.8125rem; color: var(--color-text-muted); margin-top: var(--space-2);">
+                        <p class="u-ta-c u-t-13 u-muted u-mt-2">
                             New customer? <a href="<?= url('/auth/register.php') ?>">Create an account</a>
                         </p>
                     <?php endif; ?>
                 </div>
 
                 <?php if (!empty($availablePromos)): ?>
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-top: var(--space-4);">
-                    <h3 style="font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text-muted); margin: 0 0 var(--space-3);">
+                <div class="panel u-p-5 u-mt-4">
+                    <h3 class="u-t-11 u-ls-10 u-upper u-muted u-m-0-0-3">
                         🎟️ Promo codes you can use
                     </h3>
-                    <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+                    <div class="u-flex u-col u-gap-2">
                         <?php foreach ($availablePromos as $promo):
                             $eligible = (float) $cart['subtotal'] >= (float) $promo['min_order_value'];
                             if ($promo['discount_type'] === 'PERCENTAGE') {
@@ -211,20 +211,20 @@ require_once __DIR__ . '/../../includes/header.php';
                                 $discTxt = format_myr($promo['discount_value']) . ' off';
                             }
                         ?>
-                            <div style="border: 1px dashed <?= $eligible ? 'var(--color-primary)' : 'var(--color-border)' ?>; border-radius: var(--radius); padding: var(--space-3); <?= $eligible ? '' : 'opacity: 0.6;' ?>">
-                                <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-2);">
-                                    <code style="font-size: 0.9375rem; font-weight: 700; letter-spacing: 0.05em; color: var(--color-primary-dark); background: var(--color-primary-light); padding: 2px 8px; border-radius: var(--radius-sm);">
+                            <div class="voucher-option<?= $eligible ? ' is-eligible' : '' ?>">
+                                <div class="u-flex u-jc-between u-ai-center u-gap-2">
+                                    <code class="u-t-15 u-fw-700 u-ls-05 u-fg-primary-dk u-bg-primary-lt u-p-pill-xs u-r-sm">
                                         <?= e($promo['code']) ?>
                                     </code>
-                                    <span style="font-size: 0.875rem; font-weight: 600; white-space: nowrap;"><?= e($discTxt) ?></span>
+                                    <span class="u-t-14 u-fw-600 u-nowrap"><?= e($discTxt) ?></span>
                                 </div>
                                 <?php if (!empty($promo['description'])): ?>
-                                    <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;"><?= e($promo['description']) ?></div>
+                                    <div class="u-t-12 u-muted u-mt-1"><?= e($promo['description']) ?></div>
                                 <?php endif; ?>
-                                <div style="font-size: 0.6875rem; color: var(--color-text-muted); margin-top: 4px;">
+                                <div class="u-t-11 u-muted u-mt-1">
                                     <?php if ((float) $promo['min_order_value'] > 0): ?>
                                         <?php if ($eligible): ?>
-                                            <span style="color: var(--color-primary);">✓ Min order met</span>
+                                            <span class="u-fg-primary">✓ Min order met</span>
                                         <?php else: ?>
                                             Spend <?= format_myr((float) $promo['min_order_value'] - (float) $cart['subtotal']) ?> more to unlock
                                         <?php endif; ?>
@@ -235,7 +235,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                         <?php endforeach; ?>
                     </div>
-                    <p style="font-size: 0.6875rem; color: var(--color-text-muted); margin: var(--space-3) 0 0;">
+                    <p class="u-t-11 u-muted u-m-3-0-0">
                         Enter your code at checkout to apply the discount.
                     </p>
                 </div>

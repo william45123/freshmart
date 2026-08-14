@@ -101,27 +101,27 @@ if ($orderId > 0) {
     admin_layout_start('orders', 'Order ' . $order['order_number']);
     ?>
 
-    <a href="<?= url('/admin/orders.php') ?>" style="color: var(--color-text-muted); font-size: 0.875rem;">← All orders</a>
+    <a href="<?= url('/admin/orders.php') ?>" class="u-muted u-t-14">← All orders</a>
 
     <?php foreach ($errors as $err): ?>
-        <div class="flash flash-error" style="margin-top: var(--space-3);"><?= e($err) ?></div>
+        <div class="flash flash-error u-mt-3"><?= e($err) ?></div>
     <?php endforeach; ?>
 
-    <div style="display: flex; align-items: center; gap: var(--space-3); margin: var(--space-3) 0 var(--space-4);">
-        <h2 style="margin: 0; font-size: 1.5rem;"><?= e($order['order_number']) ?></h2>
+    <div class="u-flex u-ai-center u-gap-3 u-m-3-0-4">
+        <h2 class="u-m-0 u-t-24"><?= e($order['order_number']) ?></h2>
         <span class="status-pill status-<?= strtolower($order['status']) === 'delivered' ? 'active' : 'pending' ?>">
             <?= e(str_replace('_', ' ', $order['status'])) ?>
         </span>
     </div>
 
     <!-- Admin status override -->
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4);">
-        <form method="post" style="display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
+    <div class="panel u-p-4 u-mb-4">
+        <form method="post" class="u-flex u-gap-2 u-ai-center u-wrap">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="update_status">
             <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
-            <label style="font-size: 0.875rem; color: var(--color-text-muted);">Override status:</label>
-            <select name="new_status" class="form-control" style="width: auto;">
+            <label class="u-t-14 u-muted">Override status:</label>
+            <select name="new_status" class="form-control u-w-auto">
                 <?php foreach (['PLACED','PROCESSING','QUALITY_CHECK','PACKED','OUT_FOR_DELIVERY','DELIVERED','CANCELLED','REFUNDED'] as $st): ?>
                     <option value="<?= $st ?>" <?= $order['status'] === $st ? 'selected' : '' ?>><?= str_replace('_',' ',$st) ?></option>
                 <?php endforeach; ?>
@@ -130,55 +130,55 @@ if ($orderId > 0) {
         </form>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-4);">
+    <div class="u-grid u-cols-2-1 u-gap-4">
         <!-- Items -->
-        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-            <h3 style="margin-top: 0;">Items</h3>
+        <div class="panel u-p-5">
+            <h3 class="u-mt-0">Items</h3>
             <?php foreach ($items as $item): ?>
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
+                <div class="u-grid u-cols-1-auto u-gap-3 u-py-3 u-bb">
                     <div>
-                        <div style="font-weight: 600;"><?= e($item['product_name']) ?></div>
-                        <div style="font-size: 0.8125rem; color: var(--color-text-muted);">
+                        <div class="u-fw-600"><?= e($item['product_name']) ?></div>
+                        <div class="u-t-13 u-muted">
                             <?= e($item['retailer_name']) ?> ·
                             <?= number_format((float) $item['quantity'], 2) ?> × <?= format_myr($item['unit_price']) ?>
                             · Batch <code><?= e($item['batch_code']) ?></code>
                             · <?= e($item['freshness_at_order']) ?>
                         </div>
                     </div>
-                    <div style="font-weight: 600;"><?= format_myr($item['subtotal']) ?></div>
+                    <div class="u-fw-600"><?= format_myr($item['subtotal']) ?></div>
                 </div>
             <?php endforeach; ?>
-            <div style="margin-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1);">
-                <div style="display: flex; justify-content: space-between; color: var(--color-text-muted);">
+            <div class="u-mt-3 u-flex u-col u-gap-1">
+                <div class="u-flex u-jc-between u-muted">
                     <span>Subtotal</span><span><?= format_myr($order['subtotal']) ?></span>
                 </div>
                 <?php if ((float) $order['discount_amount'] > 0): ?>
-                <div style="display: flex; justify-content: space-between; color: var(--color-accent);">
+                <div class="u-flex u-jc-between u-fg-accent">
                     <span>Discount <?= $order['promo_code'] ? '(' . e($order['promo_code']) . ')' : '' ?></span>
                     <span>−<?= format_myr($order['discount_amount']) ?></span>
                 </div>
                 <?php endif; ?>
-                <div style="display: flex; justify-content: space-between; color: var(--color-text-muted);">
+                <div class="u-flex u-jc-between u-muted">
                     <span>Shipping</span><span><?= $order['shipping_fee'] == 0 ? 'FREE' : format_myr($order['shipping_fee']) ?></span>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.125rem; padding-top: var(--space-2); border-top: 1px solid var(--color-border);">
+                <div class="u-flex u-jc-between u-fw-700 u-t-18 u-pt-2 u-bt">
                     <span>Total</span><span><?= format_myr($order['total']) ?></span>
                 </div>
             </div>
         </div>
 
         <!-- Customer + delivery + payment -->
-        <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
-                <h4 style="margin-top: 0; font-size: 0.9375rem;">👤 Customer</h4>
-                <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
-                    <strong style="color: var(--color-text);"><?= e($order['customer_name'] ?? '—') ?></strong><br>
+        <div class="u-flex u-col u-gap-4">
+            <div class="panel u-p-4">
+                <h4 class="u-mt-0 u-t-15">👤 Customer</h4>
+                <p class="u-m-0 u-t-14 u-muted">
+                    <strong class="u-ink"><?= e($order['customer_name'] ?? '—') ?></strong><br>
                     <?= e($order['customer_email']) ?>
                 </p>
             </div>
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
-                <h4 style="margin-top: 0; font-size: 0.9375rem;">📍 Delivery</h4>
-                <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
+            <div class="panel u-p-4">
+                <h4 class="u-mt-0 u-t-15">📍 Delivery</h4>
+                <p class="u-m-0 u-t-14 u-muted">
                     <?= e($order['recipient_name']) ?><br>
                     <?= e($order['line1']) ?><br>
                     <?= e($order['city']) ?>, <?= e($order['state']) ?> <?= e($order['postcode']) ?>
@@ -187,9 +187,9 @@ if ($orderId > 0) {
                     <?php endif; ?>
                 </p>
             </div>
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
-                <h4 style="margin-top: 0; font-size: 0.9375rem;">💳 Payment</h4>
-                <p style="margin: 0; font-size: 0.875rem; color: var(--color-text-muted);">
+            <div class="panel u-p-4">
+                <h4 class="u-mt-0 u-t-15">💳 Payment</h4>
+                <p class="u-m-0 u-t-14 u-muted">
                     <?= e($order['payment_method'] ?? '—') ?> · <?= e($order['payment_status'] ?? '—') ?><br>
                     <?php if (!empty($order['transaction_ref'])): ?>Ref: <code><?= e($order['transaction_ref']) ?></code><?php endif; ?>
                 </p>
@@ -198,23 +198,23 @@ if ($orderId > 0) {
     </div>
 
     <!-- Timeline -->
-    <h3 style="font-size: 1.125rem; margin-top: var(--space-6);">Status history</h3>
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
+    <h3 class="u-t-18 u-mt-6">Status history</h3>
+    <div class="panel u-p-4">
         <?php if (empty($history)): ?>
-            <p style="color: var(--color-text-muted); margin: 0;">No history yet.</p>
+            <p class="u-muted u-m-0">No history yet.</p>
         <?php else: ?>
             <?php foreach ($history as $i => $h): ?>
-                <div style="display: flex; gap: var(--space-3); padding: var(--space-2) 0; <?= $i < count($history) - 1 ? 'border-bottom: 1px solid var(--color-border);' : '' ?>">
-                    <div style="font-size: 0.8125rem; color: var(--color-text-muted); min-width: 150px;">
+                <div class="timeline-row<?= $i < count($history) - 1 ? ' is-divided' : '' ?>">
+                    <div class="u-t-13 u-muted u-minw-150">
                         <?= format_datetime($h['created_at'], 'd M Y, H:i') ?>
                     </div>
-                    <div style="font-size: 0.875rem;">
+                    <div class="u-t-14">
                         <strong><?= e(str_replace('_',' ',$h['new_status'])) ?></strong>
                         <?php if (!empty($h['changed_by_name'])): ?>
-                            <span style="color: var(--color-text-muted);">by <?= e($h['changed_by_name']) ?></span>
+                            <span class="u-muted">by <?= e($h['changed_by_name']) ?></span>
                         <?php endif; ?>
                         <?php if (!empty($h['notes'])): ?>
-                            <div style="color: var(--color-text-muted);"><?= e($h['notes']) ?></div>
+                            <div class="u-muted"><?= e($h['notes']) ?></div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -276,7 +276,7 @@ admin_layout_start('orders', 'All Orders');
 <?php endforeach; ?>
 
 <!-- KPIs -->
-<div class="kpi-grid" style="margin-bottom: var(--space-4);">
+<div class="kpi-grid u-mb-4">
     <div class="kpi-card">
         <div class="kpi-label">Total Orders</div>
         <div class="kpi-value"><?= number_format($totalOrders) ?></div>
@@ -288,16 +288,16 @@ admin_layout_start('orders', 'All Orders');
 </div>
 
 <!-- Search -->
-<form method="get" style="display: flex; gap: var(--space-2); margin-bottom: var(--space-3);">
+<form method="get" class="u-flex u-gap-2 u-mb-3">
     <?php if ($statusFilter): ?><input type="hidden" name="status" value="<?= attr($statusFilter) ?>"><?php endif; ?>
     <input type="search" name="q" value="<?= attr($search) ?>" placeholder="Search order #, email, or name..."
-           class="form-control" style="max-width: 360px;">
+           class="form-control u-maxw-360">
     <button type="submit" class="btn btn-secondary">Search</button>
     <?php if ($search): ?><a href="<?= url('/admin/orders.php' . ($statusFilter ? '?status='.$statusFilter : '')) ?>" class="btn btn-ghost">Clear</a><?php endif; ?>
 </form>
 
 <!-- Status filter pills -->
-<div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+<div class="u-flex u-gap-2 u-mb-4 u-wrap">
     <a href="<?= url('/admin/orders.php') ?>"
        class="btn <?= $statusFilter === '' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">
         All <?= array_sum($counts) > 0 ? '(' . array_sum($counts) . ')' : '' ?>
@@ -322,14 +322,14 @@ admin_layout_start('orders', 'All Orders');
         <tbody>
             <?php foreach ($orders as $o): ?>
                 <tr>
-                    <td><code style="font-size: 0.8125rem;"><?= e($o['order_number']) ?></code></td>
+                    <td><code class="u-t-13"><?= e($o['order_number']) ?></code></td>
                     <td>
                         <strong><?= e($o['customer_name'] ?? '—') ?></strong>
-                        <br><small style="color: var(--color-text-muted);"><?= e($o['customer_email']) ?></small>
+                        <br><small class="u-muted"><?= e($o['customer_email']) ?></small>
                     </td>
                     <td>
                         <?= format_datetime($o['placed_at'], 'd M Y') ?>
-                        <br><small style="color: var(--color-text-muted);"><?= format_datetime($o['placed_at'], 'H:i') ?></small>
+                        <br><small class="u-muted"><?= format_datetime($o['placed_at'], 'H:i') ?></small>
                     </td>
                     <td><?= (int) $o['item_count'] ?></td>
                     <td><strong><?= format_myr($o['total']) ?></strong></td>

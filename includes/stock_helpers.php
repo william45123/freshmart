@@ -21,13 +21,12 @@ function stock_alert_badge_html(float $available, float $threshold = 10.0): stri
     if ($level === 'ok') return '';
 
     $intAvail = (int) floor($available);
-    [$bg, $color, $label] = match($level) {
-        'out'      => ['#fee2e2', '#7f1d1d', 'Out of stock'],
-        'critical' => ['#ffedd5', '#7c2d12', "Only $intAvail left!"],
-        'low'      => ['#fef3c7', '#78350f', "Low stock · $intAvail"],
+    $label = match($level) {
+        'out'      => 'Out of stock',
+        'critical' => "Only $intAvail left!",
+        'low'      => "Low stock · $intAvail",
     };
 
-    return '<span style="display:inline-block; background:' . $bg . '; color:' . $color
-         . '; padding:2px 8px; border-radius:999px; font-size:0.6875rem; font-weight:600; letter-spacing:0.02em;">'
+    return '<span class="stock-badge stock-badge-' . $level . '">'
          . htmlspecialchars($label) . '</span>';
 }

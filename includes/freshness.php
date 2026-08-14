@@ -253,7 +253,7 @@ function freshness_badge_html(string $level, ?int $daysRemaining = null): string
 <span class="freshness-badge level-{$level}"
       aria-label="{$aria}"
       title="{$aria}">
-    <span class="badge-dot" style="color:{$color}">●</span>{$label}{$tail}
+    <span class="badge-dot" style="--fresh:{$color}">●</span>{$label}{$tail}
 </span>
 HTML;
 }

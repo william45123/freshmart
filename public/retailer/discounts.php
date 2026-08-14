@@ -93,10 +93,10 @@ retailer_layout_start('discounts', 'Freshness Discounts');
     <div class="flash flash-error"><?= e($err) ?></div>
 <?php endforeach; ?>
 
-<div style="max-width: 760px;">
+<div class="u-maxw-760">
 
     <!-- Intro -->
-    <p style="color: var(--color-text-muted); margin-bottom: var(--space-4);">
+    <p class="u-muted u-mb-4">
         Set your own auto-discount percentage for each freshness level. These apply to
         <strong>all your products</strong>. The freshness thresholds themselves (what counts
         as Last Chance, etc.) are set by the platform administrator and cannot be changed here.
@@ -107,14 +107,14 @@ retailer_layout_start('discounts', 'Freshness Discounts');
         <input type="hidden" name="action" value="save_discounts">
 
         <!-- Toggle -->
-        <div style="background: var(--color-primary-light, #eef5f0); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4);">
-            <label style="display: flex; align-items: center; gap: var(--space-3); cursor: pointer;">
+        <div class="u-bg-primary-lt u-bordered u-r-lg u-p-4 u-mb-4">
+            <label class="u-flex u-ai-center u-gap-3 u-pointer">
                 <input type="checkbox" name="use_custom_discounts" value="1"
                        <?= $useCustom === 1 ? 'checked' : '' ?>
-                       style="width: 18px; height: 18px;">
+                       class="u-w-18 u-h-18">
                 <span>
                     <strong>Use my custom discounts</strong><br>
-                    <small style="color: var(--color-text-muted);">
+                    <small class="u-muted">
                         When off, your products follow the platform default discounts shown below.
                     </small>
                 </span>
@@ -127,8 +127,8 @@ retailer_layout_start('discounts', 'Freshness Discounts');
                 <tr>
                     <th>Freshness Level</th>
                     <th>Threshold (admin-set)</th>
-                    <th style="text-align:right;">Platform Default</th>
-                    <th style="text-align:right;">My Discount %</th>
+                    <th class="u-ta-r">Platform Default</th>
+                    <th class="u-ta-r">My Discount %</th>
                 </tr>
             </thead>
             <tbody>
@@ -143,34 +143,34 @@ retailer_layout_start('discounts', 'Freshness Discounts');
                 ?>
                     <tr>
                         <td>
-                            <span style="color: <?= e($color) ?>; font-size: 1.1rem;">●</span>
+                            <span class="fresh-swatch" style="--fresh: <?= e($color) ?>">●</span>
                             <strong><?= e($label) ?></strong>
-                            <br><small style="color: var(--color-text-muted);"><code><?= e($ln) ?></code></small>
+                            <br><small class="u-muted"><code><?= e($ln) ?></code></small>
                         </td>
-                        <td style="color: var(--color-text-muted); font-size: 0.875rem;">
+                        <td class="u-muted u-t-14">
                             <?= rtrim(rtrim(number_format($min, 2), '0'), '.') ?>% –
                             <?= rtrim(rtrim(number_format($max, 2), '0'), '.') ?>%
                         </td>
-                        <td style="text-align:right; color: var(--color-text-muted);">
+                        <td class="u-ta-r u-muted">
                             <?= rtrim(rtrim(number_format($adminPct, 2), '0'), '.') ?>%
                         </td>
-                        <td style="text-align:right;">
+                        <td class="u-ta-r">
                             <input type="number" step="0.01" min="0" max="100"
                                    name="disc[<?= e($ln) ?>]"
                                    value="<?= attr(rtrim(rtrim(number_format($myPct, 2), '0'), '.')) ?>"
-                                   class="form-control" style="width: 90px; text-align:right;">
+                                   class="form-control u-w-90 u-ta-r">
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
 
-        <p style="color: var(--color-text-muted); font-size: 0.8125rem; margin-top: var(--space-2);">
+        <p class="u-muted u-t-13 u-mt-2">
             💡 Tip: A common strategy is to leave Very Fresh and Fresh at 0%, and only discount
             Enjoy Soon and Last Chance items to move stock before it expires.
         </p>
 
-        <button type="submit" class="btn btn-primary btn-lg" style="margin-top: var(--space-4);">
+        <button type="submit" class="btn btn-primary btn-lg u-mt-4">
             Save discount settings
         </button>
     </form>

@@ -85,8 +85,8 @@ require_once __DIR__ . '/../../includes/header.php';
 retailer_layout_start('refunds', 'Refund Requests');
 ?>
 
-<div style="margin-bottom: var(--space-5);">
-    <div style="display:flex; gap:var(--space-2); flex-wrap:wrap;">
+<div class="u-mb-5">
+    <div class="u-flex u-gap-2 u-wrap">
         <a href="?status=open" class="btn btn-sm <?= $statusFilter==='open'?'btn-primary':'btn-outline' ?>">
             Open<?= $openCount>0 ? ' ('.$openCount.')' : '' ?>
         </a>
@@ -97,7 +97,7 @@ retailer_layout_start('refunds', 'Refund Requests');
 </div>
 
 <?php if (empty($refunds)): ?>
-    <div class="empty-state" style="padding: var(--space-10) var(--space-6);">
+    <div class="empty-state u-p-10-6">
         <div class="empty-state-icon">📋</div>
         <div class="empty-state-title">No refund requests</div>
         <div class="empty-state-text">When a customer requests a refund on one of your orders, it'll appear here for review.</div>
@@ -122,7 +122,7 @@ retailer_layout_start('refunds', 'Refund Requests');
                     <span class="refund-card-order">Order <?= e($r['order_number']) ?></span>
                     <span class="refund-badge refund-badge-<?= strtolower($r['status']) ?>"><?= e($r['status']) ?></span>
                     <?php if ($r['status'] === 'ESCALATED'): ?>
-                        <span style="font-size:0.75rem; color:var(--color-text-muted);">· awaiting admin</span>
+                        <span class="u-t-12 u-muted">· awaiting admin</span>
                     <?php endif; ?>
                 </div>
                 <div class="refund-card-amount"><?= format_myr((float)$r['amount']) ?></div>
@@ -140,8 +140,8 @@ retailer_layout_start('refunds', 'Refund Requests');
                     <?php foreach ($items as $it): ?>
                         <div class="refund-item-line">
                             <?= e($it['product_name']) ?>
-                            <span style="color:var(--color-text-light);">× <?= rtrim(rtrim(number_format((float)$it['quantity'],2),'0'),'.') ?></span>
-                            <span style="float:right;"><?= format_myr((float)$it['line_amount']) ?></span>
+                            <span class="u-sage">× <?= rtrim(rtrim(number_format((float)$it['quantity'],2),'0'),'.') ?></span>
+                            <span class="u-float-r"><?= format_myr((float)$it['line_amount']) ?></span>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -152,12 +152,12 @@ retailer_layout_start('refunds', 'Refund Requests');
             <?php endif; ?>
 
             <?php if (!empty($r['decision_note']) && !$isOpen): ?>
-                <div class="refund-detail" style="color:var(--color-text-muted);">Note: <?= e($r['decision_note']) ?></div>
+                <div class="refund-detail u-muted">Note: <?= e($r['decision_note']) ?></div>
             <?php endif; ?>
 
             <?php if ($r['status'] === 'REQUESTED'): ?>
                 <div class="refund-actions">
-                    <form method="post" style="display:contents;">
+                    <form method="post" class="u-contents">
                         <?= csrf_field() ?>
                         <input type="hidden" name="refund_id" value="<?= $r['id'] ?>">
                         <input type="text" name="note" placeholder="Note (optional)" class="refund-note-input">
@@ -167,7 +167,7 @@ retailer_layout_start('refunds', 'Refund Requests');
                     </form>
                 </div>
             <?php elseif ($r['status'] === 'ESCALATED'): ?>
-                <div style="font-size:0.85rem; color:var(--color-text-muted); padding-top:var(--space-2);">
+                <div class="u-t-136 u-muted u-pt-2">
                     You escalated this to admin. Waiting for their decision.
                 </div>
             <?php endif; ?>
@@ -175,30 +175,6 @@ retailer_layout_start('refunds', 'Refund Requests');
     <?php endforeach; ?>
 <?php endif; ?>
 
-<style>
-.refund-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 14px;
-    padding: var(--space-5);
-    margin-bottom: var(--space-4);
-}
-.refund-card-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-2); }
-.refund-card-order { font-weight:700; font-size:1rem; margin-right:var(--space-2); }
-.refund-card-amount { font-family:var(--font-serif); font-weight:600; font-size:1.3rem; color:var(--color-primary); }
-.refund-card-meta { font-size:0.85rem; color:var(--color-text-muted); margin-bottom:var(--space-3); }
-.refund-badge { font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:0.04em; }
-.refund-badge-requested { background:#fff7e6; color:#8a6d1a; }
-.refund-badge-escalated { background:#eae4f5; color:#5b3f8a; }
-.refund-badge-approved  { background:#e6f4ea; color:#1a7a3a; }
-.refund-badge-rejected  { background:#fbeee8; color:#a5432a; }
-.refund-badge-cancelled { background:#eee; color:#666; }
-.refund-items { background:var(--color-bg-warm); border-radius:8px; padding:var(--space-3); margin-bottom:var(--space-3); }
-.refund-item-line { font-size:0.85rem; padding:2px 0; }
-.refund-detail { font-size:0.875rem; font-style:italic; color:var(--color-text); margin-bottom:var(--space-3); }
-.refund-actions { display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap; padding-top:var(--space-3); border-top:1px solid var(--color-border); }
-.refund-note-input { flex:1; min-width:140px; padding:6px 10px; border:1px solid var(--color-border); border-radius:8px; font-size:0.85rem; }
-</style>
 
 <?php
 retailer_layout_end();

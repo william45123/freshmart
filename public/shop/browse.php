@@ -147,8 +147,8 @@ function url_with($overrides = []): string {
 }
 ?>
 
-<section class="container" style="padding-top: var(--space-6);">
-    <h1 style="font-size: 1.75rem;">
+<section class="container u-pt-6">
+    <h1 class="u-t-28">
         <?php if ($query): ?>
             Results for "<?= e($query) ?>"
         <?php elseif ($activeCat): ?>
@@ -162,58 +162,58 @@ function url_with($overrides = []): string {
 
     <!-- Search bar -->
     <form method="get" action="<?= url('/shop/browse.php') ?>"
-          style="margin: var(--space-4) 0; display: flex; gap: var(--space-2);">
+          class="u-m-4-0 u-flex u-gap-2">
         <input type="search" name="q" placeholder="Search products, e.g. lettuce, mango..."
-               value="<?= attr($query) ?>" class="form-control" style="flex: 1;">
+               value="<?= attr($query) ?>" class="form-control u-flex-1">
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
 </section>
 
-<section class="container browse-layout" style="padding-top: var(--space-4); padding-bottom: var(--space-12);">
+<section class="container browse-layout u-pt-4 u-pb-12">
 
     <!-- Sidebar filters -->
     <aside>
-        <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--space-3);">Categories</h3>
-        <div style="display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-6);">
+        <h3 class="u-t-12 u-upper u-ls-05 u-muted u-mb-3">Categories</h3>
+        <div class="u-flex u-col u-gap-1 u-mb-6">
             <a href="<?= url_with(['category' => null, 'subcategory' => null, 'page' => null]) ?>"
-               style="padding: 6px 10px; border-radius: var(--radius); <?= $catSlug === '' ? 'background: var(--color-primary-light); color: var(--color-primary-dark);' : 'color: var(--color-text);' ?> font-weight: 500; font-size: 0.9375rem;">
+               class="facet-link<?= $catSlug === '' ? ' is-active' : '' ?>">
                 All
             </a>
             <?php foreach ($categories as $c): ?>
                 <a href="<?= url_with(['category' => $c['slug'], 'subcategory' => null, 'page' => null]) ?>"
-                   style="padding: 6px 10px; border-radius: var(--radius); <?= $catSlug === $c['slug'] ? 'background: var(--color-primary-light); color: var(--color-primary-dark);' : 'color: var(--color-text);' ?> font-weight: 500; font-size: 0.9375rem;">
+                   class="facet-link<?= $catSlug === $c['slug'] ? ' is-active' : '' ?>">
                     <?= e($c['name']) ?>
                 </a>
             <?php endforeach; ?>
         </div>
 
         <?php if (!empty($subcategories)): ?>
-        <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--space-3);">Subcategories</h3>
-        <div style="display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-6);">
+        <h3 class="u-t-12 u-upper u-ls-05 u-muted u-mb-3">Subcategories</h3>
+        <div class="u-flex u-col u-gap-1 u-mb-6">
             <?php foreach ($subcategories as $s): ?>
                 <a href="<?= url_with(['subcategory' => $s['slug'], 'page' => null]) ?>"
-                   style="padding: 4px 10px; border-radius: var(--radius); <?= $subSlug === $s['slug'] ? 'background: var(--color-primary-light); color: var(--color-primary-dark);' : 'color: var(--color-text-muted);' ?> font-size: 0.875rem;">
+                   class="facet-link facet-link-sub<?= $subSlug === $s['slug'] ? ' is-active' : '' ?>">
                     <?= e($s['name']) ?>
                 </a>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
 
-        <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--space-3);">Availability</h3>
-        <div style="display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-6);">
+        <h3 class="u-t-12 u-upper u-ls-05 u-muted u-mb-3">Availability</h3>
+        <div class="u-flex u-col u-gap-1 u-mb-6">
             <?php foreach (['' => 'Any', 'in_stock' => '✓ In Stock', 'low_stock' => '⚠️ Low Stock'] as $key => $label): ?>
                 <a href="<?= url_with(['availability' => $key ?: null, 'page' => null]) ?>"
-                   style="padding: 6px 10px; border-radius: var(--radius); <?= $availability === $key ? 'background: var(--color-primary-light); color: var(--color-primary-dark);' : 'color: var(--color-text);' ?> font-size: 0.9375rem;">
+                   class="facet-link<?= $availability === $key ? ' is-active' : '' ?>">
                     <?= e($label) ?>
                 </a>
             <?php endforeach; ?>
         </div>
 
-        <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: var(--space-3);">Freshness</h3>
-        <div style="display: flex; flex-direction: column; gap: var(--space-1);">
+        <h3 class="u-t-12 u-upper u-ls-05 u-muted u-mb-3">Freshness</h3>
+        <div class="u-flex u-col u-gap-1">
             <?php foreach (['' => 'Any', 'VERY_FRESH' => 'Very Fresh', 'FRESH' => 'Fresh', 'ENJOY_SOON' => 'Enjoy Soon', 'LAST_CHANCE' => 'Last Chance 🔥'] as $key => $label): ?>
                 <a href="<?= url_with(['freshness' => $key ?: null, 'page' => null]) ?>"
-                   style="padding: 6px 10px; border-radius: var(--radius); <?= $freshness === $key ? 'background: var(--color-primary-light); color: var(--color-primary-dark);' : 'color: var(--color-text);' ?> font-size: 0.9375rem;">
+                   class="facet-link<?= $freshness === $key ? ' is-active' : '' ?>">
                     <?= e($label) ?>
                 </a>
             <?php endforeach; ?>
@@ -222,16 +222,16 @@ function url_with($overrides = []): string {
 
     <!-- Product grid -->
     <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-            <span style="color: var(--color-text-muted);">
+        <div class="u-flex u-jc-between u-ai-center u-mb-4">
+            <span class="u-muted">
                 <?= count($products) ?> product<?= count($products) === 1 ? '' : 's' ?>
             </span>
-            <form method="get" style="display: flex; gap: var(--space-2); align-items: center;">
+            <form method="get" class="u-flex u-gap-2 u-ai-center">
                 <?php foreach ($_GET as $k => $v): if ($k === 'sort') continue; ?>
                     <input type="hidden" name="<?= e($k) ?>" value="<?= attr((string) $v) ?>">
                 <?php endforeach; ?>
-                <label style="font-size: 0.875rem; color: var(--color-text-muted);">Sort:</label>
-                <select name="sort" onchange="this.form.submit()" class="form-control" style="width: auto; padding: 6px 10px;">
+                <label class="u-t-14 u-muted">Sort:</label>
+                <select name="sort" onchange="this.form.submit()" class="form-control u-w-auto u-p-pill-sm">
                     <option value="newest"     <?= $sort === 'newest' ? 'selected' : '' ?>>Newest</option>
                     <option value="expiring"   <?= $sort === 'expiring' ? 'selected' : '' ?>>Expiring soonest</option>
                     <option value="price-asc"  <?= $sort === 'price-asc' ? 'selected' : '' ?>>Price: Low → High</option>
@@ -243,19 +243,19 @@ function url_with($overrides = []): string {
         <?php if (empty($products)): ?>
             <div class="empty-state">
                 <div class="empty-ico"><?= icon('search', 40) ?></div>
-                <p style="font-size: 1.0625rem;">No products match your filters.</p>
-                <p style="color: var(--color-text-muted);">Try removing some filters or
+                <p class="u-t-17">No products match your filters.</p>
+                <p class="u-muted">Try removing some filters or
                     <a href="<?= url('/shop/browse.php') ?>">browse all</a>.</p>
             </div>
         <?php else: ?>
             <div class="product-grid-4">
                 <?php foreach ($products as $p): ?>
                     <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
-                       class="product-card-v2 <?= ($p['freshness_level'] === 'LAST_CHANCE') ? 'last-chance' : '' ?>" style="color: inherit;">
+                       class="product-card-v2 u-fg-inherit <?= ($p['freshness_level'] === 'LAST_CHANCE') ? 'last-chance' : '' ?>">
                         <div class="product-card-image">
                             <?php if (!empty($p['primary_image'])): ?>
                                 <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>" loading="lazy"
-                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                     class="media-fill">
                             <?php else: ?>
                                 <span class="img-fallback"><?= icon('leaf', 56) ?></span>
                             <?php endif; ?>
@@ -280,7 +280,7 @@ function url_with($overrides = []): string {
                                 <?php if (!empty($p['is_discounted'])): ?>
                                     <span class="price-base-strike"><?= format_myr($p['base_price']) ?></span>
                                 <?php endif; ?>
-                                <span style="color: var(--color-text-muted); font-size: 0.8125rem;">/ <?= e($p['unit_code']) ?></span>
+                                <span class="u-muted u-t-13">/ <?= e($p['unit_code']) ?></span>
                             </div>
                             <?php if (!empty($p['expiry_date'])): ?>
                                 <div class="expiry-hint">
@@ -293,7 +293,7 @@ function url_with($overrides = []): string {
                                 (float) ($p['low_stock_threshold'] ?? 10)
                             );
                             if ($stockBadge): ?>
-                                <div style="margin-top: var(--space-1);"><?= $stockBadge ?></div>
+                                <div class="u-mt-1"><?= $stockBadge ?></div>
                             <?php endif; ?>
                         </div>
                     </a>
@@ -343,57 +343,5 @@ function url_with($overrides = []): string {
     </div>
 </section>
 
-<style>
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-top: var(--space-6, 2rem);
-}
-.page-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 40px;
-    padding: 0 12px;
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    background: var(--color-surface);
-    color: var(--color-text);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.15s ease;
-}
-.page-btn:hover:not(.is-current):not(.is-disabled) {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    transform: translateY(-1px);
-}
-.page-btn.is-current {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: #fff;
-    cursor: default;
-}
-.page-btn.is-disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-.page-nav { font-weight: 700; }
-.page-ellipsis {
-    padding: 0 4px;
-    color: var(--color-text-muted);
-}
-.pagination-info {
-    text-align: center;
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-    margin-top: var(--space-3, 1rem);
-}
-</style>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

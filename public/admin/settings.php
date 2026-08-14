@@ -131,7 +131,7 @@ admin_layout_start('settings', 'System Settings');
     <div class="flash flash-error"><?= e($err) ?></div>
 <?php endforeach; ?>
 
-<p style="color: var(--color-text-muted); max-width: 640px; margin-bottom: var(--space-5);">
+<p class="u-muted u-maxw-640 u-mb-5">
     These settings control store-wide behaviour. Changes take effect immediately.
     Be careful with shipping, tax, and maintenance mode.
 </p>
@@ -141,20 +141,20 @@ admin_layout_start('settings', 'System Settings');
     <input type="hidden" name="action" value="save">
 
     <?php foreach ($groups as $groupName => $items): ?>
-        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4); max-width: 720px;">
-            <h3 style="margin-top: 0; font-size: 1.0625rem; margin-bottom: var(--space-4);"><?= e($groupName) ?></h3>
+        <div class="panel u-p-5 u-mb-4 u-maxw-720">
+            <h3 class="u-mt-0 u-t-17 u-mb-4"><?= e($groupName) ?></h3>
 
             <?php foreach ($items as $key => $meta): ?>
-                <div class="form-group" style="margin-bottom: var(--space-4);">
-                    <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.9375rem;">
+                <div class="form-group u-mb-4">
+                    <label class="u-block u-fw-600 u-mb-1 u-t-15">
                         <?= e($meta['label']) ?>
                     </label>
 
                     <?php if ($meta['type'] === 'toggle'): ?>
-                        <label style="display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+                        <label class="u-inline-flex u-ai-center u-gap-2 u-pointer">
                             <input type="checkbox" name="cfg_<?= e($key) ?>" value="1"
                                    <?= (($cfg[$key] ?? '0') === '1') ? 'checked' : '' ?>>
-                            <span style="font-size: 0.9375rem; color: var(--color-text-muted);">
+                            <span class="u-t-15 u-muted">
                                 Enable (site shows maintenance page to non-admins)
                             </span>
                         </label>
@@ -162,14 +162,13 @@ admin_layout_start('settings', 'System Settings');
                         <input type="<?= e($meta['type']) ?>"
                                name="cfg_<?= e($key) ?>"
                                value="<?= attr($cfg[$key] ?? '') ?>"
-                               class="form-control"
-                               <?= isset($meta['step']) ? 'step="' . attr($meta['step']) . '"' : '' ?>
-                               style="max-width: 360px;">
+                               class="form-control u-maxw-360"
+                               <?= isset($meta['step']) ? 'step="' . attr($meta['step']) . '"' : '' ?>>
                     <?php endif; ?>
 
                     <?php if (!empty($desc[$key])): ?>
-                        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">
-                            <?= e($desc[$key]) ?> · <code style="font-size: 0.6875rem;"><?= e($key) ?></code>
+                        <div class="u-t-12 u-muted u-mt-1">
+                            <?= e($desc[$key]) ?> · <code class="u-t-11"><?= e($key) ?></code>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -177,14 +176,14 @@ admin_layout_start('settings', 'System Settings');
         </div>
     <?php endforeach; ?>
 
-    <div style="max-width: 720px; display: flex; gap: var(--space-2);">
+    <div class="u-maxw-720 u-flex u-gap-2">
         <button type="submit" class="btn btn-primary btn-lg">Save all settings</button>
         <a href="<?= url('/admin/settings.php') ?>" class="btn btn-ghost">Cancel</a>
     </div>
 </form>
 
-<h2 style="font-size: 1.125rem; margin: var(--space-8) 0 var(--space-2);">Freshness levels</h2>
-<p style="color: var(--color-text-muted); max-width: 660px; margin-bottom: var(--space-4);">
+<h2 class="u-t-18 u-m-8-0-2">Freshness levels</h2>
+<p class="u-muted u-maxw-660 u-mb-4">
     This is the core of FreshMart. <strong>Min %</strong> is the shelf-life-remaining
     threshold at which an item enters each level; <strong>Auto-discount %</strong> is applied
     automatically to that level's price (e.g. Last Chance 15%). Changes apply store-wide immediately.
@@ -192,31 +191,31 @@ admin_layout_start('settings', 'System Settings');
 <form method="post">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_freshness">
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4); max-width: 760px; overflow-x: auto;">
+    <div class="panel u-p-4 u-mb-4 u-maxw-760 u-ovx-auto">
         <table class="data-table">
             <thead>
                 <tr>
                     <th>Level</th>
                     <th>Label</th>
-                    <th style="text-align:right;">Min %</th>
-                    <th style="text-align:right;">Max %</th>
+                    <th class="u-ta-r">Min %</th>
+                    <th class="u-ta-r">Max %</th>
                     <th>Colour</th>
-                    <th style="text-align:right;">Auto-discount %</th>
+                    <th class="u-ta-r">Auto-discount %</th>
                 </tr>
             </thead>
             <tbody>
             <?php foreach ($freshLevels as $lv): $ln = $lv['level_name']; ?>
                 <tr>
-                    <td><code style="font-size:0.75rem;"><?= e($ln) ?></code></td>
-                    <td><input type="text" name="fresh[<?= e($ln) ?>][label]" value="<?= attr($lv['label_en']) ?>" class="form-control" style="width:130px;" maxlength="50"></td>
-                    <td style="text-align:right;"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][min]" value="<?= attr((string) $lv['min_percent']) ?>" class="form-control" style="width:80px;"></td>
-                    <td style="text-align:right;"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][max]" value="<?= attr((string) $lv['max_percent']) ?>" class="form-control" style="width:80px;"></td>
+                    <td><code class="u-t-12"><?= e($ln) ?></code></td>
+                    <td><input type="text" name="fresh[<?= e($ln) ?>][label]" value="<?= attr($lv['label_en']) ?>" class="form-control u-w-130" maxlength="50"></td>
+                    <td class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][min]" value="<?= attr((string) $lv['min_percent']) ?>" class="form-control u-w-80"></td>
+                    <td class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][max]" value="<?= attr((string) $lv['max_percent']) ?>" class="form-control u-w-80"></td>
                     <td>
-                        <span style="display:inline-flex; align-items:center; gap:8px;">
-                            <input type="color" name="fresh[<?= e($ln) ?>][color]" value="<?= attr($lv['color_hex']) ?>" style="width:42px; height:30px; border:1px solid var(--color-border); border-radius:6px; padding:2px; background:none;">
+                        <span class="u-inline-flex u-ai-center u-gap-2">
+                            <input type="color" name="fresh[<?= e($ln) ?>][color]" value="<?= attr($lv['color_hex']) ?>" class="u-w-42 u-h-30 u-bordered u-r-6 u-p-2px u-bg-none">
                         </span>
                     </td>
-                    <td style="text-align:right;"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][discount]" value="<?= attr((string) $lv['auto_discount_pct']) ?>" class="form-control" style="width:80px;"></td>
+                    <td class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][discount]" value="<?= attr((string) $lv['auto_discount_pct']) ?>" class="form-control u-w-80"></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

@@ -337,7 +337,7 @@ $pageTitle = 'Checkout — FreshMart';
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<section class="container" style="padding: var(--space-6) 0 var(--space-12);">
+<section class="container u-page-head">
 
     <h1>Checkout</h1>
 
@@ -348,23 +348,23 @@ require_once __DIR__ . '/../../includes/header.php';
     <form method="post">
         <?= csrf_field() ?>
 
-        <div style="display: grid; grid-template-columns: 1fr 380px; gap: var(--space-6); margin-top: var(--space-4);">
+        <div class="u-grid u-cols-1-380 u-gap-6 u-mt-4">
 
             <!-- Left: forms -->
             <div>
                 <!-- Shipping Address -->
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4);">
-                    <h3 style="margin-top: 0; font-size: 1.125rem;">Shipping Address</h3>
+                <div class="panel u-p-5 u-mb-4">
+                    <h3 class="u-mt-0 u-t-18">Shipping Address</h3>
 
                     <?php if (!empty($addresses)): ?>
-                        <div style="display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-4);">
+                        <div class="u-flex u-col u-gap-2 u-mb-4">
                             <?php foreach ($addresses as $i => $a): ?>
-                                <label style="display: flex; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); cursor: pointer;">
+                                <label class="u-flex u-gap-3 u-p-3 u-bordered u-r u-pointer">
                                     <input type="radio" name="shipping_address_id" value="<?= $a['id'] ?>"
                                            <?= $i === 0 ? 'checked' : '' ?>>
                                     <div>
                                         <strong><?= e($a['label']) ?></strong> — <?= e($a['recipient_name']) ?><br>
-                                        <span style="color: var(--color-text-muted); font-size: 0.875rem;">
+                                        <span class="u-muted u-t-14">
                                             <?= e($a['line1']) ?>, <?= e($a['city']) ?>, <?= e($a['state']) ?> <?= e($a['postcode']) ?>
                                         </span>
                                     </div>
@@ -372,10 +372,10 @@ require_once __DIR__ . '/../../includes/header.php';
                             <?php endforeach; ?>
                         </div>
                     <?php else: ?>
-                        <p style="color: var(--color-text-muted); font-size: 0.9375rem;">
+                        <p class="u-muted u-t-15">
                             Add your shipping address below:
                         </p>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+                        <div class="u-grid u-cols-2 u-gap-3">
                             <div class="form-group">
                                 <label>Recipient name *</label>
                                 <input type="text" name="recipient_name" required class="form-control"
@@ -392,7 +392,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <input type="text" name="line1" required class="form-control"
                                    placeholder="No. 12, Persiaran Cyberia">
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+                        <div class="u-grid u-cols-3 u-gap-3">
                             <div class="form-group">
                                 <label>City *</label>
                                 <input type="text" name="city" required class="form-control" value="Cyberjaya">
@@ -410,45 +410,45 @@ require_once __DIR__ . '/../../includes/header.php';
                 </div>
 
                 <!-- Payment Method (simulated) -->
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4);">
-                    <h3 style="margin-top: 0; font-size: 1.125rem;">Delivery Day</h3>
-                    <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-top: 0; margin-bottom: var(--space-3);">
+                <div class="panel u-p-5 u-mb-4">
+                    <h3 class="u-mt-0 u-t-18">Delivery Day</h3>
+                    <p class="u-muted u-t-14 u-mt-0 u-mb-3">
                         Choose your preferred delivery day. Earliest available: tomorrow.
                     </p>
-                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-2);">
+                    <div class="u-grid u-cols-7 u-gap-2">
                         <?php for ($i = 1; $i <= 7; $i++):
                             $d = date('Y-m-d', strtotime("+$i days"));
                             $label = $i === 1 ? 'Tomorrow' : ($i === 2 ? 'In 2 days' : date('D', strtotime($d)));
                         ?>
-                            <label style="display: block; padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius); cursor: pointer; text-align: center; font-size: 0.8125rem;">
+                            <label class="u-block u-p-2 u-bordered u-r u-pointer u-ta-c u-t-13">
                                 <input type="radio" name="preferred_delivery_date" value="<?= $d ?>"
-                                       <?= $i === 1 ? 'checked' : '' ?> style="display: block; margin: 0 auto 4px;">
-                                <div style="font-weight: 600;"><?= $label ?></div>
-                                <div style="color: var(--color-text-muted); font-size: 0.75rem;"><?= date('d M', strtotime($d)) ?></div>
+                                       <?= $i === 1 ? 'checked' : '' ?> class="u-block u-m-auto-1">
+                                <div class="u-fw-600"><?= $label ?></div>
+                                <div class="u-muted u-t-12"><?= date('d M', strtotime($d)) ?></div>
                             </label>
                         <?php endfor; ?>
                     </div>
                 </div>
 
                 <!-- Payment Method (simulated) -->
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4);">
-                    <h3 style="margin-top: 0; font-size: 1.125rem;">Payment Method</h3>
+                <div class="panel u-p-5 u-mb-4">
+                    <h3 class="u-mt-0 u-t-18">Payment Method</h3>
                     <?php $walletBalance = wallet_balance($userId); ?>
                     <!-- Wallet payment (real balance) -->
-                    <label style="display:block; padding: var(--space-3); border: 2px solid var(--color-primary); border-radius: var(--radius); cursor: pointer; margin-bottom: var(--space-2); background: #f4f8ee;">
-                        <input type="radio" name="payment_method" value="WALLET" style="margin-right: 6px;"
+                    <label class="u-block u-p-3 u-bordered-2-primary u-r u-pointer u-mb-2 u-bg-mint">
+                        <input type="radio" name="payment_method" value="WALLET" class="u-mr-6px"
                                <?= $walletBalance <= 0 ? 'disabled' : '' ?>>
                         💰 <strong>FreshMart Wallet</strong>
-                        <span style="float:right; font-weight:600; color: var(--color-primary);">
+                        <span class="u-float-r u-fw-600 u-fg-primary">
                             Balance: <?= format_myr($walletBalance) ?>
                         </span>
                         <?php if ($walletBalance <= 0): ?>
-                            <div style="font-size:0.78rem; color: var(--color-text-light); margin-top:4px;">
+                            <div class="u-t-125 u-sage u-mt-1">
                                 Your wallet is empty — top up on the Wallet page, or use another method.
                             </div>
                         <?php endif; ?>
                     </label>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--space-2);">
+                    <div class="u-grid u-cols-fit-120 u-gap-2">
                         <?php foreach ([
                             'FPX'           => '🏦 FPX',
                             'CREDIT_CARD'   => '💳 Card',
@@ -456,39 +456,39 @@ require_once __DIR__ . '/../../includes/header.php';
                             'BANK_TRANSFER' => '🏧 Transfer',
                             'COD'           => '💵 Cash on Delivery',
                         ] as $code => $label): ?>
-                            <label style="display: block; padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius); cursor: pointer; text-align: center;">
+                            <label class="u-block u-p-3 u-bordered u-r u-pointer u-ta-c">
                                 <input type="radio" name="payment_method" value="<?= $code ?>"
-                                       <?= $code === 'FPX' ? 'checked' : '' ?> style="margin-right: 6px;">
+                                       <?= $code === 'FPX' ? 'checked' : '' ?> class="u-mr-6px">
                                 <?= $label ?>
                             </label>
                         <?php endforeach; ?>
                     </div>
-                    <p style="color: var(--color-text-muted); font-size: 0.8125rem; margin-top: var(--space-3); margin-bottom: 0;">
+                    <p class="u-muted u-t-13 u-mt-3 u-mb-0">
                         💡 Payment is simulated — no real charge will be made.
                     </p>
                 </div>
 
                 <!-- FEFO Allocation Preview (the FYP demo highlight!) -->
-                <div style="background: var(--color-primary-light); border: 1px solid var(--color-primary); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4);">
-                    <h3 style="margin-top: 0; font-size: 1.125rem; color: var(--color-primary-dark);">
+                <div class="u-bg-primary-lt u-bordered-primary u-r-lg u-p-5 u-mb-4">
+                    <h3 class="u-mt-0 u-t-18 u-fg-primary-dk">
                         📦 FEFO Allocation Preview
                     </h3>
-                    <p style="font-size: 0.9375rem; color: var(--color-text); margin-bottom: var(--space-3);">
+                    <p class="u-t-15 u-ink u-mb-3">
                         Your order will be fulfilled from these specific batches (earliest expiry first):
                     </p>
                     <?php foreach ($cart['items'] as $item):
                         $allocs = $allocations[$item['product_id']] ?? [];
                     ?>
-                        <div style="margin-bottom: var(--space-3);">
+                        <div class="u-mb-3">
                             <strong><?= e($item['name']) ?></strong>
-                            <span style="color: var(--color-text-muted);">— <?= number_format((float) $item['quantity'], 2) ?> <?= e($item['unit_code']) ?></span>
-                            <div style="margin-top: var(--space-1); padding-left: var(--space-3); font-size: 0.875rem; border-left: 2px solid var(--color-primary);">
+                            <span class="u-muted">— <?= number_format((float) $item['quantity'], 2) ?> <?= e($item['unit_code']) ?></span>
+                            <div class="u-mt-1 u-pl-3 u-t-14 u-bl-primary-2">
                                 <?php foreach ($allocs as $a): ?>
                                     <div>
                                         Batch <code><?= e($a['batch_code']) ?></code>:
                                         <?= number_format($a['quantity'], 2) ?> units
                                         @ <?= format_myr($a['unit_price']) ?>
-                                        <span style="color: var(--color-text-muted);">
+                                        <span class="u-muted">
                                             · expires <?= format_date($a['expiry_date']) ?>
                                             · <?= e($a['freshness_level']) ?>
                                         </span>
@@ -501,63 +501,63 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
 
             <!-- Right: order summary -->
-            <aside style="position: sticky; top: calc(var(--header-h) + var(--space-4)); align-self: start;">
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-                    <h3 style="margin-top: 0; font-size: 1.125rem;">Order Summary</h3>
+            <aside class="u-sticky u-top-sticky u-as-start">
+                <div class="panel u-p-5">
+                    <h3 class="u-mt-0 u-t-18">Order Summary</h3>
                     <?php foreach ($cart['items'] as $item): ?>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-2); font-size: 0.9375rem;">
+                        <div class="u-flex u-jc-between u-mb-2 u-t-15">
                             <span>
                                 <?= e($item['name']) ?>
-                                <span style="color: var(--color-text-muted);">× <?= number_format((float) $item['quantity'], 2) ?></span>
+                                <span class="u-muted">× <?= number_format((float) $item['quantity'], 2) ?></span>
                             </span>
                             <span><?= format_myr((float) $item['quantity'] * (float) $item['price_snapshot']) ?></span>
                         </div>
                     <?php endforeach; ?>
-                    <div style="border-top: 1px solid var(--color-border); margin-top: var(--space-3); padding-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2);">
-                        <div style="display: flex; justify-content: space-between; color: var(--color-text-muted);">
+                    <div class="u-bt u-mt-3 u-pt-3 u-flex u-col u-gap-2">
+                        <div class="u-flex u-jc-between u-muted">
                             <span>Subtotal</span><span><?= format_myr($cart['subtotal']) ?></span>
                         </div>
                         <?php if ($discount > 0): ?>
-                        <div style="display: flex; justify-content: space-between; color: var(--color-accent); font-weight: 600;">
+                        <div class="u-flex u-jc-between u-fg-accent u-fw-600">
                             <span>Voucher (<?= e($voucher['code']) ?>)</span><span>−<?= format_myr($discount) ?></span>
                         </div>
                         <?php endif; ?>
-                        <div style="display: flex; justify-content: space-between; color: var(--color-text-muted);">
+                        <div class="u-flex u-jc-between u-muted">
                             <span>Shipping</span>
                             <span><?= $cart['shipping'] == 0 ? 'FREE' : format_myr($cart['shipping']) ?></span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; padding-top: var(--space-2); border-top: 1px solid var(--color-border); font-weight: 700; font-size: 1.125rem;">
+                        <div class="u-flex u-jc-between u-pt-2 u-bt u-fw-700 u-t-18">
                             <span>Total</span><span><?= format_myr($finalTotal) ?></span>
                         </div>
                     </div>
 
                     <!-- Voucher input -->
-                    <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px dashed var(--color-border);">
+                    <div class="u-mt-4 u-pt-4 u-bt-dashed">
                         <details <?= ($voucherCode !== '') ? 'open' : '' ?>>
-                            <summary style="cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--color-primary-dark); user-select: none;">
+                            <summary class="u-pointer u-t-14 u-fw-600 u-fg-primary-dk u-noselect">
                                 🎟️ Have a voucher code?
                             </summary>
-                            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
+                            <div class="u-flex u-gap-2 u-mt-3">
                                 <input type="text" name="voucher_code"
                                        value="<?= attr($voucherCode) ?>"
                                        placeholder="e.g. WELCOME10"
-                                       style="flex: 1; text-transform: uppercase; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius); font-size: 0.9375rem;">
+                                       class="u-flex-1 u-upper u-p-8-10 u-bordered u-r u-t-15">
                                 <button type="submit" name="action" value="apply_voucher"
                                         class="btn btn-secondary btn-sm">Apply</button>
                             </div>
                             <?php if ($voucherError !== ''): ?>
-                                <div style="font-size: 0.8125rem; color: var(--color-danger); margin-top: var(--space-2);">
+                                <div class="u-t-13 u-fg-danger u-mt-2">
                                     ⚠️ <?= e($voucherError) ?>
                                 </div>
                             <?php elseif ($discount > 0): ?>
-                                <div style="font-size: 0.8125rem; color: var(--color-primary); margin-top: var(--space-2);">
+                                <div class="u-t-13 u-fg-primary u-mt-2">
                                     ✓ <?= e($voucher['code']) ?> applied — you saved <?= format_myr($discount) ?>!
                                 </div>
                             <?php endif; ?>
                         </details>
                     </div>
 
-                    <button type="submit" name="action" value="place_order" class="btn btn-primary btn-lg" style="width: 100%; margin-top: var(--space-4);">
+                    <button type="submit" name="action" value="place_order" class="btn btn-primary btn-lg u-w-full u-mt-4">
                         Place order
                     </button>
                 </div>

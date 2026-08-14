@@ -171,7 +171,7 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
     </div>
 <?php endif; ?>
 
-<div style="background: var(--color-primary-light); border: 1px solid var(--color-primary); border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-6); font-size: 0.9375rem;">
+<div class="u-bg-primary-lt u-bordered-primary u-r-lg u-p-4 u-mb-6 u-t-15">
     <strong>📌 FEFO (First-Expired-First-Out):</strong>
     Customer orders are automatically fulfilled from the batch with the earliest expiry first.
     Sort below is by expiry ASC — what's at the top sells next.
@@ -211,7 +211,7 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                     <td><?= format_date($b['received_date']) ?></td>
                     <td>
                         <?= format_date($b['expiry_date']) ?>
-                        <br><small style="color: var(--color-text-muted);">
+                        <br><small class="u-muted">
                             <?= relative_date($b['expiry_date']) ?>
                         </small>
                     </td>
@@ -229,7 +229,7 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                                 'days_remaining'    => $days,
                             ], 42, true) ?>
                         <?php else: ?>
-                            <span style="color: var(--color-text-muted); font-size: 0.875rem;">—</span>
+                            <span class="u-muted u-t-14">—</span>
                         <?php endif; ?>
                     </td>
                     <td>
@@ -240,31 +240,31 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                     <td>
                         <?php if ($b['status'] === 'ACTIVE'): ?>
                             <details>
-                                <summary class="btn btn-secondary btn-sm" style="display: inline-block;">Adjust</summary>
-                                <form method="post" style="margin-top: var(--space-2); display: flex; gap: var(--space-2); align-items: center;">
+                                <summary class="btn btn-secondary btn-sm u-inline-block">Adjust</summary>
+                                <form method="post" class="u-mt-2 u-flex u-gap-2 u-ai-center">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="adjust">
                                     <input type="hidden" name="batch_id" value="<?= $b['id'] ?>">
                                     <input type="number" name="new_quantity" step="0.01" min="0"
-                                           class="form-control" style="width: 100px;"
+                                           class="form-control u-w-100"
                                            value="<?= attr((string) $b['quantity_remaining']) ?>">
                                     <input type="text" name="reason" placeholder="Reason"
-                                           class="form-control" style="width: 150px;" maxlength="100">
+                                           class="form-control u-w-150" maxlength="100">
                                     <button type="submit" class="btn btn-primary btn-sm">Save</button>
                                 </form>
                             </details>
-                            <details style="margin-top: var(--space-2);">
-                                <summary class="btn btn-danger btn-sm" style="display: inline-block;">Discard</summary>
-                                <form method="post" onsubmit="return confirm('Write off ALL remaining units of this batch as waste? This cannot be undone.');" style="margin-top: var(--space-2); display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap;">
+                            <details class="u-mt-2">
+                                <summary class="btn btn-danger btn-sm u-inline-block">Discard</summary>
+                                <form method="post" onsubmit="return confirm('Write off ALL remaining units of this batch as waste? This cannot be undone.');" class="u-mt-2 u-flex u-gap-2 u-ai-center u-wrap">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="discard">
                                     <input type="hidden" name="batch_id" value="<?= $b['id'] ?>">
-                                    <select name="movement_type" class="form-control" style="width: 130px;">
+                                    <select name="movement_type" class="form-control u-w-130">
                                         <option value="EXPIRED">Expired</option>
                                         <option value="DAMAGED">Damaged</option>
                                     </select>
                                     <input type="text" name="reason" placeholder="Reason (optional)"
-                                           class="form-control" style="width: 160px;" maxlength="100">
+                                           class="form-control u-w-160" maxlength="100">
                                     <button type="submit" class="btn btn-danger btn-sm">Confirm write-off</button>
                                 </form>
                             </details>
@@ -276,13 +276,13 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
     </table>
 <?php endif; ?>
 
-<h2 id="new-batch" style="margin-top: var(--space-10); font-size: 1.25rem;">+ Add New Batch</h2>
+<h2 id="new-batch" class="u-mt-10 u-t-20">+ Add New Batch</h2>
 
-<form method="post" style="max-width: 720px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6);">
+<form method="post" class="panel u-maxw-720 u-p-6">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="create">
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+    <div class="u-grid u-cols-2 u-gap-4">
         <div class="form-group">
             <label for="product_id">Product *</label>
             <select id="product_id" name="product_id" required class="form-control">
@@ -345,7 +345,7 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
         </div>
     </div>
 
-    <div style="display: flex; gap: var(--space-3); margin-top: var(--space-2);">
+    <div class="u-flex u-gap-3 u-mt-2">
         <button type="submit" class="btn btn-primary">Add Batch</button>
     </div>
 </form>

@@ -55,7 +55,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
-    <noscript><style>.reveal{opacity:1 !important;transform:none !important;}</style></noscript>
+    <noscript><style>@layer utilities{.reveal{opacity:1;transform:none}}</style></noscript>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥬</text></svg>">
 </head>
 <body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?>">
@@ -116,10 +116,10 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
 
             <?php if ($isCustomer): ?>
                 <!-- Customer cart icon with badge -->
-                <a href="<?= url('/shop/cart.php') ?>" class="btn btn-ghost btn-sm btn-icon" style="position: relative;" title="Cart">
+                <a href="<?= url('/shop/cart.php') ?>" class="btn btn-ghost btn-sm btn-icon u-rel" title="Cart">
                     <?= icon('cart') ?>
                     <?php if ($cartCount > 0): ?>
-                        <span style="position: absolute; top: -2px; right: -2px; background: var(--color-primary); color: white; font-size: 0.625rem; font-weight: 700; border-radius: 999px; min-width: 18px; height: 18px; display: grid; place-items: center; padding: 0 5px; line-height: 1;">
+                        <span class="nav-badge">
                             <?= min(99, $cartCount) ?>
                         </span>
                     <?php endif; ?>
@@ -128,10 +128,10 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
 
             <?php if (auth_check()): ?>
                 <!-- Notifications (everyone logged in) -->
-                <a href="<?= url('/notifications.php') ?>" class="btn btn-ghost btn-sm btn-icon" style="position: relative;" title="Notifications">
+                <a href="<?= url('/notifications.php') ?>" class="btn btn-ghost btn-sm btn-icon u-rel" title="Notifications">
                     <?= icon('bell') ?>
                     <?php if ($unreadNotifs > 0): ?>
-                        <span style="position: absolute; top: -2px; right: -2px; background: var(--color-danger); color: white; font-size: 0.625rem; border-radius: 999px; min-width: 16px; height: 16px; display: grid; place-items: center; padding: 0 4px;">
+                        <span class="nav-badge nav-badge-alert">
                             <?= min(99, $unreadNotifs) ?>
                         </span>
                     <?php endif; ?>
@@ -141,11 +141,11 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                     <!-- Customer extras: wishlist + orders + wallet -->
                     <a href="<?= url('/wishlist.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="Wishlist"><?= icon('heart') ?></a>
                     <a href="<?= url('/shop/orders.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="My orders"><?= icon('package') ?></a>
-                    <a href="<?= url('/wallet.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="My wallet" style="font-size:1.05rem;">💳</a>
+                    <a href="<?= url('/wallet.php') ?>" class="btn btn-ghost btn-sm btn-icon nav-wallet" title="My wallet">💳</a>
                 <?php endif; ?>
 
                 <!-- Greeting + Profile link -->
-                <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>" class="btn btn-ghost btn-sm" style="cursor: pointer;" title="Profile">
+                <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>" class="btn btn-ghost btn-sm u-pointer" title="Profile">
                     Hi, <?= e(auth_name()) ?>
                 </a>
 
@@ -225,7 +225,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
 </nav>
 
 <?php if (!empty($flashes)): ?>
-<div class="container" style="margin-top: var(--space-4);">
+<div class="container u-mt-4">
     <?php foreach ($flashes as $f): ?>
         <div class="flash flash-<?= e($f['type']) ?>"><?= e($f['message']) ?></div>
     <?php endforeach; ?>

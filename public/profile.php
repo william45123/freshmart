@@ -120,12 +120,12 @@ $pageTitle = 'My Profile — FreshMart';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="container" style="padding: var(--space-6) 0 var(--space-12); max-width: 800px;">
+<section class="container u-page-head u-maxw-800">
 
     <h1>My profile</h1>
 
     <?php if ($myKgRescued > 0): ?>
-        <div class="impact-callout" style="margin-top: var(--space-4);">
+        <div class="impact-callout u-mt-4">
             <div class="impact-figure"><?= number_format($myKgRescued, 1) ?> kg</div>
             <div class="impact-text">
                 of food <strong>you&rsquo;ve rescued from waste</strong> by choosing Last Chance items. 🌱
@@ -137,58 +137,58 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="flash flash-error"><?= e($err) ?></div>
     <?php endforeach; ?>
 
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-6);">
-        <h3 style="margin-top: 0;">Account</h3>
-        <p style="margin: 0; color: var(--color-text-muted);">
-            <strong style="color: var(--color-text);"><?= e($user['full_name'] ?? '') ?></strong><br>
+    <div class="panel u-p-5 u-mb-6">
+        <h3 class="u-mt-0">Account</h3>
+        <p class="u-m-0 u-muted">
+            <strong class="u-ink"><?= e($user['full_name'] ?? '') ?></strong><br>
             <?= e($user['email']) ?><br>
             <?php if (!empty($user['phone'])): ?><?= e($user['phone']) ?><br><?php endif; ?>
             Member since <?= format_date($user['created_at']) ?>
         </p>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-3);">
-        <h2 style="margin: 0; font-size: 1.25rem;">Saved addresses</h2>
-        <span style="color: var(--color-text-muted); font-size: 0.875rem;">
+    <div class="u-flex u-jc-between u-ai-baseline u-mb-3">
+        <h2 class="u-m-0 u-t-20">Saved addresses</h2>
+        <span class="u-muted u-t-14">
             <?= count($addresses) ?> / <?= MAX_ADDRESSES ?>
         </span>
     </div>
 
     <?php if (empty($addresses)): ?>
-        <div class="empty-state" style="padding: var(--space-6);">
+        <div class="empty-state u-p-6">
             📍 No saved addresses. Add one below.
         </div>
     <?php else: ?>
-        <div style="display: flex; flex-direction: column; gap: var(--space-3); margin-bottom: var(--space-6);">
+        <div class="u-flex u-col u-gap-3 u-mb-6">
             <?php foreach ($addresses as $a): ?>
-                <div style="background: var(--color-surface); border: 1px solid <?= $a['is_default'] ? 'var(--color-primary)' : 'var(--color-border)' ?>; border-radius: var(--radius-lg); padding: var(--space-4);">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div class="address-card u-p-4<?= $a['is_default'] ? ' is-default' : '' ?>">
+                    <div class="u-flex u-jc-between u-ai-start">
                         <div>
                             <strong><?= e($a['label']) ?></strong>
                             <?php if ($a['is_default']): ?>
-                                <span style="background: var(--color-primary); color: white; font-size: 0.6875rem; padding: 2px 8px; border-radius: var(--radius-sm); margin-left: var(--space-1);">DEFAULT</span>
+                                <span class="u-bg-primary u-fg-white u-t-11 u-p-pill-xs u-r-sm u-ml-1">DEFAULT</span>
                             <?php endif; ?>
-                            <div style="margin-top: var(--space-1); color: var(--color-text-muted); font-size: 0.9375rem;">
+                            <div class="u-mt-1 u-muted u-t-15">
                                 <?= e($a['recipient_name']) ?> · <?= e($a['phone']) ?><br>
                                 <?= e($a['line1']) ?><?= !empty($a['line2']) ? ', ' . e($a['line2']) : '' ?><br>
                                 <?= e($a['city']) ?>, <?= e($a['state']) ?> <?= e($a['postcode']) ?>
                             </div>
                         </div>
-                        <div style="display: flex; gap: var(--space-2);">
+                        <div class="u-flex u-gap-2">
                             <a href="<?= url('/profile.php?edit=' . $a['id']) ?>" class="btn btn-ghost btn-sm">Edit</a>
                             <?php if (!$a['is_default']): ?>
-                                <form method="post" style="display: inline;">
+                                <form method="post" class="u-inline">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="set_default">
                                     <input type="hidden" name="address_id" value="<?= $a['id'] ?>">
                                     <button class="btn btn-ghost btn-sm" type="submit">Set default</button>
                                 </form>
-                                <form method="post" style="display: inline;">
+                                <form method="post" class="u-inline">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="delete">
                                     <input type="hidden" name="address_id" value="<?= $a['id'] ?>">
-                                    <button class="btn btn-ghost btn-sm" type="submit"
-                                            style="color: var(--color-danger);"
+                                    <button class="btn btn-ghost btn-sm u-fg-danger" type="submit"
+                                           
                                             onclick="return confirm('Delete address?')">Delete</button>
                                 </form>
                             <?php endif; ?>
@@ -200,15 +200,15 @@ require_once __DIR__ . '/../includes/header.php';
     <?php endif; ?>
 
     <?php if ($edit || count($addresses) < MAX_ADDRESSES): ?>
-        <h3 style="font-size: 1.0625rem;"><?= $edit ? 'Edit address' : '+ Add new address' ?></h3>
-        <form method="post" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
+        <h3 class="u-t-17"><?= $edit ? 'Edit address' : '+ Add new address' ?></h3>
+        <form method="post" class="panel u-p-5">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="<?= $edit ? 'update' : 'create' ?>">
             <?php if ($edit): ?>
                 <input type="hidden" name="address_id" value="<?= $edit['id'] ?>">
             <?php endif; ?>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+            <div class="u-grid u-cols-2 u-gap-3">
                 <div class="form-group">
                     <label>Label *</label>
                     <input type="text" name="label" required class="form-control"
@@ -242,7 +242,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <input type="text" name="line2" class="form-control"
                        value="<?= attr($edit['line2'] ?? '') ?>" placeholder="Optional">
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+            <div class="u-grid u-cols-2 u-gap-3">
                 <div class="form-group">
                     <label>City *</label>
                     <input type="text" name="city" required class="form-control"
@@ -254,12 +254,12 @@ require_once __DIR__ . '/../includes/header.php';
                            value="<?= attr($edit['state'] ?? '') ?>">
                 </div>
             </div>
-            <label style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); cursor: pointer;">
+            <label class="u-flex u-ai-center u-gap-2 u-mt-3 u-pointer">
                 <input type="checkbox" name="is_default" value="1"
                        <?= !empty($edit['is_default']) ? 'checked' : '' ?>>
                 Set as default address
             </label>
-            <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4);">
+            <div class="u-flex u-gap-2 u-mt-4">
                 <button type="submit" class="btn btn-primary"><?= $edit ? 'Save' : 'Add address' ?></button>
                 <?php if ($edit): ?>
                     <a href="<?= url('/profile.php') ?>" class="btn btn-ghost">Cancel</a>

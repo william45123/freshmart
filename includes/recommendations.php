@@ -264,12 +264,11 @@ function reco_render_section(string $title, string $emoji, array $products, stri
     ob_start();
     foreach ($products as $p): ?>
         <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
-           class="product-card-v2 <?= ($p['freshness_level'] ?? '') === 'LAST_CHANCE' ? 'last-chance' : '' ?>"
-           style="color: inherit;">
+           class="product-card-v2 u-fg-inherit <?= ($p['freshness_level'] ?? '') === 'LAST_CHANCE' ? 'last-chance' : '' ?>">
             <div class="product-card-image">
                 <?php if (!empty($p['primary_image'])): ?>
                     <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= htmlspecialchars($p['name']) ?>" loading="lazy"
-                         style="width: 100%; height: 100%; object-fit: cover;">
+                         class="media-fill">
                 <?php else: ?>
                     <span class="img-fallback"><?= icon('leaf', 56) ?></span>
                 <?php endif; ?>
@@ -285,7 +284,7 @@ function reco_render_section(string $title, string $emoji, array $products, stri
                     <?php if (!empty($p['is_discounted'])): ?>
                         <span class="price-base-strike"><?= format_myr($p['base_price']) ?></span>
                     <?php endif; ?>
-                    <span style="color: var(--color-text-muted); font-size: 0.8125rem;">
+                    <span class="u-muted u-t-13">
                         / <?= htmlspecialchars($p['unit_code']) ?>
                     </span>
                 </div>
@@ -296,14 +295,14 @@ function reco_render_section(string $title, string $emoji, array $products, stri
 
     ob_start();
     ?>
-    <section style="margin: var(--space-8) 0;">
-        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); flex-wrap: wrap;">
+    <section class="u-m-8-0">
+        <div class="u-flex u-ai-baseline u-jc-between u-mb-4 u-wrap">
             <div>
-                <h2 style="margin: 0; font-size: 1.375rem;">
+                <h2 class="u-m-0 u-t-22">
                     <?= $emoji ?> <?= htmlspecialchars($title) ?>
                 </h2>
                 <?php if ($subtitle): ?>
-                    <p style="margin: 4px 0 0; color: var(--color-text-muted); font-size: 0.875rem;">
+                    <p class="u-m-1-0-0 u-muted u-t-14">
                         <?= htmlspecialchars($subtitle) ?>
                     </p>
                 <?php endif; ?>

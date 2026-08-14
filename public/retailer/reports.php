@@ -162,13 +162,13 @@ retailer_layout_start('reports', 'Product Performance Report');
 ?>
 
 <!-- Date range filter -->
-<form method="get" style="display: flex; gap: var(--space-3); align-items: end; margin-bottom: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
+<form method="get" class="panel u-flex u-gap-3 u-ai-end u-mb-4 u-p-4">
     <div>
-        <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block;">From</label>
+        <label class="u-t-12 u-muted u-block">From</label>
         <input type="date" name="from" value="<?= attr($from) ?>" class="form-control">
     </div>
     <div>
-        <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block;">To</label>
+        <label class="u-t-12 u-muted u-block">To</label>
         <input type="date" name="to" value="<?= attr($to) ?>" class="form-control">
     </div>
     <button type="submit" class="btn btn-primary">Update</button>
@@ -177,18 +177,18 @@ retailer_layout_start('reports', 'Product Performance Report');
 </form>
 
 <!-- KPI Summary -->
-<div class="kpi-grid" style="margin-bottom: var(--space-6);">
+<div class="kpi-grid u-mb-6">
     <div class="kpi-card">
         <div class="kpi-label">Gross Sales</div>
         <div class="kpi-value"><?= format_myr($totalRev) ?></div>
     </div>
     <div class="kpi-card">
         <div class="kpi-label">Platform Commission</div>
-        <div class="kpi-value" style="color: var(--color-accent);">−<?= format_myr($totalCommission) ?></div>
+        <div class="kpi-value u-fg-accent">−<?= format_myr($totalCommission) ?></div>
     </div>
-    <div class="kpi-card" style="background: #e6f4ea; border-color: #1a7a3a;">
+    <div class="kpi-card u-bg-credit u-bc-credit">
         <div class="kpi-label">💰 Your Net Payout</div>
-        <div class="kpi-value" style="color: #1a7a3a;"><?= format_myr($totalPayout) ?></div>
+        <div class="kpi-value u-fg-credit"><?= format_myr($totalPayout) ?></div>
     </div>
     <div class="kpi-card">
         <div class="kpi-label">Units Sold</div>
@@ -198,15 +198,15 @@ retailer_layout_start('reports', 'Product Performance Report');
         <div class="kpi-label">Orders</div>
         <div class="kpi-value"><?= number_format($totalOrders) ?></div>
     </div>
-    <div class="kpi-card" style="background: var(--color-primary-light); border-color: var(--color-primary);">
+    <div class="kpi-card u-bg-primary-lt u-bc-primary">
         <div class="kpi-label">🌱 Saved from Waste</div>
-        <div class="kpi-value" style="color: var(--color-primary-dark);">
+        <div class="kpi-value u-fg-primary-dk">
             <?= number_format($totalSaved, 2) ?> units
         </div>
     </div>
-    <div class="kpi-card" style="background: #fbeee8; border-color: #b85c38;">
+    <div class="kpi-card u-bg-accent-lt u-bc-accent">
         <div class="kpi-label">Discarded (Waste)</div>
-        <div class="kpi-value" style="color: #b85c38;">
+        <div class="kpi-value u-fg-accent">
             <?= number_format($wasteUnits, 2) ?> units
         </div>
         <div class="kpi-meta">Loss: <?= format_myr($wasteCost) ?></div>
@@ -219,16 +219,16 @@ retailer_layout_start('reports', 'Product Performance Report');
 </div>
 
 <?php if (!empty($topWasted)): ?>
-    <div style="margin-bottom: var(--space-6); padding: var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface);">
-        <h3 style="margin: 0 0 var(--space-3); font-size: 1rem;">Most-wasted products (<?= e($from) ?> → <?= e($to) ?>)</h3>
+    <div class="panel u-mb-6 u-p-4">
+        <h3 class="u-m-0-0-3 u-t-16">Most-wasted products (<?= e($from) ?> → <?= e($to) ?>)</h3>
         <table class="data-table">
-            <thead><tr><th>Product</th><th style="text-align:right;">Discarded</th><th style="text-align:right;">Loss</th></tr></thead>
+            <thead><tr><th>Product</th><th class="u-ta-r">Discarded</th><th class="u-ta-r">Loss</th></tr></thead>
             <tbody>
             <?php foreach ($topWasted as $w): ?>
                 <tr>
                     <td><?= e($w['name']) ?></td>
-                    <td style="text-align:right;"><?= number_format((float) $w['qty'], 2) ?> <?= e($w['unit_code']) ?></td>
-                    <td style="text-align:right;"><?= format_myr((float) $w['cost']) ?></td>
+                    <td class="u-ta-r"><?= number_format((float) $w['qty'], 2) ?> <?= e($w['unit_code']) ?></td>
+                    <td class="u-ta-r"><?= format_myr((float) $w['cost']) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
@@ -244,13 +244,13 @@ retailer_layout_start('reports', 'Product Performance Report');
             <tr>
                 <th>Product</th>
                 <th>Category</th>
-                <th style="text-align: right;">Sold</th>
-                <th style="text-align: right;">Orders</th>
-                <th style="text-align: right;">Revenue</th>
-                <th style="text-align: right;">Stock</th>
-                <th style="text-align: right;">Views</th>
-                <th style="text-align: right;">Conv. Rate</th>
-                <th style="text-align: right;">🌱 Saved</th>
+                <th class="u-ta-r">Sold</th>
+                <th class="u-ta-r">Orders</th>
+                <th class="u-ta-r">Revenue</th>
+                <th class="u-ta-r">Stock</th>
+                <th class="u-ta-r">Views</th>
+                <th class="u-ta-r">Conv. Rate</th>
+                <th class="u-ta-r">🌱 Saved</th>
             </tr>
         </thead>
         <tbody>
@@ -262,16 +262,16 @@ retailer_layout_start('reports', 'Product Performance Report');
                 <tr>
                     <td>
                         <strong><?= e($r['name']) ?></strong>
-                        <br><small style="color: var(--color-text-muted);"><?= e($r['sku']) ?></small>
+                        <br><small class="u-muted"><?= e($r['sku']) ?></small>
                     </td>
                     <td><?= e($r['category']) ?></td>
-                    <td style="text-align: right;"><?= number_format((float) $r['units_sold'], 2) ?> <?= e($r['unit_code']) ?></td>
-                    <td style="text-align: right;"><?= number_format((int) $r['order_count']) ?></td>
-                    <td style="text-align: right;"><strong><?= format_myr($r['revenue']) ?></strong></td>
-                    <td style="text-align: right;"><?= number_format((float) $r['current_stock'], 2) ?></td>
-                    <td style="text-align: right; color: var(--color-text-muted);"><?= number_format((int) $r['view_count']) ?></td>
-                    <td style="text-align: right;"><?= number_format($convRate, 1) ?>%</td>
-                    <td style="text-align: right; color: <?= (float) $r['units_saved_from_waste'] > 0 ? 'var(--color-primary-dark)' : 'var(--color-text-muted)' ?>;">
+                    <td class="u-ta-r"><?= number_format((float) $r['units_sold'], 2) ?> <?= e($r['unit_code']) ?></td>
+                    <td class="u-ta-r"><?= number_format((int) $r['order_count']) ?></td>
+                    <td class="u-ta-r"><strong><?= format_myr($r['revenue']) ?></strong></td>
+                    <td class="u-ta-r"><?= number_format((float) $r['current_stock'], 2) ?></td>
+                    <td class="u-ta-r u-muted"><?= number_format((int) $r['view_count']) ?></td>
+                    <td class="u-ta-r"><?= number_format($convRate, 1) ?>%</td>
+                    <td class="u-ta-r <?= (float) $r['units_saved_from_waste'] > 0 ? 'u-fg-primary-dk' : 'u-muted' ?>">
                         <?= number_format((float) $r['units_saved_from_waste'], 2) ?>
                     </td>
                 </tr>
@@ -280,7 +280,7 @@ retailer_layout_start('reports', 'Product Performance Report');
     </table>
 <?php endif; ?>
 
-<p style="margin-top: var(--space-4); font-size: 0.8125rem; color: var(--color-text-muted);">
+<p class="u-mt-4 u-t-13 u-muted">
     📊 "Saved from waste" counts units sold while the batch was in Last Chance status —
     these would likely have expired and been thrown away otherwise.
 </p>

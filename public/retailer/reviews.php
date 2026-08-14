@@ -135,7 +135,7 @@ retailer_layout_start('reviews', 'Customer Reviews');
     <div class="flash flash-error"><?= e($err) ?></div>
 <?php endforeach; ?>
 
-<div class="kpi-grid" style="margin-bottom: var(--space-4); max-width: 800px;">
+<div class="kpi-grid u-mb-4 u-maxw-800">
     <div class="kpi-card">
         <div class="kpi-label">My reviews</div>
         <div class="kpi-value"><?= number_format($myTotal) ?></div>
@@ -151,7 +151,7 @@ retailer_layout_start('reviews', 'Customer Reviews');
 </div>
 
 <!-- Filter pills -->
-<div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+<div class="u-flex u-gap-2 u-mb-4 u-wrap">
     <?php foreach ([
         'all'         => "All ({$myTotal})",
         'unanswered'  => "⏳ Unanswered ({$myUnanswered})",
@@ -167,59 +167,59 @@ retailer_layout_start('reviews', 'Customer Reviews');
 
 <?php if (empty($reviews)): ?>
     <div class="empty-state">
-        <p style="font-size: 1.0625rem;">⭐ No reviews in this filter yet.</p>
+        <p class="u-t-17">⭐ No reviews in this filter yet.</p>
     </div>
 <?php else: ?>
-    <div style="display: flex; flex-direction: column; gap: var(--space-3); max-width: 800px;">
+    <div class="u-flex u-col u-gap-3 u-maxw-800">
         <?php foreach ($reviews as $r):
             $expandKey = 'r' . $r['id'];
             // Auto-expand the reply box if it was open before (sticky via query string)
             $autoOpen = ((string) input('open') === $expandKey) || (!empty($r['reply_id']));
         ?>
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4);">
+            <div class="panel u-p-4">
                 <!-- Review header -->
-                <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); flex-wrap: wrap;">
+                <div class="u-flex u-ai-center u-gap-2 u-mb-2 u-wrap">
                     <strong><?= e($r['reviewer_name'] ?? 'Customer') ?></strong>
-                    <span style="color: #c9a55a; font-size: 1rem;">
-                        <?= str_repeat('★', (int) $r['rating']) ?><span style="color: var(--color-border);"><?= str_repeat('★', 5 - (int) $r['rating']) ?></span>
+                    <span class="u-fg-mustard u-t-16">
+                        <?= str_repeat('★', (int) $r['rating']) ?><span class="u-fg-border"><?= str_repeat('★', 5 - (int) $r['rating']) ?></span>
                     </span>
-                    <span style="font-size: 0.8125rem; color: var(--color-text-muted);">
+                    <span class="u-t-13 u-muted">
                         <?= format_datetime($r['created_at'], 'd M Y') ?>
                     </span>
                 </div>
-                <div style="font-size: 0.875rem; margin-bottom: var(--space-2); color: var(--color-text-muted);">
-                    on <a href="<?= url('/shop/product.php?slug=' . urlencode($r['product_slug'])) ?>" style="font-weight: 600; color: var(--color-text);">
+                <div class="u-t-14 u-mb-2 u-muted">
+                    on <a href="<?= url('/shop/product.php?slug=' . urlencode($r['product_slug'])) ?>" class="u-fw-600 u-ink">
                         <?= e($r['product_name']) ?>
                     </a>
                 </div>
                 <?php if (!empty($r['title'])): ?>
-                    <div style="font-weight: 600; margin-bottom: 4px;"><?= e($r['title']) ?></div>
+                    <div class="u-fw-600 u-mb-1"><?= e($r['title']) ?></div>
                 <?php endif; ?>
-                <p style="margin: 0; color: var(--color-text); line-height: 1.55;"><?= nl2br(e($r['body'])) ?></p>
+                <p class="u-m-0 u-ink u-lh-155"><?= nl2br(e($r['body'])) ?></p>
 
                 <!-- Existing retailer reply (if any) -->
                 <?php if (!empty($r['reply_id'])): ?>
-                    <div style="margin-top: var(--space-3); padding: var(--space-3); background: var(--color-primary-light); border-left: 3px solid var(--color-primary); border-radius: var(--radius);">
-                        <div style="font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-primary-dark); font-weight: 600; margin-bottom: 4px;">
+                    <div class="u-mt-3 u-p-3 u-bg-primary-lt u-bl-primary u-r">
+                        <div class="u-t-11 u-ls-10 u-upper u-fg-primary-dk u-fw-600 u-mb-1">
                             🏢 Your reply · <?= format_datetime($r['reply_at'], 'd M Y') ?>
                         </div>
-                        <p style="margin: 0; color: var(--color-text); line-height: 1.5;"><?= nl2br(e($r['reply_body'])) ?></p>
+                        <p class="u-m-0 u-ink u-lh-15"><?= nl2br(e($r['reply_body'])) ?></p>
                     </div>
                 <?php endif; ?>
 
                 <!-- Reply form -->
-                <details style="margin-top: var(--space-3);" <?= $autoOpen ? 'open' : '' ?>>
-                    <summary style="cursor: pointer; font-size: 0.875rem; font-weight: 600; color: var(--color-primary-dark);">
+                <details class="u-mt-3" <?= $autoOpen ? 'open' : '' ?>>
+                    <summary class="u-pointer u-t-14 u-fw-600 u-fg-primary-dk">
                         <?= !empty($r['reply_id']) ? '✏️ Edit reply' : '💬 Reply to this review' ?>
                     </summary>
-                    <form method="post" style="margin-top: var(--space-3);">
+                    <form method="post" class="u-mt-3">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="reply">
                         <input type="hidden" name="review_id" value="<?= $r['id'] ?>">
                         <textarea name="reply_body" rows="3" required minlength="5"
                                   placeholder="Thank the customer or address their concerns professionally..."
                                   class="form-control"><?= e($r['reply_body'] ?? '') ?></textarea>
-                        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-2);">
+                        <div class="u-flex u-gap-2 u-mt-2">
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <?= !empty($r['reply_id']) ? 'Update reply' : 'Post reply' ?>
                             </button>
@@ -227,7 +227,7 @@ retailer_layout_start('reviews', 'Customer Reviews');
                                 <button type="submit" name="action" value="delete_reply"
                                         formnovalidate
                                         onclick="return confirm('Remove your reply?')"
-                                        class="btn btn-ghost btn-sm" style="color: var(--color-danger);">
+                                        class="btn btn-ghost btn-sm u-fg-danger">
                                     Remove reply
                                 </button>
                             <?php endif; ?>

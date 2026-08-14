@@ -116,7 +116,7 @@ retailer_layout_start('dashboard', 'Dashboard');
     </div>
 </div>
 
-<h2 style="font-size: 1.25rem;"><span class="label-ico"><?= icon('alert', 20) ?> Batches Expiring Soon</span></h2>
+<h2 class="u-t-20"><span class="label-ico"><?= icon('alert', 20) ?> Batches Expiring Soon</span></h2>
 <?php if (empty($expiringSoon)): ?>
     <div class="empty-state">Nothing expiring in the next 3 days.</div>
 <?php else: ?>
@@ -140,7 +140,7 @@ retailer_layout_start('dashboard', 'Dashboard');
                     <td><code><?= e($b['batch_code']) ?></code></td>
                     <td><?= e($b['product_name']) ?></td>
                     <td><?= number_format((float) $b['quantity_remaining'], 2) ?></td>
-                    <td><?= format_date($b['expiry_date']) ?> <small style="color: var(--color-text-muted);">(<?= relative_date($b['expiry_date']) ?>)</small></td>
+                    <td><?= format_date($b['expiry_date']) ?> <small class="u-muted">(<?= relative_date($b['expiry_date']) ?>)</small></td>
                     <td><?= freshness_ring_html([
                         'freshness_percent' => freshness_percent($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']),
                         'freshness_color'   => freshness_info($level)['color_hex'],
@@ -154,9 +154,9 @@ retailer_layout_start('dashboard', 'Dashboard');
                             $risk = (float) $b['quantity_remaining'] - $proj;
                         ?>
                         <?php if ($risk > 0.5): ?>
-                            <span style="color:#b85c38; font-size:0.8125rem;">~<?= number_format($risk, 1) ?> may expire unsold</span>
+                            <span class="u-fg-accent u-t-13">~<?= number_format($risk, 1) ?> may expire unsold</span>
                         <?php else: ?>
-                            <span style="color: var(--color-primary); font-size:0.8125rem;">On track to sell</span>
+                            <span class="u-fg-primary u-t-13">On track to sell</span>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -165,8 +165,8 @@ retailer_layout_start('dashboard', 'Dashboard');
     </table>
 <?php endif; ?>
 
-<h2 style="font-size: 1.25rem; margin-top: var(--space-8);">Stock freshness mix</h2>
-<div style="max-width: 380px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
+<h2 class="u-t-20 u-mt-8">Stock freshness mix</h2>
+<div class="panel u-maxw-380 u-p-5">
     <canvas id="freshMixChart" height="220"></canvas>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>

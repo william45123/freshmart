@@ -111,32 +111,32 @@ retailer_layout_start('profile', 'My Profile');
 <?php endforeach; ?>
 
 <!-- Account overview -->
-<div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4); max-width: 720px;">
-    <div style="display: flex; justify-content: space-between; align-items: start; gap: var(--space-3); flex-wrap: wrap;">
+<div class="panel u-p-5 u-mb-4 u-maxw-720">
+    <div class="u-flex u-jc-between u-ai-start u-gap-3 u-wrap">
         <div>
-            <h3 style="margin-top: 0; font-size: 1.0625rem;">Account</h3>
-            <p style="margin: 0; color: var(--color-text-muted); font-size: 0.9375rem;">
-                <strong style="color: var(--color-text);"><?= e($retailer['full_name'] ?? '—') ?></strong><br>
+            <h3 class="u-mt-0 u-t-17">Account</h3>
+            <p class="u-m-0 u-muted u-t-15">
+                <strong class="u-ink"><?= e($retailer['full_name'] ?? '—') ?></strong><br>
                 <?= e($userRow['email'] ?? '') ?><br>
                 Joined <?= format_date($userRow['created_at'] ?? '') ?>
             </p>
         </div>
-        <div style="text-align: right;">
+        <div class="u-ta-r">
             <?php
                 $status = $retailer['approval_status'];
-                $pillColor = match ($status) {
-                    'APPROVED'  => 'background: var(--color-primary); color: white;',
-                    'PENDING'   => 'background: var(--color-mustard, #c9a55a); color: white;',
-                    'REJECTED'  => 'background: var(--color-danger, #dc2626); color: white;',
-                    'SUSPENDED' => 'background: var(--color-accent, #b85c38); color: white;',
+                $pillClass = match ($status) {
+                    'APPROVED'  => ' approval-pill-approved',
+                    'PENDING'   => ' approval-pill-pending',
+                    'REJECTED'  => ' approval-pill-rejected',
+                    'SUSPENDED' => ' approval-pill-suspended',
                     default     => '',
                 };
             ?>
-            <span style="font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; <?= $pillColor ?>">
+            <span class="approval-pill<?= $pillClass ?>">
                 ✓ <?= e($status) ?>
             </span>
             <?php if (!empty($retailer['approved_at'])): ?>
-                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">
+                <div class="u-t-12 u-muted u-mt-1">
                     Approved <?= format_date($retailer['approved_at']) ?>
                 </div>
             <?php endif; ?>
@@ -145,7 +145,7 @@ retailer_layout_start('profile', 'My Profile');
 </div>
 
 <!-- Business stats -->
-<div class="kpi-grid" style="margin-bottom: var(--space-5); max-width: 720px;">
+<div class="kpi-grid u-mb-5 u-maxw-720">
     <div class="kpi-card">
         <div class="kpi-label">Products</div>
         <div class="kpi-value"><?= number_format($totalProducts) ?></div>
@@ -161,13 +161,13 @@ retailer_layout_start('profile', 'My Profile');
 </div>
 
 <!-- Personal info form -->
-<form method="post" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); margin-bottom: var(--space-4); max-width: 720px;">
+<form method="post" class="panel u-p-5 u-mb-4 u-maxw-720">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="update_profile">
 
-    <h3 style="margin-top: 0; font-size: 1.0625rem; margin-bottom: var(--space-4);">👤 Personal info</h3>
+    <h3 class="u-mt-0 u-t-17 u-mb-4">👤 Personal info</h3>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+    <div class="u-grid u-cols-2 u-gap-3">
         <div class="form-group">
             <label>Full name *</label>
             <input type="text" name="full_name" required class="form-control"
@@ -182,26 +182,24 @@ retailer_layout_start('profile', 'My Profile');
     </div>
     <div class="form-group">
         <label>Email</label>
-        <input type="email" class="form-control" value="<?= attr($userRow['email'] ?? '') ?>" disabled
-               style="background: var(--color-bg);">
-        <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">
+        <input type="email" class="form-control u-bg-page" value="<?= attr($userRow['email'] ?? '') ?>" disabled>
+        <div class="u-t-12 u-muted u-mt-1">
             Email can't be changed. Contact admin if you need to update it.
         </div>
     </div>
 
-    <h3 style="font-size: 1.0625rem; margin: var(--space-5) 0 var(--space-4);">🏢 Business info</h3>
+    <h3 class="u-t-17 u-m-5-0-4">🏢 Business info</h3>
 
     <div class="form-group">
         <label>Company name *</label>
         <input type="text" name="company_name" required class="form-control"
                value="<?= attr($retailer['company_name'] ?? '') ?>">
     </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+    <div class="u-grid u-cols-2 u-gap-3">
         <div class="form-group">
             <label>SSM business reg. no.</label>
-            <input type="text" class="form-control" value="<?= attr($retailer['business_reg_no'] ?? '') ?>" disabled
-                   style="background: var(--color-bg);">
-            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">
+            <input type="text" class="form-control u-bg-page" value="<?= attr($retailer['business_reg_no'] ?? '') ?>" disabled>
+            <div class="u-t-12 u-muted u-mt-1">
                 Verified at approval. Contact admin to change.
             </div>
         </div>
@@ -216,27 +214,27 @@ retailer_layout_start('profile', 'My Profile');
         <textarea name="business_address" rows="3" required class="form-control"><?= e($retailer['business_address'] ?? '') ?></textarea>
     </div>
 
-    <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4);">
+    <div class="u-flex u-gap-2 u-mt-4">
         <button type="submit" class="btn btn-primary">Save changes</button>
     </div>
 </form>
 
 <!-- Change password -->
-<form method="post" style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); max-width: 720px;">
+<form method="post" class="panel u-p-5 u-maxw-720">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="change_password">
 
-    <h3 style="margin-top: 0; font-size: 1.0625rem; margin-bottom: var(--space-4);">🔒 Change password</h3>
+    <h3 class="u-mt-0 u-t-17 u-mb-4">🔒 Change password</h3>
 
     <div class="form-group">
         <label>Current password *</label>
         <input type="password" name="current_password" required class="form-control" autocomplete="current-password">
     </div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+    <div class="u-grid u-cols-2 u-gap-3">
         <div class="form-group">
             <label>New password *</label>
             <input type="password" name="new_password" required minlength="8" class="form-control" autocomplete="new-password">
-            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">
+            <div class="u-t-12 u-muted u-mt-1">
                 At least 8 characters.
             </div>
         </div>
@@ -246,7 +244,7 @@ retailer_layout_start('profile', 'My Profile');
         </div>
     </div>
 
-    <div style="display: flex; gap: var(--space-2); margin-top: var(--space-4);">
+    <div class="u-flex u-gap-2 u-mt-4">
         <button type="submit" class="btn btn-primary">Update password</button>
     </div>
 </form>

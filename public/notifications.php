@@ -36,9 +36,9 @@ $pageTitle = 'Notifications — FreshMart';
 require_once __DIR__ . '/../includes/header.php';
 ?>
 
-<section class="container" style="padding: var(--space-6) 0 var(--space-12); max-width: 720px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
-        <h1 style="margin: 0;">Notifications</h1>
+<section class="container u-page-head u-maxw-720">
+    <div class="u-flex u-jc-between u-ai-center u-mb-4">
+        <h1 class="u-m-0">Notifications</h1>
         <?php if ($unreadCount > 0): ?>
             <form method="post">
                 <?= csrf_field() ?>
@@ -51,23 +51,22 @@ require_once __DIR__ . '/../includes/header.php';
     <?php if (empty($notifs)): ?>
         <div class="empty-state">📭 No notifications yet.</div>
     <?php else: ?>
-        <div style="display: flex; flex-direction: column; gap: var(--space-2);">
+        <div class="u-flex u-col u-gap-2">
             <?php foreach ($notifs as $n): ?>
-                <div style="background: <?= $n['is_read'] ? 'var(--color-surface)' : 'var(--color-primary-light)' ?>;
-                            border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+                <div class="notice-card<?= $n['is_read'] ? '' : ' is-unread' ?>"
                             padding: var(--space-4);">
-                    <div style="display: flex; justify-content: space-between; align-items: start; gap: var(--space-3);">
-                        <div style="flex: 1;">
-                            <div style="display: flex; gap: var(--space-2); align-items: center; margin-bottom: var(--space-1);">
+                    <div class="u-flex u-jc-between u-ai-start u-gap-3">
+                        <div class="u-flex-1">
+                            <div class="u-flex u-gap-2 u-ai-center u-mb-1">
                                 <?php if (!$n['is_read']): ?>
-                                    <span style="width: 8px; height: 8px; background: var(--color-primary); border-radius: 50%; display: inline-block;"></span>
+                                    <span class="u-w-8 u-h-8 u-bg-primary u-r-circle u-inline-block"></span>
                                 <?php endif; ?>
                                 <strong><?= e($n['title']) ?></strong>
                             </div>
-                            <p style="margin: 0 0 var(--space-2); color: var(--color-text-muted);">
+                            <p class="u-m-0-0-2 u-muted">
                                 <?= e($n['body']) ?>
                             </p>
-                            <div style="font-size: 0.8125rem; color: var(--color-text-muted);">
+                            <div class="u-t-13 u-muted">
                                 <?= format_datetime($n['created_at']) ?>
                                 <?php if (!empty($n['link'])): ?>
                                     · <a href="<?= url($n['link']) ?>">View</a>

@@ -67,17 +67,17 @@ admin_layout_start('promos', 'Promo Codes');
     <div class="flash flash-error"><?= e($err) ?></div>
 <?php endforeach; ?>
 
-<details style="margin-bottom: var(--space-4);">
-    <summary class="btn btn-primary" style="display: inline-block;">+ New Promo Code</summary>
+<details class="u-mb-4">
+    <summary class="btn btn-primary u-inline-block">+ New Promo Code</summary>
 
-    <form method="post" style="margin-top: var(--space-3); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); max-width: 720px;">
+    <form method="post" class="panel u-mt-3 u-p-5 u-maxw-720">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="create">
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+        <div class="u-grid u-cols-2 u-gap-4">
             <div class="form-group">
                 <label>Code *</label>
-                <input type="text" name="code" required class="form-control" placeholder="WELCOME10" style="text-transform: uppercase;" maxlength="50">
+                <input type="text" name="code" required class="form-control u-upper" placeholder="WELCOME10" maxlength="50">
             </div>
             <div class="form-group">
                 <label>Description</label>
@@ -134,11 +134,11 @@ admin_layout_start('promos', 'Promo Codes');
         <?php foreach ($promos as $p): ?>
             <tr>
                 <td>
-                    <code style="font-size: 0.9375rem; background: var(--color-primary-light); padding: 2px 8px; border-radius: var(--radius-sm); color: var(--color-primary-dark); font-weight: 600;">
+                    <code class="u-t-15 u-bg-primary-lt u-p-pill-xs u-r-sm u-fg-primary-dk u-fw-600">
                         <?= e($p['code']) ?>
                     </code>
                     <?php if (!empty($p['description'])): ?>
-                        <br><small style="color: var(--color-text-muted);"><?= e($p['description']) ?></small>
+                        <br><small class="u-muted"><?= e($p['description']) ?></small>
                     <?php endif; ?>
                 </td>
                 <td>
@@ -155,7 +155,7 @@ admin_layout_start('promos', 'Promo Codes');
                 <td>
                     <?= (int) $p['use_count'] ?> / <?= $p['usage_limit'] === null ? '∞' : (int) $p['usage_limit'] ?>
                 </td>
-                <td style="font-size: 0.8125rem; color: var(--color-text-muted);">
+                <td class="u-t-13 u-muted">
                     <?= format_date($p['starts_at']) ?><br>→ <?= format_date($p['expires_at']) ?>
                 </td>
                 <td>
@@ -166,7 +166,7 @@ admin_layout_start('promos', 'Promo Codes');
                     <?php endif; ?>
                 </td>
                 <td>
-                    <form method="post" style="display: inline;">
+                    <form method="post" class="u-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="toggle">
                         <input type="hidden" name="promo_id" value="<?= $p['id'] ?>">

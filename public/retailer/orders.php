@@ -148,7 +148,7 @@ retailer_layout_start('orders', 'Orders');
 <?php endforeach; ?>
 
 <!-- Status filter pills -->
-<div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4); flex-wrap: wrap;">
+<div class="u-flex u-gap-2 u-mb-4 u-wrap">
     <a href="<?= url('/retailer/orders.php') ?>"
        class="btn <?= $statusFilter === '' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">
         All <?= array_sum($counts) > 0 ? '(' . array_sum($counts) . ')' : '' ?>
@@ -193,15 +193,15 @@ retailer_layout_start('orders', 'Orders');
             ?>
                 <tr>
                     <td>
-                        <code style="font-size: 0.8125rem;"><?= e($o['order_number']) ?></code>
+                        <code class="u-t-13"><?= e($o['order_number']) ?></code>
                     </td>
                     <td>
                         <strong><?= e($o['customer_name'] ?? $o['customer_email']) ?></strong>
-                        <br><small style="color: var(--color-text-muted);"><?= e($o['customer_email']) ?></small>
+                        <br><small class="u-muted"><?= e($o['customer_email']) ?></small>
                     </td>
                     <td>
                         <?= format_datetime($o['placed_at'], 'd M Y') ?>
-                        <br><small style="color: var(--color-text-muted);"><?= format_datetime($o['placed_at'], 'H:i') ?></small>
+                        <br><small class="u-muted"><?= format_datetime($o['placed_at'], 'H:i') ?></small>
                     </td>
                     <td><?= (int) $o['retailer_items'] ?></td>
                     <td><strong><?= format_myr($o['retailer_subtotal']) ?></strong></td>
@@ -212,7 +212,7 @@ retailer_layout_start('orders', 'Orders');
                     </td>
                     <td>
                         <?php if ($nextStatus): ?>
-                            <form method="post" style="display: inline;">
+                            <form method="post" class="u-inline">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="update_status">
                                 <input type="hidden" name="order_id" value="<?= $o['id'] ?>">
@@ -224,14 +224,14 @@ retailer_layout_start('orders', 'Orders');
                             </form>
                         <?php endif; ?>
                         <?php if (!empty($pickMap[$o['id']])): ?>
-                            <details style="margin-top: var(--space-2);">
-                                <summary class="btn btn-secondary btn-sm" style="display:inline-block;"><?= icon('package', 15) ?> Pick list</summary>
-                                <div style="margin-top: var(--space-2); background: var(--color-bg-warm); border:1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); min-width: 280px;">
-                                    <div style="font-size:0.75rem; color: var(--color-text-muted); margin-bottom: 6px;">FEFO — pick earliest expiry first</div>
+                            <details class="u-mt-2">
+                                <summary class="btn btn-secondary btn-sm u-inline-block"><?= icon('package', 15) ?> Pick list</summary>
+                                <div class="u-mt-2 u-bg-warm u-bordered u-r-md u-p-3 u-minw-280">
+                                    <div class="u-t-12 u-muted u-mb-6px">FEFO — pick earliest expiry first</div>
                                     <?php foreach ($pickMap[$o['id']] as $pk): ?>
-                                        <div style="display:flex; justify-content:space-between; gap: var(--space-3); padding: 3px 0; border-bottom: 1px dashed var(--color-border);">
+                                        <div class="u-flex u-jc-between u-gap-3 u-py-3px u-bb-dashed">
                                             <span><strong><?= number_format((float) $pk['qty'], 2) ?> <?= e($pk['unit_code']) ?></strong> <?= e($pk['product']) ?></span>
-                                            <span style="color: var(--color-text-muted); white-space:nowrap;">
+                                            <span class="u-muted u-nowrap">
                                                 <?= e($pk['batch_code']) ?> · exp <?= format_datetime($pk['expiry_date'], 'd M') ?><?= $pk['storage_location'] ? ' · ' . e($pk['storage_location']) : '' ?>
                                             </span>
                                         </div>

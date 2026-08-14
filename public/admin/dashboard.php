@@ -227,16 +227,16 @@ admin_layout_start('dashboard', 'Platform Dashboard');
 </div>
 
 <!-- ===== Section: Waste & rescue (last 30 days) ===== -->
-<h2 style="font-size: 1.125rem; margin: var(--space-6) 0 var(--space-3);">Waste &amp; rescue · last 30 days</h2>
+<h2 class="u-t-18 u-m-6-0-3">Waste &amp; rescue · last 30 days</h2>
 <div class="kpi-row-3">
     <div class="kpi-card kpi-card-accent">
         <div class="kpi-label">Rescued from waste</div>
         <div class="kpi-value"><?= number_format($rescued30, 0) ?></div>
         <div class="kpi-meta">Last Chance units sold</div>
     </div>
-    <div class="kpi-card" style="background: #fbeee8; border-color: #b85c38;">
+    <div class="kpi-card u-bg-accent-lt u-bc-accent">
         <div class="kpi-label">Discarded</div>
-        <div class="kpi-value" style="color: #b85c38;"><?= number_format($discUnits30, 1) ?></div>
+        <div class="kpi-value u-fg-accent"><?= number_format($discUnits30, 1) ?></div>
         <div class="kpi-meta">Loss <?= format_myr($discCost30) ?></div>
     </div>
     <div class="kpi-card">
@@ -303,14 +303,14 @@ admin_layout_start('dashboard', 'Platform Dashboard');
             <?php if (empty($topProducts)): ?>
                 <p class="chart-empty">No sales yet in the last 30 days.</p>
             <?php else: ?>
-                <div class="chart-canvas-wrap" style="height: 240px;">
+                <div class="chart-canvas-wrap u-h-240">
                     <canvas id="topProductsChart"></canvas>
                 </div>
             <?php endif; ?>
         </div>
         <div class="chart-card">
             <h3 class="chart-title">Customer growth</h3>
-            <div class="chart-canvas-wrap" style="height: 240px;">
+            <div class="chart-canvas-wrap u-h-240">
                 <canvas id="userGrowthChart"></canvas>
             </div>
         </div>
@@ -319,7 +319,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
             <?php if (empty($revByCategory)): ?>
                 <p class="chart-empty">No category sales in the last 30 days.</p>
             <?php else: ?>
-                <div class="chart-canvas-wrap" style="height: 240px;">
+                <div class="chart-canvas-wrap u-h-240">
                     <canvas id="catRevenueChart"></canvas>
                 </div>
             <?php endif; ?>
@@ -341,7 +341,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
                         <th>Customer</th>
                         <th>Placed</th>
                         <th>Status</th>
-                        <th style="text-align: right;">Total</th>
+                        <th class="u-ta-r">Total</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -351,7 +351,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
                             <td><?= e($o['customer'] ?? '—') ?></td>
                             <td><?= format_datetime($o['placed_at'], 'd M, H:i') ?></td>
                             <td><span class="status-pill status-<?= strtolower($o['status']) === 'delivered' ? 'active' : 'pending' ?>"><?= e($o['status']) ?></span></td>
-                            <td style="text-align: right;"><strong><?= format_myr($o['total']) ?></strong></td>
+                            <td class="u-ta-r"><strong><?= format_myr($o['total']) ?></strong></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -363,11 +363,11 @@ admin_layout_start('dashboard', 'Platform Dashboard');
 <!-- ===== Section 6: Export CSV (R-APP-38) ===== -->
 <div class="dash-section">
     <details>
-        <summary class="btn btn-secondary btn-sm" style="display: inline-block;">📥 Export business data as CSV</summary>
-        <div style="margin-top: var(--space-3); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); max-width: 720px;">
-            <form method="get" action="<?= url('/admin/export.php') ?>" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: var(--space-2); align-items: end;">
+        <summary class="btn btn-secondary btn-sm u-inline-block">📥 Export business data as CSV</summary>
+        <div class="panel u-mt-3 u-p-4 u-maxw-720">
+            <form method="get" action="<?= url('/admin/export.php') ?>" class="u-grid u-cols-3-auto u-gap-2 u-ai-end">
                 <div>
-                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 4px;">Type</label>
+                    <label class="u-t-12 u-muted u-block u-mb-1">Type</label>
                     <select name="type" class="form-control">
                         <option value="orders">Orders</option>
                         <option value="users">Users</option>
@@ -378,21 +378,21 @@ admin_layout_start('dashboard', 'Platform Dashboard');
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 4px;">From</label>
+                    <label class="u-t-12 u-muted u-block u-mb-1">From</label>
                     <input type="date" name="from" class="form-control" value="<?= date('Y-m-d', strtotime('-30 days')) ?>">
                 </div>
                 <div>
-                    <label style="font-size: 0.75rem; color: var(--color-text-muted); display: block; margin-bottom: 4px;">To</label>
+                    <label class="u-t-12 u-muted u-block u-mb-1">To</label>
                     <input type="date" name="to" class="form-control" value="<?= date('Y-m-d') ?>">
                 </div>
                 <button type="submit" class="btn btn-primary">Download</button>
             </form>
-            <p style="margin: var(--space-3) 0 0; font-size: 0.75rem; color: var(--color-text-muted);">
+            <p class="u-m-3-0-0 u-t-12 u-muted">
                 UTF-8 with BOM for Excel compatibility. Every export is logged.
             </p>
         </div>
     </details>
-    <p style="margin: var(--space-3) 0 0; font-size: 0.75rem; color: var(--color-text-muted); text-align: right;">
+    <p class="u-m-3-0-0 u-t-12 u-muted u-ta-r">
         Auto-refreshes every 5 min · Last: <?= date('H:i:s') ?>
     </p>
 </div>

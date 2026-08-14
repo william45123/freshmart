@@ -225,11 +225,11 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
     <div class="flash flash-error"><?= e($err) ?></div>
 <?php endforeach; ?>
 
-<form method="post" enctype="multipart/form-data" style="max-width: 720px;">
+<form method="post" enctype="multipart/form-data" class="u-maxw-720">
     <?= csrf_field() ?>
 
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-4);">
-        <h3 style="margin-top: 0;">Basic Information</h3>
+    <div class="panel u-p-6 u-mb-4">
+        <h3 class="u-mt-0">Basic Information</h3>
 
         <div class="form-group">
             <label for="name">Product Name *</label>
@@ -237,7 +237,7 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
                    value="<?= attr($product['name']) ?>" maxlength="255">
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+        <div class="u-grid u-cols-2 u-gap-4">
             <div class="form-group">
                 <label for="sku">SKU *</label>
                 <input type="text" id="sku" name="sku" required class="form-control"
@@ -257,7 +257,7 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
                       maxlength="1000"><?= e($product['description'] ?? '') ?></textarea>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-4);">
+        <div class="u-grid u-cols-3 u-gap-4">
             <div class="form-group">
                 <label for="category_id">Category *</label>
                 <select id="category_id" name="category_id" required class="form-control">
@@ -295,10 +295,10 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
         </div>
     </div>
 
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-4);">
-        <h3 style="margin-top: 0;">Freshness Settings</h3>
+    <div class="panel u-p-6 u-mb-4">
+        <h3 class="u-mt-0">Freshness Settings</h3>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+        <div class="u-grid u-cols-2 u-gap-4">
             <div class="form-group">
                 <label for="shelf_life_days">Shelf Life (days)</label>
                 <input type="number" id="shelf_life_days" name="shelf_life_days" min="1" max="365"
@@ -315,10 +315,10 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
         </div>
     </div>
 
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-4);">
-        <h3 style="margin-top: 0;">Details</h3>
+    <div class="panel u-p-6 u-mb-4">
+        <h3 class="u-mt-0">Details</h3>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+        <div class="u-grid u-cols-2 u-gap-4">
             <div class="form-group">
                 <label for="origin">Origin</label>
                 <input type="text" id="origin" name="origin" class="form-control"
@@ -337,12 +337,12 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
                       class="form-control"><?= e($product['storage_instruction'] ?? '') ?></textarea>
         </div>
 
-        <div style="display: flex; gap: var(--space-4);">
-            <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+        <div class="u-flex u-gap-4">
+            <label class="u-flex u-ai-center u-gap-2 u-pointer">
                 <input type="checkbox" name="is_active" value="1" <?= $product['is_active'] ? 'checked' : '' ?>>
                 Active (visible to customers)
             </label>
-            <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+            <label class="u-flex u-ai-center u-gap-2 u-pointer">
                 <input type="checkbox" name="is_featured" value="1" <?= $product['is_featured'] ? 'checked' : '' ?>>
                 Featured on homepage
             </label>
@@ -350,15 +350,15 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
     </div>
 
     <?php if ($isEdit): ?>
-    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-4);">
-        <h3 style="margin-top: 0;">Images (max <?= PRODUCT_IMAGE_MAX ?>)</h3>
+    <div class="panel u-p-6 u-mb-4">
+        <h3 class="u-mt-0">Images (max <?= PRODUCT_IMAGE_MAX ?>)</h3>
 
         <?php if (!empty($images)): ?>
             <div class="image-grid">
                 <?php foreach ($images as $img): ?>
                     <div class="image-grid-item <?= $img['is_primary'] ? 'primary' : '' ?>">
                         <img src="<?= upload_url($img['image_path']) ?>" alt="">
-                        <form method="post" style="display: inline;">
+                        <form method="post" class="u-inline">
                             <?= csrf_field() ?>
                             <input type="hidden" name="delete_image" value="<?= $img['id'] ?>">
                             <button type="submit" class="remove-btn"
@@ -370,7 +370,7 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
         <?php endif; ?>
 
         <?php if (count($images) < PRODUCT_IMAGE_MAX): ?>
-            <label class="file-upload-area" style="margin-top: var(--space-3); display: block;">
+            <label class="file-upload-area u-mt-3 u-block">
                 <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp"
                        max="<?= PRODUCT_IMAGE_MAX - count($images) ?>">
                 <div>📷 Drop images here, or click to select</div>
@@ -382,7 +382,7 @@ retailer_layout_start('products', $isEdit ? 'Edit Product' : 'New Product');
         <div class="flash flash-info">Save the product first, then you can upload images.</div>
     <?php endif; ?>
 
-    <div style="display: flex; gap: var(--space-3);">
+    <div class="u-flex u-gap-3">
         <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Save Changes' : 'Create Product' ?></button>
         <a href="<?= url('/retailer/products.php') ?>" class="btn btn-ghost">Cancel</a>
     </div>

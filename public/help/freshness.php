@@ -16,10 +16,10 @@ $categories = db_all('SELECT name, slug, decay_exponent, decay_rationale FROM ca
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<section class="hero" style="padding: var(--space-12) 0;">
+<section class="hero u-py-12">
     <div class="container">
         <h1>How freshness works</h1>
-        <p style="font-size: 1.0625rem; max-width: 680px;">
+        <p class="u-t-17 u-maxw-680">
             Every product on FreshMart shows you exactly how fresh it is — calculated from
             the batch's age, never guessed. Here's the science behind the badge.
         </p>
@@ -29,24 +29,22 @@ require_once __DIR__ . '/../../includes/header.php';
 <section class="section">
     <div class="container">
         <h2>The four levels</h2>
-        <p style="color: var(--color-text-muted); max-width: 620px;">
+        <p class="u-muted u-maxw-620">
             We map each batch's remaining shelf life to one of four levels, based on the
             percentage of its total shelf life that's left.
         </p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); margin-top: var(--space-6);">
+        <div class="u-grid u-cols-fit-220 u-gap-4 u-mt-6">
             <?php foreach ($config as $row): ?>
-                <div style="background: var(--color-surface); border: 1px solid var(--color-border);
-                            border-left: 4px solid <?= e($row['color_hex']) ?>; padding: var(--space-5);
-                            border-radius: 0 var(--radius-lg) var(--radius-lg) 0;">
-                    <div style="margin-bottom: var(--space-3);">
+                <div class="fresh-level-card fresh-level-card-sm" style="--fresh: <?= e($row['color_hex']) ?>">
+                    <div class="u-mb-3">
                         <?= freshness_badge_html($row['level_name']) ?>
                     </div>
-                    <div style="font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: var(--space-2);">
+                    <div class="u-t-14 u-muted u-mb-2">
                         <?= number_format((float) $row['min_percent'], 0) ?>% – <?= number_format((float) $row['max_percent'], 0) ?>% of shelf life remaining
                     </div>
                     <?php if ((float) $row['auto_discount_pct'] > 0): ?>
-                        <div style="font-size: 0.875rem; color: var(--color-accent); font-weight: 600;">
+                        <div class="u-t-14 u-fg-accent u-fw-600">
                             Auto -<?= (int) $row['auto_discount_pct'] ?>% discount
                         </div>
                     <?php endif; ?>
@@ -56,26 +54,26 @@ require_once __DIR__ . '/../../includes/header.php';
     </div>
 </section>
 
-<section class="section" style="background: var(--color-surface); border-block: 1px solid var(--color-border);">
+<section class="section u-bg-surface u-by">
     <div class="container">
         <h2>Different foods, different decay</h2>
-        <p style="color: var(--color-text-muted); max-width: 720px;">
+        <p class="u-muted u-maxw-720">
             Seafood at 50% of its shelf life elapsed is <em>not</em> the same as bread at 50%.
             Bacteria multiply exponentially on fish; bread just gets a bit stale. FreshMart
             uses a category-aware <strong>power-law decay model</strong>:
         </p>
-        <pre style="background: var(--color-bg); padding: var(--space-5); border-radius: var(--radius); margin: var(--space-4) 0; font-family: var(--font-mono); font-size: 0.9375rem;">
+        <pre class="u-bg-page u-p-5 u-r u-m-4-0 u-mono u-t-15">
 freshness%  =  (1 − t/T)<sup>n</sup>  ×  100%
 
 t = days since received
 T = total shelf life (days)
 n = category decay exponent</pre>
 
-        <table class="data-table" style="margin-top: var(--space-6);">
+        <table class="data-table u-mt-6">
             <thead>
                 <tr>
                     <th>Category</th>
-                    <th style="text-align: center;">Exponent (n)</th>
+                    <th class="u-ta-c">Exponent (n)</th>
                     <th>Why</th>
                 </tr>
             </thead>
@@ -83,10 +81,10 @@ n = category decay exponent</pre>
                 <?php foreach ($categories as $c): ?>
                     <tr>
                         <td><strong><?= e($c['name']) ?></strong></td>
-                        <td style="text-align: center; font-family: var(--font-mono); font-size: 1rem;">
+                        <td class="u-ta-c u-mono u-t-16">
                             <?= number_format((float) $c['decay_exponent'], 2) ?>
                         </td>
-                        <td style="color: var(--color-text-muted);"><?= e($c['decay_rationale'] ?? '') ?></td>
+                        <td class="u-muted"><?= e($c['decay_rationale'] ?? '') ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -97,30 +95,30 @@ n = category decay exponent</pre>
 <section class="section">
     <div class="container">
         <h2>What happens automatically</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-4); margin-top: var(--space-4);">
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-                <h3 style="font-size: 1.0625rem; margin-bottom: var(--space-2);">⏰ Every 5 minutes</h3>
-                <p style="color: var(--color-text-muted); margin: 0;">
+        <div class="u-grid u-cols-fit-260 u-gap-4 u-mt-4">
+            <div class="panel u-p-5">
+                <h3 class="u-t-17 u-mb-2">⏰ Every 5 minutes</h3>
+                <p class="u-muted u-m-0">
                     A background job recalculates freshness for every active batch.
                 </p>
             </div>
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-                <h3 style="font-size: 1.0625rem; margin-bottom: var(--space-2);">📉 Last chance = -15%</h3>
-                <p style="color: var(--color-text-muted); margin: 0;">
+            <div class="panel u-p-5">
+                <h3 class="u-t-17 u-mb-2">📉 Last chance = -15%</h3>
+                <p class="u-muted u-m-0">
                     Items entering the <em>Last Chance</em> tier automatically get a 15% discount
                     to help them sell before they expire.
                 </p>
             </div>
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-                <h3 style="font-size: 1.0625rem; margin-bottom: var(--space-2);">🥬 FEFO sells first</h3>
-                <p style="color: var(--color-text-muted); margin: 0;">
+            <div class="panel u-p-5">
+                <h3 class="u-t-17 u-mb-2">🥬 FEFO sells first</h3>
+                <p class="u-muted u-m-0">
                     When you check out, the system picks the batch with the earliest expiry —
                     First-Expired-First-Out — to minimise waste.
                 </p>
             </div>
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-                <h3 style="font-size: 1.0625rem; margin-bottom: var(--space-2);">⚠️ Expired = hidden</h3>
-                <p style="color: var(--color-text-muted); margin: 0;">
+            <div class="panel u-p-5">
+                <h3 class="u-t-17 u-mb-2">⚠️ Expired = hidden</h3>
+                <p class="u-muted u-m-0">
                     Expired batches are removed from the catalog. Retailers get an alert
                     so they can act on the loss.
                 </p>

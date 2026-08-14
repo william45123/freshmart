@@ -82,7 +82,7 @@ require_once __DIR__ . '/../../includes/header.php';
 admin_layout_start('retailers', 'Retailer Management');
 ?>
 
-<div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
+<div class="u-flex u-gap-2 u-mb-4">
     <?php foreach (['PENDING','APPROVED','REJECTED','SUSPENDED','ALL'] as $f):
         $c = $f === 'ALL' ? array_sum($cMap) : ($cMap[$f] ?? 0);
     ?>
@@ -96,21 +96,21 @@ admin_layout_start('retailers', 'Retailer Management');
 <?php if (empty($retailers)): ?>
     <div class="empty-state">No retailers in this filter.</div>
 <?php else: ?>
-    <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+    <div class="u-flex u-col u-gap-3">
         <?php foreach ($retailers as $r): ?>
-            <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-3);">
+            <div class="panel u-p-5">
+                <div class="u-flex u-jc-between u-ai-start u-mb-3">
                     <div>
-                        <h3 style="margin: 0 0 4px;"><?= e($r['company_name']) ?></h3>
-                        <div style="color: var(--color-text-muted); font-size: 0.9375rem;">
+                        <h3 class="u-m-0-0-1"><?= e($r['company_name']) ?></h3>
+                        <div class="u-muted u-t-15">
                             SSM: <code><?= e($r['business_reg_no']) ?></code> ·
                             <?= e($r['email']) ?> ·
                             <?= e($r['contact_phone'] ?? '—') ?>
                         </div>
-                        <div style="color: var(--color-text-muted); font-size: 0.8125rem; margin-top: var(--space-1);">
+                        <div class="u-muted u-t-13 u-mt-1">
                             <?= e($r['business_address'] ?? '') ?>
                         </div>
-                        <div style="color: var(--color-text-muted); font-size: 0.8125rem; margin-top: var(--space-1);">
+                        <div class="u-muted u-t-13 u-mt-1">
                             Applied: <?= format_datetime($r['user_created']) ?>
                         </div>
                     </div>
@@ -120,8 +120,8 @@ admin_layout_start('retailers', 'Retailer Management');
                 </div>
 
                 <?php if ($r['approval_status'] === 'PENDING'): ?>
-                    <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
-                        <form method="post" style="display: inline;">
+                    <div class="u-flex u-gap-2 u-mt-3">
+                        <form method="post" class="u-inline">
                             <?= csrf_field() ?>
                             <input type="hidden" name="retailer_id" value="<?= $r['id'] ?>">
                             <input type="hidden" name="action" value="APPROVED">
@@ -130,14 +130,14 @@ admin_layout_start('retailers', 'Retailer Management');
                                 ✓ Approve
                             </button>
                         </form>
-                        <details style="display: inline;">
-                            <summary class="btn btn-secondary btn-sm" style="display: inline-block;">✗ Reject</summary>
-                            <form method="post" style="margin-top: var(--space-2); display: flex; gap: var(--space-2);">
+                        <details class="u-inline">
+                            <summary class="btn btn-secondary btn-sm u-inline-block">✗ Reject</summary>
+                            <form method="post" class="u-mt-2 u-flex u-gap-2">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="retailer_id" value="<?= $r['id'] ?>">
                                 <input type="hidden" name="action" value="REJECTED">
                                 <input type="text" name="reason" placeholder="Reason" required
-                                       class="form-control" style="width: 240px;">
+                                       class="form-control u-w-240">
                                 <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                             </form>
                         </details>

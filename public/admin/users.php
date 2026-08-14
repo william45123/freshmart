@@ -42,7 +42,7 @@ require_once __DIR__ . '/../../includes/header.php';
 admin_layout_start('users', 'Users');
 ?>
 
-<div style="display: flex; gap: var(--space-2); margin-bottom: var(--space-4);">
+<div class="u-flex u-gap-2 u-mb-4">
     <a href="<?= url('/admin/users.php') ?>" class="btn <?= $roleFilter === '' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">All</a>
     <a href="<?= url('/admin/users.php?role=CUSTOMER') ?>" class="btn <?= $roleFilter === 'CUSTOMER' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">Customers</a>
     <a href="<?= url('/admin/users.php?role=RETAILER') ?>" class="btn <?= $roleFilter === 'RETAILER' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">Retailers</a>
@@ -58,7 +58,7 @@ admin_layout_start('users', 'Users');
         <tr>
             <td>
                 <strong><?= e($u['full_name'] ?? $u['email']) ?></strong>
-                <br><small style="color: var(--color-text-muted);"><?= e($u['email']) ?></small>
+                <br><small class="u-muted"><?= e($u['email']) ?></small>
             </td>
             <td><?= e($u['role']) ?></td>
             <td><span class="status-pill status-<?= strtolower($u['status']) === 'active' ? 'active' : 'suspended' ?>"><?= e($u['status']) ?></span></td>
@@ -66,7 +66,7 @@ admin_layout_start('users', 'Users');
             <td><?= format_date($u['created_at']) ?></td>
             <td>
                 <?php if ($u['id'] !== auth_id()): ?>
-                    <form method="post" style="display: inline;">
+                    <form method="post" class="u-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                         <?php if ($u['status'] === 'ACTIVE'): ?>

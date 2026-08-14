@@ -352,7 +352,7 @@ function fresh_color($level) {
 <!-- ============ SECTION 3: CATEGORY CIRCLES ============ -->
 <section class="category-circles-section">
     <div class="container">
-        <div class="section-header" style="margin-bottom: var(--space-6);">
+        <div class="section-header u-mb-6">
             <h2>Shop by <span class="scribble">Category</span></h2>
             <a href="<?= url('/shop/browse.php') ?>" class="section-link">View all →</a>
         </div>
@@ -386,7 +386,7 @@ function fresh_color($level) {
 </section>
 
 <!-- ============ SECTION 3a: LAST CHANCE PROMO BANNER ============ -->
-<section class="section" style="padding-top: var(--space-6); padding-bottom: 0;">
+<section class="section u-pt-6 u-pb-0">
     <div class="container">
         <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="lc-promo">
             <div class="lc-promo-content">
@@ -404,20 +404,20 @@ function fresh_color($level) {
 
 <!-- ============ SECTION 3b: VOUCHER STRIP ============ -->
 <?php if (!empty($homeVouchers)): ?>
-<section class="section" style="padding-top: 0;">
+<section class="section u-pt-0">
     <div class="container">
-        <div style="background: linear-gradient(135deg, var(--color-primary-light), var(--color-surface)); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5);">
-            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-2);">
+        <div class="u-bg-grad-warm u-bordered u-r-lg u-p-5">
+            <div class="u-flex u-ai-baseline u-jc-between u-mb-4 u-wrap u-gap-2">
                 <div>
                     <div class="banner-eyebrow">Grab a deal</div>
-                    <h2 style="margin: 4px 0 0; font-size: 1.375rem;">🎟️ Vouchers you can use</h2>
+                    <h2 class="u-m-1-0-0 u-t-22">🎟️ Vouchers you can use</h2>
                 </div>
-                <span style="font-size: 0.8125rem; color: var(--color-text-muted);">
+                <span class="u-t-13 u-muted">
                     Copy a code, then paste it at checkout
                 </span>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3);">
+            <div class="u-grid u-cols-fit-220 u-gap-3">
                 <?php foreach ($homeVouchers as $v):
                     if ($v['discount_type'] === 'PERCENTAGE') {
                         $headline = (int) $v['discount_value'] . '% OFF';
@@ -426,26 +426,26 @@ function fresh_color($level) {
                         $headline = format_myr($v['discount_value']) . ' OFF';
                     }
                 ?>
-                    <div style="background: var(--color-surface); border: 1px dashed var(--color-primary); border-radius: var(--radius); padding: var(--space-4); position: relative; overflow: hidden;">
-                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary-dark);">
+                    <div class="u-bg-surface u-bordered-dashed-primary u-r u-p-4 u-rel u-ovh">
+                        <div class="u-t-20 u-fw-700 u-fg-primary-dk">
                             <?= e($headline) ?>
                         </div>
                         <?php if (!empty($v['description'])): ?>
-                            <div style="font-size: 0.8125rem; color: var(--color-text-muted); margin: 4px 0 var(--space-3);">
+                            <div class="u-t-13 u-muted u-m-1-0-3">
                                 <?= e($v['description']) ?>
                             </div>
                         <?php else: ?>
-                            <div style="margin-bottom: var(--space-3);"></div>
+                            <div class="u-mb-3"></div>
                         <?php endif; ?>
-                        <div style="display: flex; align-items: center; gap: var(--space-2);">
-                            <code style="flex: 1; background: var(--color-primary-light); color: var(--color-primary-dark); font-weight: 700; letter-spacing: 0.08em; padding: 6px 10px; border-radius: var(--radius-sm); font-size: 0.9375rem; text-align: center;">
+                        <div class="u-flex u-ai-center u-gap-2">
+                            <code class="u-flex-1 u-bg-primary-lt u-fg-primary-dk u-fw-700 u-ls-08 u-p-pill-sm u-r-sm u-t-15 u-ta-c">
                                 <?= e($v['code']) ?>
                             </code>
                             <button type="button"
                                     onclick="navigator.clipboard.writeText('<?= e($v['code']) ?>'); this.textContent='✓'; setTimeout(()=>this.textContent='Copy',1500);"
-                                    class="btn btn-secondary btn-sm" style="white-space: nowrap;">Copy</button>
+                                    class="btn btn-secondary btn-sm u-nowrap">Copy</button>
                         </div>
-                        <div style="font-size: 0.6875rem; color: var(--color-text-muted); margin-top: var(--space-2);">
+                        <div class="u-t-11 u-muted u-mt-2">
                             <?php if ((float) $v['min_order_value'] > 0): ?>
                                 Min spend <?= format_myr($v['min_order_value']) ?>
                             <?php else: ?>
@@ -464,7 +464,6 @@ function fresh_color($level) {
 <?php endif; ?>
 
 <!-- ============ SECTION 4: PRODUCT GRID (4-col with freshness bars) ============ -->
-<div class="section-gap" aria-hidden="true"></div>
 
 <section class="section reveal" id="fresh-picks-section">
     <div class="container">
@@ -473,7 +472,7 @@ function fresh_color($level) {
             <a href="<?= url('/shop/browse.php') ?>" class="section-link">View all →</a>
         </div>
         <?php if (empty($products)): ?>
-            <p style="color: var(--color-text-muted)">No products available yet.</p>
+            <p class="u-muted">No products available yet.</p>
         <?php else: ?>
             <div class="fresh-picks-carousel-wrap">
                 <button type="button" class="carousel-nav carousel-nav-prev" id="fpPrev" aria-label="Previous">
@@ -528,101 +527,6 @@ function fresh_color($level) {
     </div>
 </section>
 
-<style>
-/* Fresh Picks Carousel */
-.fresh-picks-carousel-wrap {
-    position: relative;
-    margin-top: var(--space-4);
-}
-.fresh-picks-carousel {
-    display: flex;
-    gap: var(--space-4);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 4px 4px 12px 4px;
-}
-.fresh-picks-carousel::-webkit-scrollbar { display: none; }
-
-.fresh-picks-carousel .carousel-slide {
-    flex: 0 0 calc((100% - var(--space-4) * 3) / 4);
-    scroll-snap-align: start;
-    min-width: 220px;
-}
-@media (max-width: 1024px) {
-    .fresh-picks-carousel .carousel-slide {
-        flex: 0 0 calc((100% - var(--space-4) * 2) / 3);
-    }
-}
-@media (max-width: 768px) {
-    .fresh-picks-carousel .carousel-slide {
-        flex: 0 0 calc((100% - var(--space-4)) / 2);
-    }
-}
-@media (max-width: 480px) {
-    .fresh-picks-carousel .carousel-slide {
-        flex: 0 0 85%;
-    }
-}
-
-.carousel-nav {
-    position: absolute;
-    top: 40%;
-    transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    cursor: pointer;
-    font-size: 1.75rem;
-    line-height: 1;
-    color: var(--color-primary);
-    display: grid;
-    place-items: center;
-    z-index: 5;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    font-weight: 300;
-}
-.carousel-nav:hover:not(:disabled) {
-    transform: translateY(-50%) scale(1.08);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-}
-.carousel-nav:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-.carousel-nav-prev { left: -22px; }
-.carousel-nav-next { right: -22px; }
-@media (max-width: 768px) {
-    .carousel-nav { display: none; }
-}
-
-.carousel-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: var(--space-3);
-}
-.carousel-dots .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--color-border);
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: all 0.2s ease;
-}
-.carousel-dots .dot.is-active {
-    background: var(--color-primary);
-    width: 24px;
-    border-radius: 4px;
-}
-</style>
 
 <script>
 (function() {
@@ -689,10 +593,10 @@ function fresh_color($level) {
 
 <!-- ============ RECENTLY VIEWED (only if any) ============ -->
 <?php if (!empty($recentlyViewed)): ?>
-<section class="section" style="padding-top: 0;">
+<section class="section u-pt-0">
     <div class="container">
         <div class="section-header">
-            <h2 style="font-size: 1.125rem;">Recently viewed</h2>
+            <h2 class="u-t-18">Recently viewed</h2>
         </div>
         <div class="product-grid-recent">
             <?php foreach ($recentlyViewed as $rv):
@@ -722,7 +626,7 @@ function fresh_color($level) {
 
 <!-- ============ POPULAR THIS WEEK + YOU MAY ALSO LIKE (R-APP-36) ============ -->
 <?php if (!empty($popularThisWeek)): ?>
-<section class="section" style="padding-top: 0;">
+<section class="section u-pt-0">
     <div class="container">
         <?= reco_render_section('Popular This Week', '🔥', $popularThisWeek,
             'Best sellers in the last 7 days') ?>
@@ -731,7 +635,7 @@ function fresh_color($level) {
 <?php endif; ?>
 
 <?php if (!empty($mayAlsoLike)): ?>
-<section class="section" style="padding-top: 0;">
+<section class="section u-pt-0">
     <div class="container">
         <?= reco_render_section('You May Also Like', '✨', $mayAlsoLike,
             auth_check() ? 'Picked for you based on your shopping history' : 'Customer favourites') ?>
@@ -743,9 +647,9 @@ function fresh_color($level) {
 <?php if (!empty($testimonials)): ?>
 <section class="section">
     <div class="container">
-        <div class="section-header" style="justify-content: center; text-align: center; flex-direction: column; gap: 4px;">
+        <div class="section-header u-jc-center u-ta-c u-col u-gap-1">
             <h2>What our <span class="scribble">customers say</span></h2>
-            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin: 0;">Real reviews from verified buyers</p>
+            <p class="u-muted u-t-144 u-m-0">Real reviews from verified buyers</p>
         </div>
         <div class="testimonials">
             <?php foreach ($testimonials as $t): ?>
@@ -769,7 +673,7 @@ function fresh_color($level) {
 <?php endif; ?>
 
 <!-- ============ SECTION: SERVICE BANNERS ============ -->
-<section class="section" style="padding-bottom: 0;">
+<section class="section u-pb-0">
     <div class="container">
         <div class="service-banners">
             <div class="service-banner service-banner-green">
@@ -791,14 +695,13 @@ function fresh_color($level) {
 </section>
 
 <!-- ============ FRESHNESS EXPLAINER (footer banner) ============ -->
-<div class="section-gap" aria-hidden="true"></div>
 
 <section class="section freshness-banner reveal">
     <div class="container">
         <div class="freshness-banner-grid">
             <div>
                 <div class="banner-eyebrow">How it works</div>
-                <h2 style="margin-top: 4px;">Our Freshness <span class="scribble">Promise</span></h2>
+                <h2 class="u-mt-1">Our Freshness <span class="scribble">Promise</span></h2>
                 <p>
                     Every product carries one of four freshness levels, calculated automatically
                     from each batch's age using a category-aware power-law decay model.
@@ -818,22 +721,22 @@ function fresh_color($level) {
                 <?php endif; ?>
             </div>
             <div class="freshness-levels-grid">
-                <div class="level-card" style="--c: #16a34a;">
+                <div class="level-card level-card-very">
                     <div class="level-dot"></div>
                     <div class="level-name">Very Fresh</div>
                     <div class="level-range">&gt;75%</div>
                 </div>
-                <div class="level-card" style="--c: #84cc16;">
+                <div class="level-card level-card-fresh">
                     <div class="level-dot"></div>
                     <div class="level-name">Fresh</div>
                     <div class="level-range">50-75%</div>
                 </div>
-                <div class="level-card" style="--c: #eab308;">
+                <div class="level-card level-card-soon">
                     <div class="level-dot"></div>
                     <div class="level-name">Enjoy Soon</div>
                     <div class="level-range">25-50%</div>
                 </div>
-                <div class="level-card" style="--c: #ea580c;">
+                <div class="level-card level-card-last">
                     <div class="level-dot"></div>
                     <div class="level-name">Last Chance</div>
                     <div class="level-range">&lt;25% −15%</div>
