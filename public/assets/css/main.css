@@ -4012,3 +4012,19 @@
         .product-card-v2:hover .product-card-image img { transform: none; }
     }
 }
+
+@layer components {
+    /* F3 — the batch an expiry alert points at. Colour is not the only cue:
+       the row is also focused on arrival, so it is announced, and the left
+       edge gives a non-colour marker. */
+    tr.is-flagged > td {
+        background: var(--color-primary-light);
+    }
+    tr.is-flagged > td:first-child {
+        box-shadow: inset 3px 0 0 var(--color-primary);
+    }
+    tr.is-flagged:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: -2px;
+    }
+}

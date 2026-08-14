@@ -456,7 +456,7 @@ function freshness_run_automation(): array
                         $retailerUserId,
                         'Product expired: ' . $b['product_name'],
                         'A stock batch for "' . $b['product_name'] . '" has expired and is now hidden.',
-                        '/retailer/batches.php?id=' . $b['id'],
+                        '/retailer/inventory.php?batch=' . $b['id'],
                     ]
                 );
                 $summary['alerts']++;

@@ -14,6 +14,9 @@ require_once __DIR__ . '/../../includes/fefo.php';
 $retailer    = retailer_current();
 $retailerId  = (int) $retailer['id'];
 $filterProductId = (int) input('product_id', 0);
+// F3: expiry alerts link here with ?batch=<id>. Highlight and scroll to it so
+// the retailer lands on the batch the notification is about, not just the page.
+$highlightBatch  = (int) input('batch', 0);
 $errors      = [];
 
 // ---------- Handle batch creation ----------
@@ -200,8 +203,9 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                 $level = $b['status'] === 'EXPIRED' ? 'EXPIRED'
                        : freshness_level($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']);
                 $days  = max(0, days_between(now_my()->format('Y-m-d'), $b['expiry_date']));
+                $isTarget = ($highlightBatch > 0 && (int) $b['id'] === $highlightBatch);
             ?>
-                <tr>
+                <tr id="batch-<?= (int) $b['id'] ?>"<?= $isTarget ? ' class="is-flagged" tabindex="-1"' : '' ?>>
                     <td><code><?= e($b['batch_code']) ?></code></td>
                     <td>
                         <a href="<?= url('/retailer/inventory.php?product_id=' . $b['product_id']) ?>">
@@ -375,6 +379,20 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
     productSel.addEventListener('change', updateExpiry);
     recDate.addEventListener('change', updateExpiry);
 </script>
+
+<?php if ($highlightBatch > 0): ?>
+<script>
+    // Bring the batch the alert pointed at into view. Focus as well as scroll,
+    // so the jump is announced rather than only visual.
+    (function () {
+        var row = document.getElementById('batch-<?= (int) $highlightBatch ?>');
+        if (!row) return;
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        row.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+        row.focus({ preventScroll: true });
+    })();
+</script>
+<?php endif; ?>
 
 <?php
 retailer_layout_end();
