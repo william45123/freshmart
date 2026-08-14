@@ -35,6 +35,7 @@ try {
     echo "  Cache synced:  {$summary['synced']} batches\n";
     echo "  Expired:       {$summary['expired']} batches\n";
     echo "  Discounted:    {$summary['discounted']} batches\n";
+    echo "  Un-discounted: {$summary['undiscounted']} batches\n";
     echo "  Alerts sent:   {$summary['alerts']} notifications\n";
     echo "  Elapsed:       {$elapsed}ms\n";
     echo "[" . date('Y-m-d H:i:s') . "] Done.\n\n";

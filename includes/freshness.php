@@ -411,7 +411,7 @@ function freshness_sync_batches(?array $ids = null, int $limit = 200): array
  */
 function freshness_run_automation(): array
 {
-    $summary = ['scanned' => 0, 'synced' => 0, 'expired' => 0, 'discounted' => 0, 'alerts' => 0];
+    $summary = ['scanned' => 0, 'synced' => 0, 'expired' => 0, 'discounted' => 0, 'undiscounted' => 0, 'alerts' => 0];
 
     $batches = db_all(
         "SELECT sb.id, sb.product_id, sb.received_date, sb.expiry_date,
@@ -475,6 +475,28 @@ function freshness_run_automation(): array
                 );
                 $summary['discounted']++;
             }
+        } elseif (!empty($b['selling_price_override'])) {
+            // The discount rule is "LAST_CHANCE batches are marked down". Applying
+            // it was implemented; withdrawing it was not, because in normal
+            // operation freshness only ever decreases and the branch is
+            // unreachable. It becomes reachable the moment anything moves a batch
+            // back up the curve — tools/refresh_demo_dates.php today, a retailer
+            // correcting a mistyped expiry date tomorrow. The override would then
+            // outlive the level that earned it, and since decorate_with_freshness()
+            // derives the displayed price from the level while FEFO and checkout
+            // read selling_price_override, the page would show full price while
+            // the customer was charged the discounted one.
+            //
+            // Safe to clear here: the cron is the only writer of this column.
+            // fefo.php only reads it, its INSERT omits it, and no retailer screen
+            // sets a manual price — so nothing else's pricing can be wiped.
+            // EXPIRED batches never reach this branch (the loop continues above),
+            // so their last price is preserved as a record.
+            db_run(
+                "UPDATE stock_batches SET selling_price_override = NULL WHERE id = ?",
+                [$b['id']]
+            );
+            $summary['undiscounted']++;
         }
     }
 
