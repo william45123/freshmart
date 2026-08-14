@@ -18,7 +18,7 @@ define('DB_CHARSET',  'utf8mb4');
 define('APP_NAME',    'FreshMart');
 define('APP_URL',     'http://127.0.0.1:8899');
 define('APP_ENV',     'development');           // 'development' | 'production'
-define('APP_DEBUG',   true);
+define('APP_DEBUG',   false);
 define('APP_TIMEZONE','Asia/Kuala_Lumpur');
 
 // --- Security ----------------------------------------------------

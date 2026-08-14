@@ -7,6 +7,11 @@
 require_once __DIR__ . '/../../includes/admin_layout.php';
 require_once __DIR__ . '/../../includes/helpers.php';
 
+// Authorisation gate. Runs before any request handling or output so the
+// redirect/403 can still be issued; admin_layout_start() calls this again
+// further down, which is harmless (require_role is idempotent).
+admin_check();
+
 $errors = [];
 
 // ---- Handle status update (admin can override any order's status) ----
