@@ -12,8 +12,13 @@
  * produce identical dates.
  *
  * Usage:
- *   php tools/refresh_demo_dates.php            apply
- *   php tools/refresh_demo_dates.php --dry-run  show the plan, write nothing
+ *   php tools/refresh_demo_dates.php                        apply
+ *   php tools/refresh_demo_dates.php --dry-run              show the plan only
+ *   php tools/refresh_demo_dates.php --clear-notifications  also delete the
+ *       EXPIRY_ALERT / PROMO notifications previous cron runs generated.
+ *       Off by default: they are real rows, they are worth demonstrating, and
+ *       a tool called "refresh dates" should not delete data unasked. The
+ *       report below warns when they have piled up.
  *
  * Then run:  php cron/update_freshness.php
  *
@@ -76,7 +81,8 @@ if (PHP_SAPI !== 'cli') {
 
 require_once __DIR__ . '/../includes/freshness.php';
 
-$dryRun = in_array('--dry-run', $argv ?? [], true);
+$dryRun     = in_array('--dry-run', $argv ?? [], true);
+$clearNotifs = in_array('--clear-notifications', $argv ?? [], true);
 
 // How many batches land on each level. Sums to the eligible batch count; any
 // shortfall or surplus is absorbed by LAST_CHANCE, which is the level F2's
@@ -264,6 +270,53 @@ $skipped = (int) db_scalar(
          OR sb.status IN ('DEPLETED','RECALLED')"
 );
 echo "\n  Left untouched: {$skipped} batch(es) — order-linked, depleted or recalled.\n";
+
+// --- price override consistency ---------------------------------------------
+// The cron applies selling_price_override when a batch is LAST_CHANCE, but its
+// discount branch has no else — harmless in normal operation, because freshness
+// only ever decreases. This tool moves batches back UP the curve, so an
+// override left behind from a previous run would outlive the level that earned
+// it, and decorate_with_freshness() would then show full price while
+// FEFO/checkout charged the discounted one. Every rebased batch therefore has
+// its override cleared above, and the next cron run re-applies it from the new
+// level. This reports anything still carrying one.
+$staleOverrides = db_all(
+    "SELECT sb.id, sb.selling_price_override, sb.status,
+            COALESCE(sb.freshness_level, '(unsynced)') AS lvl, p.name
+       FROM stock_batches sb
+       JOIN products p ON p.id = sb.product_id
+      WHERE sb.selling_price_override IS NOT NULL
+        AND (sb.freshness_level IS NULL OR sb.freshness_level <> 'LAST_CHANCE')
+      ORDER BY sb.id"
+);
+echo "\n  PRICE OVERRIDES\n";
+echo "  " . str_repeat('-', 60) . "\n";
+printf("  cleared on rebased batches:      %d\n", $dryRun ? 0 : count($updates));
+if ($staleOverrides) {
+    printf("  still set without LAST_CHANCE:   %d  <-- check these\n", count($staleOverrides));
+    foreach (array_slice($staleOverrides, 0, 8) as $o) {
+        printf("      batch %-5d %-28s level=%s status=%s\n",
+            $o['id'], substr((string) $o['name'], 0, 28), $o['lvl'], $o['status']);
+    }
+    echo "  (batches this tool does not touch — order-linked, depleted or\n";
+    echo "   recalled — keep whatever override they already had.)\n";
+} else {
+    printf("  still set without LAST_CHANCE:   0\n");
+}
+echo "  Re-check after cron: every override should belong to a LAST_CHANCE batch.\n";
+
+// --- notifications -----------------------------------------------------------
+$notifTypes = "'EXPIRY_ALERT','PROMO'";
+$notifCount = (int) db_scalar("SELECT COUNT(*) FROM notifications WHERE type IN ($notifTypes)");
+if ($clearNotifs && !$dryRun) {
+    db_run("DELETE FROM notifications WHERE type IN ($notifTypes)");
+    echo "\n  Cleared {$notifCount} automation notification(s) (EXPIRY_ALERT / PROMO).\n";
+} elseif ($notifCount > 0) {
+    echo "\n  Automation notifications on file: {$notifCount}";
+    echo $notifCount >= 40
+        ? "  <-- piling up; consider --clear-notifications\n"
+        : "\n";
+}
 
 if ($dryRun) {
     echo "\n  DRY RUN — no changes written.\n";
