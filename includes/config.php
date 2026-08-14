@@ -33,6 +33,12 @@ define('UPLOAD_MAX_SIZE',     5 * 1024 * 1024); // 5 MB
 define('UPLOAD_ALLOWED_MIME', ['image/jpeg', 'image/png', 'image/webp']);
 define('PRODUCT_IMAGE_MAX',   5);
 
+// --- Logging ------------------------------------------------------
+// Explicit path so PHP errors land somewhere known and project-local
+// rather than wherever the SAPI happens to default to (Apache's own
+// error.log under XAMPP, stderr under the built-in server).
+define('LOG_DIR',             __DIR__ . '/../storage/logs');
+
 // --- Business Rules ----------------------------------------------
 define('CURRENCY',          'MYR');
 define('APP_CURRENCY_SYMBOL',   'RM');
@@ -51,4 +57,14 @@ if (APP_DEBUG) {
     error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
     ini_set('display_errors', '0');
     ini_set('log_errors', '1');
+
+    // Nothing should fail silently just because display_errors is off.
+    // If the directory can't be created or written, fall through to the
+    // SAPI default rather than dropping the error on the floor.
+    if (!is_dir(LOG_DIR)) {
+        @mkdir(LOG_DIR, 0775, true);
+    }
+    if (is_dir(LOG_DIR) && is_writable(LOG_DIR)) {
+        ini_set('error_log', LOG_DIR . '/php-error.log');
+    }
 }
