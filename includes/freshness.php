@@ -305,13 +305,113 @@ function decorate_with_freshness(array $row): array
 }
 
 /**
+ * Write one batch's freshness cache row (F1).
+ *
+ * The single place these three columns are written. The values come from
+ * freshness_percent() / freshness_level() — the canonical formula — so the
+ * cache can never disagree with the live calculation by more than its age.
+ */
+function _freshness_write_cache(int $batchId, float $pct, string $level): void
+{
+    db_run(
+        "UPDATE stock_batches
+            SET freshness_pct = ?, freshness_level = ?, freshness_synced_at = NOW()
+          WHERE id = ?",
+        [round($pct, 2), $level, $batchId]
+    );
+}
+
+/**
+ * Populate the freshness cache for batches that have none (F1).
+ *
+ * WHEN TO CALL THIS
+ * -----------------
+ * Only from a query path that FILTERS OR SORTS on freshness_pct /
+ * freshness_level, and only before that query runs. A batch created between
+ * cron runs has a NULL cache, which makes it invisible to such a query — not
+ * merely stale, absent. This closes that window without waiting for cron.
+ *
+ * DO NOT call it from display paths. Product cards, the product page and
+ * everything else that shows a freshness figure go through
+ * decorate_with_freshness(), which computes live from the formula and never
+ * reads these columns. Those paths are always accurate and calling the heal
+ * from them would add writes to page loads that gain nothing.
+ *
+ * The probe is `freshness_level IS NULL`, deliberately: that is the leading
+ * column of idx_freshness, so NULLs are found via the index.
+ * freshness_synced_at is not in any index and would force a full scan.
+ *
+ * @param int[]|null $ids  Specific batch ids, or null to sweep unsynced ACTIVE ones.
+ * @param int $limit       Ceiling on a single sweep. Hitting it means cron is
+ *                         not running; the shortfall is logged and the next
+ *                         request continues where this one stopped.
+ * @return array{scanned:int,updated:int,capped:bool}
+ */
+function freshness_sync_batches(?array $ids = null, int $limit = 200): array
+{
+    $out = ['scanned' => 0, 'updated' => 0, 'capped' => false];
+
+    if ($ids !== null) {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if (!$ids) return $out;
+        $in     = implode(',', array_fill(0, count($ids), '?'));
+        $where  = "sb.id IN ($in)";
+        $params = $ids;
+        $cap    = count($ids);
+    } else {
+        $where  = "sb.status = 'ACTIVE' AND sb.freshness_level IS NULL";
+        $params = [];
+        $cap    = max(1, $limit);
+    }
+
+    $batches = db_all(
+        "SELECT sb.id, sb.received_date, sb.expiry_date,
+                COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent
+           FROM stock_batches sb
+           JOIN products p   ON p.id = sb.product_id
+           JOIN categories c ON c.id = p.category_id
+          WHERE $where
+          LIMIT " . (int) ($cap + 1),
+        $params
+    );
+
+    if (count($batches) > $cap) {
+        $out['capped'] = true;
+        $batches = array_slice($batches, 0, $cap);
+        error_log(
+            'freshness_sync_batches: hit the ' . $cap . '-batch cap with more '
+            . 'unsynced batches remaining. cron/update_freshness.php is very '
+            . 'likely not running on schedule.'
+        );
+    }
+
+    foreach ($batches as $b) {
+        $out['scanned']++;
+        $exp   = (float) $b['decay_exponent'];
+        $pct   = freshness_percent($b['received_date'], $b['expiry_date'], $exp);
+        $level = freshness_level($b['received_date'], $b['expiry_date'], $exp);
+        _freshness_write_cache((int) $b['id'], $pct, $level);
+        $out['updated']++;
+    }
+
+    // Concurrency: two requests may select the same unsynced batch and both
+    // write it. That is harmless — the write is idempotent for a given clock
+    // reading, both compute from the same formula and the same row, and the
+    // result differs only by the sub-second gap between them. No locking is
+    // needed and none is taken; the loser of the race simply rewrites the
+    // same values.
+
+    return $out;
+}
+
+/**
  * Cron-driven automation:
  *   - Mark EXPIRED batches and notify retailers
  *   - Auto-discount LAST_CHANCE batches
  */
 function freshness_run_automation(): array
 {
-    $summary = ['scanned' => 0, 'expired' => 0, 'discounted' => 0, 'alerts' => 0];
+    $summary = ['scanned' => 0, 'synced' => 0, 'expired' => 0, 'discounted' => 0, 'alerts' => 0];
 
     $batches = db_all(
         "SELECT sb.id, sb.product_id, sb.received_date, sb.expiry_date,
@@ -326,7 +426,15 @@ function freshness_run_automation(): array
 
     foreach ($batches as $b) {
         $summary['scanned']++;
-        $level = freshness_level($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']);
+        $exponent = (float) $b['decay_exponent'];
+        $level = freshness_level($b['received_date'], $b['expiry_date'], $exponent);
+
+        // F1: refresh the cache for every batch this loop touches. The formula
+        // is unchanged — this only records what it already computed, so browse
+        // can filter and sort in SQL instead of in PHP after LIMIT/OFFSET.
+        $pct = freshness_percent($b['received_date'], $b['expiry_date'], $exponent);
+        _freshness_write_cache((int) $b['id'], $pct, $level);
+        $summary['synced']++;
 
         if ($level === 'EXPIRED') {
             db_run("UPDATE stock_batches SET status = 'EXPIRED' WHERE id = ?", [$b['id']]);

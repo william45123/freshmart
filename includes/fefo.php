@@ -207,6 +207,12 @@ function fefo_restock(
         );
         $batchId = db_last_id();
 
+        // F1: populate the freshness cache immediately, so a batch restocked
+        // between cron runs is not invisible to freshness-filtered queries.
+        // Calls the canonical sync function rather than recomputing here.
+        // Allocation logic below is untouched.
+        freshness_sync_batches([$batchId]);
+
         db_run(
             "INSERT INTO inventory_logs
                 (stock_batch_id, user_id, movement_type,

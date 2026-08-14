@@ -32,6 +32,7 @@ try {
     $elapsed = round((microtime(true) - $startedAt) * 1000, 1);
 
     echo "  Scanned:       {$summary['scanned']} batches\n";
+    echo "  Cache synced:  {$summary['synced']} batches\n";
     echo "  Expired:       {$summary['expired']} batches\n";
     echo "  Discounted:    {$summary['discounted']} batches\n";
     echo "  Alerts sent:   {$summary['alerts']} notifications\n";
