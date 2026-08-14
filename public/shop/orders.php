@@ -310,7 +310,7 @@ if ($orderId > 0) {
                 <div class="u-grid u-cols-media u-gap-3 u-py-3 u-ai-center u-bb">
                     <div class="u-square u-bg-page u-r u-ovh u-grid u-place-center">
                         <?php if (!empty($item['primary_image'])): ?>
-                            <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" class="media-fill">
+                            <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['product_name']) ?>" loading="lazy" class="media-fill">
                         <?php else: ?>
                             🥬
                         <?php endif; ?>
