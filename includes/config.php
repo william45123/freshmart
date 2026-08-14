@@ -43,6 +43,11 @@ define('LOG_DIR',             __DIR__ . '/../storage/logs');
 define('CURRENCY',          'MYR');
 define('APP_CURRENCY_SYMBOL',   'RM');
 define('GUEST_CART_HOURS',  24);
+// --- Catalogue ----------------------------------------------------
+// Products per page in browse. Also the chunk size for the mobile
+// "Load more" control, so both read from one place.
+define('BROWSE_PAGE_SIZE',    12);
+
 define('DEFAULT_SHIPPING_FEE',   5.00);
 define('FREE_SHIPPING_THRESHOLD', 50.00);
 

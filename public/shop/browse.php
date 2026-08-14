@@ -24,19 +24,52 @@ $availability = trim((string) input('availability', ''));    // R-APP-19
 $query      = trim((string) input('q', ''));
 $sort       = (string) input('sort', 'newest');
 $page       = max(1, (int) input('page', 1));
-$perPage    = 48;
+$perPage    = BROWSE_PAGE_SIZE;
 $offset     = ($page - 1) * $perPage;
 
-// Build WHERE clauses
+// F2: freshness and availability are filtered in SQL, not in PHP after
+// LIMIT/OFFSET. The old code paged first and filtered second, so
+// ?freshness=LAST_CHANCE returned only the matches that happened to land on
+// the current page while the count and pagination reported the unfiltered
+// total. Everything below filters against the display batch, so the count,
+// the pagination and the result set are all derived from one predicate.
+$filtersFreshness = ($freshness !== '' || in_array($sort, ['fresh-desc', 'value'], true));
+
+// A batch created between cron runs has no cached freshness, which would make
+// it invisible to the query below — absent, not merely stale. Fill any gaps
+// first. Only called here because this is a filter/sort path; display paths
+// compute live through decorate_with_freshness() and must not trigger it.
+if ($filtersFreshness) {
+    freshness_sync_batches();
+}
+
+// The display batch: earliest expiry among ACTIVE, in-stock, unexpired batches.
+// Joining it once (rather than repeating correlated subqueries) is what lets
+// the filters move into SQL, and it also removes a latent inconsistency — the
+// old expiry_date / received_date / earliest_expiry subqueries had no
+// tiebreaker, so on equal expiry dates they could each pick a different batch.
+$displayBatchJoin = "
+    JOIN stock_batches db ON db.id = (
+        SELECT sb.id FROM stock_batches sb
+         WHERE sb.product_id = p.id
+           AND sb.status = 'ACTIVE'
+           AND sb.quantity_remaining > 0
+           AND sb.expiry_date > CURDATE()
+         ORDER BY sb.expiry_date ASC, sb.id ASC
+         LIMIT 1
+    )";
+
+// Total live stock across every qualifying batch, used by the availability
+// filter and shown on the card. Defined once so filter and display agree.
+$totalStockExpr = "(SELECT COALESCE(SUM(sb.quantity_remaining),0) FROM stock_batches sb
+                     WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
+                       AND sb.expiry_date > CURDATE())";
+
+// Build WHERE clauses. The display-batch JOIN above replaces the old
+// EXISTS(...) guard: a product with no qualifying batch no longer joins.
 $where = [
     'p.is_active = 1',
     'p.deleted_at IS NULL',
-    // Must have at least one ACTIVE batch with stock
-    "EXISTS (SELECT 1 FROM stock_batches sb
-             WHERE sb.product_id = p.id
-               AND sb.status = 'ACTIVE'
-               AND sb.quantity_remaining > 0
-               AND sb.expiry_date > CURDATE())",
 ];
 $args = [];
 
@@ -53,11 +86,36 @@ if ($query !== '') {
     $args[]  = $query;
 }
 
+// F2: freshness filter, straight off the F1 cache and its index.
+if ($freshness !== '') {
+    $where[] = 'db.freshness_level = ?';
+    $args[]  = $freshness;
+}
+
+// F2: availability filter, previously applied in PHP after paging.
+// COALESCE mirrors the old PHP default of 10 when the threshold is NULL.
+if ($availability === 'in_stock') {
+    $where[] = "$totalStockExpr > COALESCE(p.low_stock_threshold, 10)";
+} elseif ($availability === 'low_stock') {
+    $where[] = "$totalStockExpr > 0";
+    $where[] = "$totalStockExpr <= COALESCE(p.low_stock_threshold, 10)";
+}
+
+// Best Value Today: how much is discounted, per remaining day. A batch with a
+// big markdown and little time left ranks highest. Uses the price actually
+// charged (selling_price_override) rather than a nominal rate, so it cannot
+// advertise a discount the checkout will not honour.
+$valueExpr = "(100 * (1 - COALESCE(db.selling_price_override, p.base_price)
+                          / NULLIF(p.base_price, 0)))
+              / GREATEST(DATEDIFF(db.expiry_date, CURDATE()), 1)";
+
 // Sorting
 $orderBy = match($sort) {
     'price-asc'  => 'p.base_price ASC',
     'price-desc' => 'p.base_price DESC',
-    'expiring'   => 'earliest_expiry ASC',
+    'expiring'   => 'db.expiry_date ASC',
+    'fresh-desc' => 'db.freshness_pct DESC, db.expiry_date ASC',
+    'value'      => "$valueExpr DESC, db.expiry_date ASC",
     default      => 'p.is_featured DESC, p.created_at DESC',
 };
 
@@ -68,6 +126,7 @@ $countSql = "
     JOIN categories c ON c.id = p.category_id
     LEFT JOIN subcategories sc ON sc.id = p.subcategory_id
     JOIN unit_types ut ON ut.id = p.unit_type_id
+    $displayBatchJoin
     WHERE " . implode(' AND ', $where);
 $totalProducts = (int) db_scalar($countSql, $args);
 $totalPages    = max(1, (int) ceil($totalProducts / $perPage));
@@ -80,19 +139,11 @@ $sql = "
         ut.code AS unit_code,
         COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent,
         (SELECT image_path FROM product_images pi WHERE pi.product_id = p.id AND pi.is_primary = 1 LIMIT 1) AS primary_image,
-        (SELECT COALESCE(SUM(quantity_remaining),0) FROM stock_batches sb
-         WHERE sb.product_id = p.id AND sb.status = 'ACTIVE' AND sb.expiry_date > CURDATE()) AS total_stock,
-        (SELECT sb.expiry_date FROM stock_batches sb
-         WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-           AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()
-         ORDER BY sb.expiry_date ASC LIMIT 1) AS expiry_date,
-        (SELECT sb.received_date FROM stock_batches sb
-         WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-           AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()
-         ORDER BY sb.expiry_date ASC LIMIT 1) AS received_date,
-        (SELECT MIN(sb.expiry_date) FROM stock_batches sb
-         WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-           AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()) AS earliest_expiry,
+        $totalStockExpr AS total_stock,
+        db.expiry_date   AS expiry_date,
+        db.received_date AS received_date,
+        db.expiry_date   AS earliest_expiry,
+        db.id            AS display_batch_id,
         (SELECT ROUND(AVG(r.rating),1) FROM reviews r
          WHERE r.product_id = p.id AND r.is_approved = 1) AS avg_rating,
         (SELECT COUNT(*) FROM reviews r
@@ -101,6 +152,7 @@ $sql = "
     JOIN categories c ON c.id = p.category_id
     LEFT JOIN subcategories sc ON sc.id = p.subcategory_id
     JOIN unit_types ut ON ut.id = p.unit_type_id
+    $displayBatchJoin
     WHERE " . implode(' AND ', $where) . "
     ORDER BY $orderBy
     LIMIT $perPage OFFSET $offset
@@ -108,27 +160,11 @@ $sql = "
 
 $products = db_all($sql, $args);
 
-// Decorate & filter by freshness level (done in PHP since freshness is computed)
+// Display values are still computed live — the cached columns decide which
+// rows come back and in what order, decorate_with_freshness() decides what
+// each card shows. The freshness/availability filters that used to run here
+// now live in the SQL above, so this page's results agree with $totalProducts.
 $products = array_map('decorate_with_freshness', $products);
-if ($freshness !== '') {
-    $products = array_values(array_filter(
-        $products,
-        fn($p) => $p['freshness_level'] === $freshness
-    ));
-}
-
-// R-APP-19: Availability filter (in-stock / low-stock)
-if ($availability !== '') {
-    $products = array_values(array_filter($products, function ($p) use ($availability) {
-        $stock = (float) ($p['total_stock'] ?? 0);
-        $threshold = (float) ($p['low_stock_threshold'] ?? 10);
-        return match ($availability) {
-            'in_stock'  => $stock > $threshold,
-            'low_stock' => $stock > 0 && $stock <= $threshold,
-            default     => true,
-        };
-    }));
-}
 
 // Get category list for sidebar
 $categories = db_all('SELECT id, name, slug FROM categories WHERE is_active = 1 ORDER BY display_order');
@@ -234,6 +270,8 @@ function url_with($overrides = []): string {
                 <select name="sort" onchange="this.form.submit()" class="form-control u-w-auto u-p-pill-sm">
                     <option value="newest"     <?= $sort === 'newest' ? 'selected' : '' ?>>Newest</option>
                     <option value="expiring"   <?= $sort === 'expiring' ? 'selected' : '' ?>>Expiring soonest</option>
+                    <option value="fresh-desc" <?= $sort === 'fresh-desc' ? 'selected' : '' ?>>Freshest first</option>
+                    <option value="value"      <?= $sort === 'value' ? 'selected' : '' ?>>Best Value Today</option>
                     <option value="price-asc"  <?= $sort === 'price-asc' ? 'selected' : '' ?>>Price: Low → High</option>
                     <option value="price-desc" <?= $sort === 'price-desc' ? 'selected' : '' ?>>Price: High → Low</option>
                 </select>
@@ -301,7 +339,7 @@ function url_with($overrides = []): string {
             </div>
         <?php endif; ?>
 
-        <?php if ($totalPages > 1 && $freshness === ''): ?>
+        <?php if ($totalPages > 1): ?>
             <nav class="pagination" aria-label="Product pages">
                 <?php if ($page > 1): ?>
                     <a class="page-btn page-nav" href="<?= url_with(['page' => $page - 1]) ?>">← Prev</a>
