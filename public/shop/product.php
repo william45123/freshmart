@@ -273,7 +273,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
                     <button type="submit"
                             title="<?= $inWishlist ? 'Remove from wishlist' : 'Add to wishlist' ?>"
                             class="wish-toggle<?= $inWishlist ? ' is-active' : '' ?>">
-                        <?= $inWishlist ? '❤️' : '🤍' ?>
+                        <?= icon('heart', 20) ?>
                     </button>
                 </form>
                 <?php endif; ?>
@@ -335,7 +335,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
             <?php endif; ?>
 
             <?php if ($totalStock <= 0): ?>
-                <div class="flash flash-error">⚠️ Out of stock</div>
+                <div class="flash flash-error"><?= icon('alert', 18) ?> Out of stock</div>
             <?php else: ?>
                 <?php
                     // Sensible quantity stepping:
@@ -416,14 +416,14 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
             <?php endif; ?>
 
             <?php if (!empty($product['description'])): ?>
-                <h3 class="u-t-16 u-mb-2">About this product</h3>
+                <h3 class="u-t-16 u-mb-2 disclosure-head" data-disclosure>About this product<span class="disclosure-mark" aria-hidden="true"></span></h3>
                 <p class="u-muted u-mb-4">
                     <?= nl2br(e($product['description'])) ?>
                 </p>
             <?php endif; ?>
 
             <?php if (!empty($product['storage_instruction'])): ?>
-                <h3 class="u-t-16 u-mb-2">Storage</h3>
+                <h3 class="u-t-16 u-mb-2 disclosure-head" data-disclosure>Storage<span class="disclosure-mark" aria-hidden="true"></span></h3>
                 <p class="u-muted">
                     <?= nl2br(e($product['storage_instruction'])) ?>
                 </p>
@@ -521,7 +521,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
     <?php endif; ?>
 
     <?php if (!empty($frequentlyBoughtTogether)): ?>
-    <?= reco_render_section('Frequently Bought Together', '🛒', $frequentlyBoughtTogether,
+    <?= reco_render_section('Frequently Bought Together', 'cart', $frequentlyBoughtTogether,
         'Customers who bought ' . $product['name'] . ' also bought these') ?>
     <?php endif; ?>
 
@@ -648,3 +648,38 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
 <?php endif; ?>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+
+<script>
+// §7.3 — collapse description/storage on mobile so the buy decision is not
+// buried under prose. Progressive: without JS every section stays open, and
+// above 1024 the CSS disables the affordance entirely.
+(function () {
+    var mq = matchMedia('(max-width: 1023px)');
+    document.querySelectorAll('[data-disclosure]').forEach(function (head, i) {
+        var body = head.nextElementSibling;
+        if (!body) return;
+        var id = 'disc-' + i;
+        body.id = id;
+        head.setAttribute('role', 'button');
+        head.setAttribute('tabindex', '0');
+        head.setAttribute('aria-controls', id);
+
+        function set(open) {
+            head.classList.toggle('is-open', open);
+            head.setAttribute('aria-expanded', open ? 'true' : 'false');
+            body.hidden = !open;
+        }
+        function sync() { set(!mq.matches); }   // open on desktop, closed on mobile
+        sync();
+        mq.addEventListener('change', sync);
+
+        head.addEventListener('click', function () {
+            if (!mq.matches) return;
+            set(body.hidden);
+        });
+        head.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); head.click(); }
+        });
+    });
+})();
+</script>

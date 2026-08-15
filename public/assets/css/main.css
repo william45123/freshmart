@@ -4009,7 +4009,10 @@
     .u-p-8-10 { padding: 8px 10px; }
     .u-p-pill-sm { padding: 6px 10px; }
     .u-p-pill-xs { padding: 2px 8px; }
-    .u-page-head { padding: var(--space-6) 0 var(--space-12); }
+    /* padding-block, not the shorthand: the shorthand's `0` for the inline
+       axis silently cancelled .container's gutter, which is why several page
+       headings rendered flush against the viewport edge. */
+    .u-page-head { padding-block: var(--space-6) var(--space-12); }
     .u-pb-0 { padding-bottom: 0; }
     .u-pb-12 { padding-bottom: var(--space-12); }
     .u-pl-3 { padding-left: var(--space-3); }
@@ -4018,12 +4021,12 @@
     .u-pt-3 { padding-top: var(--space-3); }
     .u-pt-4 { padding-top: var(--space-4); }
     .u-pt-6 { padding-top: var(--space-6); }
-    .u-py-10 { padding: var(--space-10) 0; }
-    .u-py-12 { padding: var(--space-12) 0; }
-    .u-py-3 { padding: var(--space-3) 0; }
-    .u-py-3px { padding: 3px 0; }
-    .u-py-6 { padding: var(--space-6) 0; }
-    .u-py-8 { padding: var(--space-8) 0; }
+    .u-py-10 { padding-block: var(--space-10); }
+    .u-py-12 { padding-block: var(--space-12); }
+    .u-py-3 { padding-block: var(--space-3); }
+    .u-py-3px { padding-block: 3px; }
+    .u-py-6 { padding-block: var(--space-6); }
+    .u-py-8 { padding-block: var(--space-8); }
 
     /* ---- Sizing ---- */
     .u-h-10 { height: 10px; }
@@ -5093,4 +5096,113 @@
     }
     /* The tab bar would otherwise sit on top of the last footer row. */
     body.has-tabbar .site-footer { padding-bottom: var(--space-4); }
+}
+
+/* ============================================================
+   PHASE 6 — BATCH 1: browse, product, cart (§7.3, §9)
+   ============================================================ */
+
+@layer pages {
+    /* ---- Browse: sticky count + sort bar ------------------------- */
+    .browse-bar {
+        position: sticky;
+        top: var(--header-h-mobile);
+        z-index: 20;
+        background: var(--color-bg);
+        padding-block: var(--space-2);
+        border-bottom: 1px solid var(--color-border);
+        gap: var(--space-3);
+    }
+    @media (min-width: 1024px) { .browse-bar { top: var(--header-h); } }
+    .browse-bar .form-control { min-block-size: 44px; padding-block: 0; }
+    .facet-link svg { flex: none; color: var(--color-text-muted); }
+    .facet-link.is-active svg { color: var(--color-primary-dark); }
+
+    /* ---- Product: gallery + disclosures -------------------------- */
+    .thumb-grid { scroll-snap-type: x mandatory; }
+    .gallery-dots {
+        display: flex;
+        justify-content: center;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+    }
+    @media (min-width: 1024px) { .gallery-dots { display: none; } }
+
+    /* §7.3 — description, storage and reviews collapse on mobile so the
+       buy decision is not buried under prose. Open at desktop, where the
+       column has room. */
+    .disclosure-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        min-block-size: 48px;
+        cursor: pointer;
+        border-top: 1px solid var(--color-border);
+        padding-block: var(--space-2);
+        margin-bottom: 0;
+    }
+    .disclosure-mark {
+        inline-size: 10px;
+        block-size: 10px;
+        border-right: 2px solid var(--color-text-muted);
+        border-bottom: 2px solid var(--color-text-muted);
+        transform: rotate(45deg);
+        transition: transform var(--d-fast) var(--ease-out);
+        flex: none;
+    }
+    .disclosure-head.is-open .disclosure-mark { transform: rotate(-135deg); }
+    .disclosure-body[hidden] { display: none; }
+    @media (min-width: 1024px) {
+        .disclosure-head { cursor: default; pointer-events: none; }
+        .disclosure-mark { display: none; }
+    }
+
+    /* ---- Cart: steppers + swipe --------------------------------- */
+    .cart-item {
+        transition: transform var(--d-fast) var(--ease-out);
+        touch-action: pan-y;
+    }
+    .cart-item img, .cart-item .cart-item-image {
+        inline-size: 72px;
+        block-size: 72px;
+        border-radius: var(--r-sm);
+        object-fit: cover;
+        flex: none;
+    }
+    .stepper {
+        display: inline-grid;
+        grid-auto-flow: column;
+        align-items: stretch;
+        border: 1px solid var(--color-border);
+        border-radius: var(--r-full);
+        overflow: hidden;
+        background: var(--color-surface);
+    }
+    .stepper-btn {
+        inline-size: 48px;
+        min-block-size: 48px;
+        display: grid;
+        place-items: center;
+        background: none;
+        border: 0;
+        font-size: var(--t-h4);
+        color: var(--color-text);
+        cursor: pointer;
+    }
+    .stepper-btn:hover { background: var(--color-bg-warm); }
+    .stepper-input {
+        inline-size: 64px;
+        min-block-size: 48px;
+        border: 0;
+        border-radius: 0;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        padding-inline: 0;
+    }
+    /* The spinners are ~12px and absent on mobile; the buttons replace them. */
+    .stepper-input::-webkit-outer-spin-button,
+    .stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .stepper-input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 }

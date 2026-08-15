@@ -654,7 +654,7 @@ function fresh_color($level) {
 <?php if (!empty($popularThisWeek)): ?>
 <section class="section u-pt-0">
     <div class="container">
-        <?= reco_render_section('Popular This Week', '🔥', $popularThisWeek,
+        <?= reco_render_section('Popular This Week', 'flame', $popularThisWeek,
             'Best sellers in the last 7 days') ?>
     </div>
 </section>
@@ -663,7 +663,7 @@ function fresh_color($level) {
 <?php if (!empty($mayAlsoLike)): ?>
 <section class="section u-pt-0">
     <div class="container">
-        <?= reco_render_section('You May Also Like', '✨', $mayAlsoLike,
+        <?= reco_render_section('You May Also Like', 'sparkles', $mayAlsoLike,
             auth_check() ? 'Picked for you based on your shopping history' : 'Customer favourites') ?>
     </div>
 </section>

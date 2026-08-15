@@ -1,5 +1,29 @@
 # FreshMart redesign — progress
 
+### Standing rule: the spec describes the audit, not the code
+
+MASTER_IMPLEMENTATION_PROMPT_V2.md documents the state at the time it was
+written. Anything carried from it into PROGRESS or a report must be verified
+against the code first. "Chart.js loads from the CDN globally" was true at
+audit time, was fixed in Phase 3, and was still being reported as outstanding
+two phases later — including once when William explicitly asked for it to be
+confirmed.
+
+### Standing rule: glyph inventories are measured, not recalled
+
+Grepping a list of characters you remember finds only what you already thought
+of. Use unicode properties (`\p{Extended_Pictographic}`), and report by
+category — pictographic, variation selectors, dingbats — because the total
+depends on the definition.
+
+**The C8 line, by function not by character:**
+- **Replace with `icon()`** — anything standing alone as a symbol for a concept
+  (`✓` and `⚠` in facet labels, and equivalents).
+- **Keep** — anything acting as punctuation inside running text (`→` in a link
+  label, `★` in a rating widget, `−`/`+` in steppers, `≈` before a number).
+- All 44 pictographic and their variation selectors go, wherever they sit.
+- Convert as each page is touched; no separate sweep.
+
 ### Standing rule: never regex HTML tags in this codebase
 
 `[^>]*` stops at the `>` inside `<?= … ?>`, so any regex written to match a

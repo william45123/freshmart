@@ -257,7 +257,12 @@ function reco_popular_this_week(int $limit = 6): array {
  * @param string $layout 'grid' (default, wraps onto multiple rows) or
  *                        'carousel' (single swipeable row with arrows).
  */
-function reco_render_section(string $title, string $emoji, array $products, string $subtitle = '', string $layout = 'grid'): string {
+/**
+ * @param string $glyph  An icon() name. Was an emoji character; callers pass
+ *                       a glyph name now so section headings match the rest
+ *                       of the UI chrome (§3 C8).
+ */
+function reco_render_section(string $title, string $glyph, array $products, string $subtitle = '', string $layout = 'grid'): string {
     if (empty($products)) return '';
 
     // Build the product cards once — shared by both layouts.
@@ -312,7 +317,7 @@ function reco_render_section(string $title, string $emoji, array $products, stri
         <div class="u-flex u-ai-baseline u-jc-between u-mb-4 u-wrap">
             <div>
                 <h2 class="u-m-0 u-t-22">
-                    <?= $emoji ?> <?= htmlspecialchars($title) ?>
+                    <?= icon($glyph, 20) ?> <?= htmlspecialchars($title) ?>
                 </h2>
                 <?php if ($subtitle): ?>
                     <p class="u-m-1-0-0 u-muted u-t-14">

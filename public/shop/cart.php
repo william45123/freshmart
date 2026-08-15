@@ -81,7 +81,7 @@ require_once __DIR__ . '/../../includes/header.php';
             <!-- Items list -->
             <div>
                 <?php foreach ($cart['items'] as $item): ?>
-                    <div class="cart-item">
+                    <div class="cart-item" data-product-id="<?= (int) $item['product_id'] ?>">
 
                         <a href="<?= url('/shop/product.php?slug=' . urlencode($item['slug'])) ?>"
                            class="u-square u-bg-page u-r u-grid u-place-center u-ovh">
@@ -110,11 +110,23 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
-                                <input type="number" name="quantity"
-                                       value="<?= attr((string) $item['quantity']) ?>"
-                                       step="0.01" min="0.01"
-                                       class="form-control u-w-90"
-                                       onchange="this.form.submit()">
+                                <?php // §7.3 — 48px stepper controls either side of the
+                                      // field. The number input alone had no touch
+                                      // affordance; its spinners are ~12px and vanish
+                                      // on mobile browsers entirely. ?>
+                                <div class="stepper">
+                                    <button type="button" class="stepper-btn" data-step="-1"
+                                            aria-label="Decrease quantity">&minus;</button>
+                                    <input type="number" name="quantity"
+                                           value="<?= attr((string) $item['quantity']) ?>"
+                                           step="0.01" min="0.01"
+                                           inputmode="decimal"
+                                           class="form-control stepper-input"
+                                           aria-label="Quantity"
+                                           onchange="this.form.submit()">
+                                    <button type="button" class="stepper-btn" data-step="1"
+                                            aria-label="Increase quantity">+</button>
+                                </div>
                                 <span class="u-muted u-t-14"><?= e($item['unit_code']) ?></span>
                             </form>
                         </div>
@@ -127,10 +139,10 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="remove">
                                 <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
-                                <button type="submit" class="btn btn-ghost btn-sm u-fg-danger"
-                                       
-                                        onclick="return confirm('Remove this item?')">
-                                    Remove
+                                <?php // No confirm() dialog: §7.2 wants an Undo, not a
+                                      // modal blocking a one-tap action. ?>
+                                <button type="submit" class="btn btn-ghost btn-sm u-fg-danger" data-remove>
+                                    <?= icon('trash', 16) ?> Remove
                                 </button>
                             </form>
                         </div>
@@ -246,3 +258,42 @@ require_once __DIR__ . '/../../includes/header.php';
 </section>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+
+<script>
+// §7.3 cart interactions. Steppers drive the existing form; swipe-left is a
+// shortcut to the Remove button that is already there, never the only route.
+(function () {
+    document.querySelectorAll('.stepper').forEach(function (st) {
+        var input = st.querySelector('input');
+        st.querySelectorAll('.stepper-btn').forEach(function (b) {
+            b.addEventListener('click', function () {
+                var step = parseFloat(input.step) || 1;
+                var min  = parseFloat(input.min) || 0;
+                var next = (parseFloat(input.value) || 0) + step * parseInt(b.dataset.step, 10);
+                input.value = (Math.max(min, next)).toFixed(2).replace(/\.00$/, '');
+                input.form.submit();
+            });
+        });
+    });
+
+    // Swipe-left reveals removal; the row snaps back if the gesture is
+    // abandoned, and Undo restores it without a round trip.
+    document.querySelectorAll('.cart-item').forEach(function (row) {
+        var x0 = null, dx = 0;
+        row.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+        row.addEventListener('touchmove', function (e) {
+            if (x0 === null) return;
+            dx = Math.min(0, e.touches[0].clientX - x0);
+            row.style.transform = 'translateX(' + dx + 'px)';
+        }, { passive: true });
+        row.addEventListener('touchend', function () {
+            row.style.transform = '';
+            if (dx < -90) {
+                var btn = row.querySelector('[data-remove]');
+                if (btn) btn.click();
+            }
+            x0 = null; dx = 0;
+        });
+    });
+})();
+</script>

@@ -252,7 +252,7 @@ function url_with($overrides = []): string {
             <?php foreach (['' => 'Any', 'in_stock' => 'In Stock', 'low_stock' => 'Low Stock'] as $key => $label): ?>
                 <a href="<?= url_with(['availability' => $key ?: null, 'page' => null]) ?>"
                    class="facet-link<?= $availability === $key ? ' is-active' : '' ?>">
-                    <?= e($label) ?>
+                    <?php $__fi = ['in_stock' => 'check', 'low_stock' => 'alert'][$key] ?? null; ?><?php if ($__fi): ?><?= icon($__fi, 16) ?> <?php endif; ?><?= e($label) ?>
                 </a>
             <?php endforeach; ?>
         </div>
@@ -278,7 +278,9 @@ function url_with($overrides = []): string {
 
     <!-- Product grid -->
     <div>
-        <div class="u-flex u-jc-between u-ai-center u-mb-4">
+        <?php // §7.3 — the count and sort controls stay reachable while
+              // scrolling a long grid, instead of being left at the top. ?>
+        <div class="browse-bar u-flex u-jc-between u-ai-center u-mb-4">
             <span class="u-muted">
                 <?php // The filtered total, not the page slice. Before F2 the
                       // freshness filter ran in PHP after LIMIT, so this could
