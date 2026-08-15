@@ -1330,8 +1330,8 @@
         line-height: 1.1;
     }
 
-    .kpi-value.is-warn { color: #c9a55a; }
-    .kpi-value.is-danger { color: var(--color-danger, #b85c38); }
+    .kpi-value.is-warn { color: var(--fresh-soon-ink); }
+    .kpi-value.is-danger { color: var(--color-danger, var(--fresh-last-ink)); }
 
     /* ---------- Data table ---------- */
     .data-table {
@@ -1492,7 +1492,7 @@
     .remove-btn {
         background: transparent;
         border: 0;
-        color: var(--color-danger, #b85c38);
+        color: var(--color-danger, var(--fresh-last-ink));
         cursor: pointer;
         font-size: 0.8125rem;
         padding: 4px 8px;
@@ -1555,12 +1555,12 @@
 
     /* Retailer header — subtle teal/forest accent */
     .site-header.header-retailer {
-        border-bottom: 3px solid #7a8467;
+        border-bottom: 3px solid var(--ink-muted);
     }
 
     /* Admin header — boutique mustard accent */
     .site-header.header-admin {
-        border-bottom: 3px solid #c9a55a;
+        border-bottom: 3px solid var(--fresh-soon-ink);
     }
 
     /* Brand sub-label (Retailer / Admin chip next to logo) */
@@ -1568,7 +1568,7 @@
         display: inline-block;
         padding: 2px 8px;
         margin-left: 8px;
-        background: var(--color-bg, #faf8f3);
+        background: var(--color-bg, var(--paper));
         color: var(--color-text-muted, #6b6760);
         font-size: 0.625rem;
         font-weight: 700;
@@ -1581,7 +1581,7 @@
 
     .header-retailer .brand-sublabel {
         background: rgba(122, 132, 103, 0.1);
-        color: #4a5a3a;
+        color: var(--pine);
         border-color: rgba(122, 132, 103, 0.3);
     }
 
@@ -1654,7 +1654,7 @@
     }
 
     .kpi-card-accent .kpi-value {
-        color: #4a5a3a;
+        color: var(--pine);
     }
 
     /* Action-required cards (clickable shortcuts) */
@@ -1678,7 +1678,7 @@
     }
 
     .action-card:hover {
-        border-color: var(--color-primary, #4a5a3a);
+        border-color: var(--color-primary, var(--pine));
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
@@ -1793,7 +1793,7 @@
 
     /* HERO STAT — the big featured number (deep brand color bg) */
     .hero-stat {
-        background: linear-gradient(135deg, #4a5a3a 0%, #5b6b48 100%);
+        background: linear-gradient(135deg, var(--pine) 0%, #5b6b48 100%);
         color: white;
         padding: 1.75rem 2rem;
         border-radius: var(--radius-lg, 12px);
@@ -1888,7 +1888,7 @@
     }
 
     .kpi-strip-value.is-warn {
-        color: #b85c38;
+        color: var(--fresh-last-ink);
     }
 
     @media (max-width: 600px) {
@@ -1964,7 +1964,7 @@
     }
     .role-retailer .site-header {
         background: #2f3d22;             /* deep forest */
-        border-bottom: 3px solid #c9a55a;
+        border-bottom: 3px solid var(--fresh-soon-ink);
     }
     .role-retailer .site-header .brand,
     .role-retailer .site-header .brand:hover,
@@ -2252,7 +2252,7 @@
     /* --- Hand-drawn accents (Graza personality) --- */
     /* wavy terracotta underline you drop under a word/phrase */
     .scribble {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 14'%3E%3Cpath d='M4 8 C 45 2 75 12 120 7 C 165 2 200 12 236 6' fill='none' stroke='%23b85c38' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 14'%3E%3Cpath d='M4 8 C 45 2 75 12 120 7 C 165 2 200 12 236 6' fill='none' stroke='%2314453A' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
         background-position: left bottom;
         background-size: 100% 0.4em;
@@ -2723,7 +2723,11 @@
         color: var(--color-text);
         margin: 0 0 var(--space-4);
     }
-    .hero-poster-title .scribble { color: var(--color-accent); }
+    .hero-poster-title .scribble { color: var(--color-primary); }
+    /* --color-accent is aliased to the freshness "last chance" ink, which is
+       correct for urgency (chips, last-chance cards, discounted prices) but
+       wrong for decorative hero emphasis. The hero reads as brand, so it takes
+       pine — matching .hero-title em, which already did. */
     .hero-poster-desc {
         font-size: 1.02rem;
         color: var(--color-text-muted);
@@ -2997,8 +3001,8 @@
 
     /* ---- Add-to-cart button success state (✓ feedback) ---- */
     .btn.is-added {
-        background: var(--fresh-very, #4a5a3a);
-        border-color: var(--fresh-very, #4a5a3a);
+        background: var(--fresh-very, var(--pine));
+        border-color: var(--fresh-very, var(--pine));
         color: #fff;
     }
 }
@@ -3426,7 +3430,7 @@
         border: 1px solid var(--color-border);
         border-radius: var(--radius-lg);
     }
-    .review-card.is-pending { border-color: var(--color-mustard, #c9a55a); }
+    .review-card.is-pending { border-color: var(--color-mustard, var(--fresh-soon-ink)); }
 
     /* ---- Voucher option (cart) ---- */
     .voucher-option {
@@ -3462,9 +3466,9 @@
         border-radius: 999px;
     }
     .approval-pill-approved  { background: var(--color-primary); color: #fff; }
-    .approval-pill-pending   { background: var(--color-mustard, #c9a55a); color: #fff; }
-    .approval-pill-rejected  { background: var(--color-danger, #dc2626); color: #fff; }
-    .approval-pill-suspended { background: var(--color-accent, #b85c38); color: #fff; }
+    .approval-pill-pending   { background: var(--color-mustard, var(--fresh-soon-ink)); color: #fff; }
+    .approval-pill-rejected  { background: var(--color-danger, var(--danger)); color: #fff; }
+    .approval-pill-suspended { background: var(--color-accent, var(--fresh-last-ink)); color: #fff; }
 
     /* ---- Product image thumbnail grid; --n is the image count ---- */
     .thumb-grid {
@@ -3744,7 +3748,7 @@
         font-size: 1.1rem; font-weight: 700;
     }
     .wallet-txn-icon.credit { background: #e6f4ea; color: #1a7a3a; }
-    .wallet-txn-icon.debit  { background: #fbeee8; color: #b85c38; }
+    .wallet-txn-icon.debit  { background: #fbeee8; color: var(--fresh-last-ink); }
     .wallet-txn-info { flex: 1; min-width: 0; }
     .wallet-txn-title { font-weight: 600; font-size: 0.95rem; color: var(--color-text); }
     .wallet-txn-ref { font-family: var(--font-mono, monospace); font-weight: 500; color: var(--color-text-muted); font-size: 0.85rem; }
@@ -3752,7 +3756,7 @@
     .wallet-txn-date { font-size: 0.75rem; color: var(--color-text-light); margin-top: 3px; }
     .wallet-txn-amount { flex: 0 0 auto; font-weight: 700; font-size: 1rem; }
     .wallet-txn-amount.credit { color: #1a7a3a; }
-    .wallet-txn-amount.debit  { color: #b85c38; }
+    .wallet-txn-amount.debit  { color: var(--fresh-last-ink); }
 
     /* ---- Refunds — shared by admin/refunds.php and retailer/refunds.php
             (both declared a near-identical copy of this block; the only
@@ -3793,7 +3797,7 @@
     .u-fg-credit { color: #1a7a3a; }
     .u-fg-danger { color: var(--color-danger); }
     .u-fg-inherit { color: inherit; }
-    .u-fg-mustard { color: #c9a55a; }
+    .u-fg-mustard { color: var(--fresh-soon-ink); }
     .u-fg-primary { color: var(--color-primary); }
     .u-fg-primary-dk { color: var(--color-primary-dark); }
     .u-fg-rust { color: #9a3b22; }
@@ -3808,10 +3812,10 @@
     /* ---- Background ---- */
     .u-bg-accent-lt { background: #fbeee8; }
     .u-bg-credit { background: #e6f4ea; }
-    .u-bg-grad-down { background: linear-gradient(180deg, var(--color-primary-light, #e7eadf) 0%, var(--color-surface, #faf8f3) 100%); }
+    .u-bg-grad-down { background: linear-gradient(180deg, var(--color-primary-light, var(--pine-tint)) 0%, var(--color-surface, var(--paper)) 100%); }
     .u-bg-grad-warm { background: linear-gradient(135deg, var(--color-primary-light), var(--color-surface)); }
     .u-bg-mint { background: #f4f8ee; }
-    .u-bg-mustard { background: var(--color-mustard, #c9a55a); }
+    .u-bg-mustard { background: var(--color-mustard, var(--fresh-soon-ink)); }
     .u-bg-none { background: none; }
     .u-bg-page { background: var(--color-bg); }
     .u-bg-primary { background: var(--color-primary); }
@@ -4037,7 +4041,7 @@
     /* ---- Border & radius ---- */
     .u-bb { border-bottom: 1px solid var(--color-border); }
     .u-bb-dashed { border-bottom: 1px dashed var(--color-border); }
-    .u-bc-accent { border-color: #b85c38; }
+    .u-bc-accent { border-color: var(--fresh-last-ink); }
     .u-bc-credit { border-color: #1a7a3a; }
     .u-bc-primary { border-color: var(--color-primary); }
     .u-bl-primary { border-left: 3px solid var(--color-primary); }

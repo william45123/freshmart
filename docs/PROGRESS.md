@@ -78,6 +78,17 @@ Nothing. The tree is clean and every phase above is committed.
   `reco_render_section()` heading glyphs). Not mechanical swaps — the category
   circles need real imagery and that is a Phase 6 component decision, not a
   token change.
+- **Verify markup, not just status codes.** A 200 with clean PHP logs can still
+  render broken. The Phase 3 favicon regression put an `icon()` call inside an
+  `href=""`; its quotes closed the attribute and the rest of the tag appeared as
+  the visible text `">` on every page. `tools/validate_markup.py` now runs on
+  every page in both harnesses and checks for attribute-escape debris, markup
+  inside URL attributes, unbalanced quotes in a start tag, and raw `<?` in the
+  response.
+- **Colour hardcoded inside a `data:` URI cannot be reached by a token.** The
+  hero scribble kept the v4 terracotta through the whole Phase 3 re-point for
+  exactly this reason. When re-pointing tokens, grep the old palette's literal
+  hexes as well as the token names.
 - **Any change touching the database ships as a migration file** in
   `database/migrations/`. Standing rule.
 - **Demo data ages out.** The seed's window ends 2026-08-15. Run

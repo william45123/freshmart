@@ -59,7 +59,10 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
           href="<?= asset('fonts/archivo-latin-700-normal.woff2') ?>">
     <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
     <noscript><style>@layer utilities{.reveal{opacity:1;transform:none}}</style></noscript>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22><?= icon('leaf', 16) ?></text></svg>">
+    <!-- A real file, not a data: URI. The URI held an emoji inside an SVG
+         <text> node; substituting an icon() call there injected quoted markup
+         into the href and broke out of the attribute. -->
+    <link rel="icon" type="image/svg+xml" href="<?= asset('favicon.svg') ?>">
 </head>
 <body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?>">
 <header class="site-header <?= $isAdmin ? 'header-admin' : ($isRetailer ? 'header-retailer' : '') ?>">
