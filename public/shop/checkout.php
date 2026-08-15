@@ -124,6 +124,40 @@ if (!empty($insufficient)) {
     redirect('/shop/cart.php');
 }
 
+/**
+ * (b) The earliest-expiring batch in a line's allocation.
+ *
+ * A quantity can span several batches. The line is only deliverable while its
+ * SHORTEST-lived batch is still good, so one bad batch fails the whole line —
+ * averaging or taking the first would let an order through that then ships
+ * something already expired.
+ */
+function allocation_earliest_expiry(array $allocs): ?string
+{
+    $earliest = null;
+    foreach ($allocs as $a) {
+        $exp = db_scalar('SELECT expiry_date FROM stock_batches WHERE id = ?',
+                         [(int) $a['stock_batch_id']]);
+        if ($exp !== null && ($earliest === null || $exp < $earliest)) {
+            $earliest = (string) $exp;
+        }
+    }
+    return $earliest;
+}
+
+/** Latest date every line in the cart is still good on. */
+function cart_latest_deliverable(array $items, array $allocations): ?string
+{
+    $limit = null;
+    foreach ($items as $it) {
+        $e = allocation_earliest_expiry($allocations[$it['product_id']] ?? []);
+        if ($e !== null && ($limit === null || $e < $limit)) $limit = $e;
+    }
+    return $limit;
+}
+
+$deliveryLimit = cart_latest_deliverable($cart['items'], $allocations);
+
 // ---- POST: Place order ----
 if (is_post() && input('action') === 'place_order') {
     if (!csrf_verify()) {
@@ -190,6 +224,33 @@ if (is_post() && input('action') === 'place_order') {
 
                 if (empty($errors)) {
                 $orderId = db_transaction(function () use ($cart, $allocations, $userId, $shippingAddressId, $paymentMethod, $deliveryDate, $commitDiscount, $commitPromoId, $commitTotal) {
+
+                    // ----------------------------------------------------------
+                    // (b) Delivery-date guard. Runs FIRST, before any row is
+                    // written, so a failure writes nothing at all rather than
+                    // writing and rolling back.
+                    //
+                    // Validated against the allocation, not the display batch:
+                    // FEFO assigns at checkout, so the customer may be getting a
+                    // different and more urgent batch than the product page
+                    // showed. Within a line it is the EARLIEST-expiring batch
+                    // that decides, because that is the one that would arrive
+                    // expired.
+                    //
+                    // Ordering note: the wallet is debited further down, after
+                    // allocation. Throwing here means no order, no stock
+                    // decrement, no payment row, no wallet debit and no wallet
+                    // ledger entry — wallet_apply() nests inside this same
+                    // transaction via the depth-counted db_transaction wrapper.
+                    // ----------------------------------------------------------
+                    foreach ($cart['items'] as $item) {
+                        $earliest = allocation_earliest_expiry($allocations[(int) $item['product_id']] ?? []);
+                        if ($earliest !== null && $earliest < $deliveryDate) {
+                            throw new RuntimeException(
+                                'DELIVERY_DATE_UNAVAILABLE|' . $item['name'] . '|' . $earliest
+                            );
+                        }
+                    }
 
                     // Commission: platform takes a % of goods subtotal (after discount).
                     // Rate = the retailer's override, else the global default in settings.
@@ -327,7 +388,37 @@ if (is_post() && input('action') === 'place_order') {
                 } // end if (empty($errors)) inner
 
             } catch (Throwable $e) {
-                $errors[] = 'Checkout failed: ' . $e->getMessage();
+                if (str_starts_with($e->getMessage(), 'DELIVERY_DATE_UNAVAILABLE|')) {
+                    [, $itemName, $itemExpiry] = explode('|', $e->getMessage(), 3);
+                    $errors[] = 'We can\'t deliver "' . $itemName . '" on '
+                        . format_date($deliveryDate) . '. The stock we\'d send you is best before '
+                        . format_date($itemExpiry) . '. Pick an earlier delivery day and your '
+                        . 'basket will go through unchanged.';
+
+                    // Nothing was written — the guard runs before the first
+                    // INSERT — so the cart is intact. Re-plan against current
+                    // stock before re-rendering: whatever changed may also have
+                    // moved the price or availability, and the customer should
+                    // not be shown a stale figure and fail again on retry.
+                    $cart        = cart_totals();
+                    $allocations = [];
+                    $gone        = [];
+                    foreach ($cart['items'] as $item) {
+                        try {
+                            $allocations[$item['product_id']] =
+                                fefo_plan_allocation((int) $item['product_id'], (float) $item['quantity']);
+                        } catch (Throwable $inner) {
+                            $gone[] = $item['name'] . ': ' . $inner->getMessage();
+                        }
+                    }
+                    if ($gone) {
+                        foreach ($gone as $msg) flash_set('error', $msg);
+                        redirect('/shop/cart.php');
+                    }
+                    $deliveryLimit = cart_latest_deliverable($cart['items'], $allocations);
+                } else {
+                    $errors[] = 'Checkout failed: ' . $e->getMessage();
+                }
             }
         }
     }
@@ -419,13 +510,22 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="u-grid u-cols-7 u-gap-2">
                         <?php // Starts at DELIVERY_LEAD_DAYS, the same constant the
                               // catalogue's expiry predicate uses.
+                              // (b) A date is offered only while every line in the
+                              // cart is still good on it. The reason shown says
+                              // nothing about stock movement — why a batch is no
+                              // longer on offer is not this customer's business.
+                              $firstOpen = null;
                         for ($i = DELIVERY_LEAD_DAYS; $i < DELIVERY_LEAD_DAYS + 7; $i++):
                             $d = date('Y-m-d', strtotime("+$i days"));
                             $label = $i === 1 ? 'Tomorrow' : ($i === 2 ? 'In 2 days' : date('D', strtotime($d)));
+                            $blocked = ($deliveryLimit !== null && $d > $deliveryLimit);
+                            if (!$blocked && $firstOpen === null) $firstOpen = $d;
                         ?>
-                            <label class="u-block u-p-2 u-bordered u-r u-pointer u-ta-c u-t-13">
+                            <label class="u-block u-p-2 u-bordered u-r u-ta-c u-t-13<?= $blocked ? ' date-blocked' : ' u-pointer' ?>"
+                                   <?= $blocked ? 'title="Not available for this delivery date"' : '' ?>>
                                 <input type="radio" name="preferred_delivery_date" value="<?= $d ?>"
-                                       <?= $i === 1 ? 'checked' : '' ?> class="u-block u-m-auto-1">
+                                       <?= $blocked ? 'disabled' : '' ?>
+                                       <?= (!$blocked && $d === $firstOpen) ? 'checked' : '' ?> class="u-block u-m-auto-1">
                                 <div class="u-fw-600"><?= $label ?></div>
                                 <div class="u-muted u-t-12"><?= date('d M', strtotime($d)) ?></div>
                             </label>
@@ -453,10 +553,10 @@ require_once __DIR__ . '/../../includes/header.php';
                     </label>
                     <div class="u-grid u-cols-fit-120 u-gap-2">
                         <?php foreach ([
-                            'FPX'           => '🏦 FPX',
+                            'FPX'           => 'FPX',
                             'CREDIT_CARD'   => 'Card',
-                            'EWALLET'       => '📱 E-Wallet',
-                            'BANK_TRANSFER' => '🏧 Transfer',
+                            'EWALLET'       => 'E-Wallet',
+                            'BANK_TRANSFER' => 'Transfer',
                             'COD'           => 'Cash on Delivery',
                         ] as $code => $label): ?>
                             <label class="u-block u-p-3 u-bordered u-r u-pointer u-ta-c">

@@ -40,7 +40,7 @@ def main():
             page.wait_for_load_state("networkidle")
             page.fill('input[name="email"]', email)
             page.fill('input[name="password"]', pw)
-            page.click('button[type="submit"], input[type="submit"]')
+            page.click('form button[type="submit"]:visible, form input[type="submit"]:visible')
             page.wait_for_load_state("networkidle")
 
         for path in paths:

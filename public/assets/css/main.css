@@ -326,6 +326,20 @@
 }
 
 @layer components {
+    /* (b) A delivery day the cart cannot survive. Dimmed and not clickable,
+       but still shown, so the customer can see the shape of what is on offer
+       rather than wondering why the row got shorter. Opacity is not the only
+       cue — the cursor changes and the input is genuinely disabled, so
+       keyboard and screen-reader users get the same signal. */
+    .date-blocked {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background: var(--surface-sunk);
+    }
+    .date-blocked input { cursor: not-allowed; }
+}
+
+@layer components {
     /* ============================================================
        Header / Navigation
        ============================================================ */
