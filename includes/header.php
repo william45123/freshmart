@@ -246,12 +246,31 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
     <?php endif; ?>
 </nav>
 
+<?php // §9 — flashes render as toasts. Same $flashes source and same
+      // types; a banner that pushes the page down on a phone becomes a
+      // dismissible overlay that does not reflow the layout. role=status
+      // so a screen reader announces it without stealing focus. ?>
 <?php if (!empty($flashes)): ?>
-<div class="container u-mt-4">
+<div class="toast-stack" role="status" aria-live="polite">
     <?php foreach ($flashes as $f): ?>
-        <div class="flash flash-<?= e($f['type']) ?>"><?= e($f['message']) ?></div>
+        <div class="toast toast-<?= e($f['type']) ?>">
+            <?= icon($f['type'] === 'error' ? 'alert' : ($f['type'] === 'success' ? 'check' : 'info'), 18) ?>
+            <span><?= e($f['message']) ?></span>
+            <button type="button" class="toast-close" aria-label="Dismiss">&times;</button>
+        </div>
     <?php endforeach; ?>
 </div>
+<script>
+(function () {
+    document.querySelectorAll('.toast').forEach(function (t) {
+        t.querySelector('.toast-close').addEventListener('click', function () { t.remove(); });
+        // Errors stay until dismissed; confirmations clear themselves.
+        if (!t.classList.contains('toast-error')) {
+            setTimeout(function () { t.remove(); }, 6000);
+        }
+    });
+})();
+</script>
 <?php endif; ?>
 
 <main>

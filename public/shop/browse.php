@@ -312,8 +312,10 @@ function url_with($overrides = []): string {
         <?php else: ?>
             <div class="product-grid-4">
                 <?php foreach ($products as $p): ?>
-                    <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
-                       class="product-card-v2 u-fg-inherit <?= ($p['freshness_level'] === 'LAST_CHANCE') ? 'last-chance' : '' ?>">
+                    <div class="product-card-v2 <?= ($p['freshness_level'] === 'LAST_CHANCE') ? 'last-chance' : '' ?>">
+                        <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
+                           class="card-link u-fg-inherit u-nodecor"
+                           aria-label="<?= attr($p['name']) ?>"></a>
                         <div class="product-card-image">
                             <?php if (!empty($p['primary_image'])): ?>
                                 <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>" loading="lazy"
@@ -325,6 +327,19 @@ function url_with($overrides = []): string {
                             <?php if (!empty($p['is_discounted'])): ?>
                                 <span class="discount-tag">-<?= (int) $p['discount_pct'] ?>%</span>
                             <?php endif; ?>
+                        <?php // §7.2 quick add — always visible where there is no
+                              // hover, so the primary action is not hidden behind
+                              // an interaction phones do not have. ?>
+                        <form method="post" action="<?= url('/shop/cart.php') ?>">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="product_id" value="<?= (int) $p['id'] ?>">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="card-quick-add"
+                                    aria-label="Add <?= attr($p['name']) ?> to cart">
+                                <?= icon('plus', 20) ?>
+                            </button>
+                        </form>
                         </div>
                         <div class="product-card-body">
                             <div class="product-card-name"><?= e($p['name']) ?></div>
@@ -358,7 +373,7 @@ function url_with($overrides = []): string {
                                 <div class="u-mt-1"><?= $stockBadge ?></div>
                             <?php endif; ?>
                         </div>
-                    </a>
+                    </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

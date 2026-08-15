@@ -595,15 +595,57 @@ function freshness_ring_html(array $p, int $size = 46, bool $inline = false): st
     $num    = (int) round($pct);
     $aria   = "Freshness: {$label}, {$num}%" . ($days !== null ? ", {$days} days left" : '');
 
+    // §9.2 — the product's OWN decay curve, drawn inside the ring.
+    //
+    // Generated here rather than in CSS because the shape depends on the
+    // category exponent: seafood (n=2.5) falls off a cliff while fruit
+    // (n=1.1) glides down. Same formula as freshness_percent(), so the
+    // sparkline and the number can never tell different stories. A dot marks
+    // where this batch is on its own curve right now.
+    $exponent = (float) ($p['decay_exponent'] ?? 1.0);
+    $exponent = max(0.1, $exponent);
+    $spark    = '';
+    if ($size >= 56) {
+        $pts = [];
+        for ($i = 0; $i <= 24; $i++) {
+            $t  = $i / 24;                              // elapsed fraction
+            $f  = pow(1 - $t, $exponent);               // remaining fraction
+            $x  = 22 + $t * 56;                         // 22..78 across the dial
+            $y  = 72 - $f * 26;                         // 46..72, baseline down
+            $pts[] = sprintf('%.1f %.1f', $x, $y);
+        }
+        $now  = 1 - pow($pct / 100, 1 / $exponent);     // where this batch sits
+        $now  = max(0.0, min(1.0, $now));
+        $dotX = 22 + $now * 56;
+        $dotY = 72 - ($pct / 100) * 26;
+        $spark = sprintf(
+            '<polyline points="%s" fill="none" stroke="%s" stroke-width="2.2" '
+            . 'stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>'
+            . '<circle cx="%.1f" cy="%.1f" r="3.2" fill="%s"/>',
+            implode(' ', $pts), e($color), $dotX, $dotY, e($color)
+        );
+    }
+
+    // Level word under the figure, once there is room for it.
+    $caption = $size >= 120
+        ? sprintf('<text x="50" y="84" text-anchor="middle" class="ring-label">%s</text>',
+                  e(strtoupper($label)))
+        : '';
+
     return sprintf(
-        '<span class="freshness-ring%8$s level-%1$s" title="%2$s" aria-label="%2$s">'
+        '<span class="freshness-ring%9$s level-%1$s" style="--fresh: %4$s" title="%2$s" aria-label="%2$s">'
         . '<svg width="%3$d" height="%3$d" viewBox="0 0 100 100" role="img" aria-hidden="true">'
         . '<circle cx="50" cy="50" r="42" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="9"/>'
-        . '<circle cx="50" cy="50" r="42" fill="none" stroke="%4$s" stroke-width="9" stroke-linecap="round" '
+        . '<circle class="ring-arc" cx="50" cy="50" r="42" fill="none" stroke="%4$s" stroke-width="9" stroke-linecap="round" '
         .   'stroke-dasharray="%5$.1f" stroke-dashoffset="%6$.1f" transform="rotate(-90 50 50)"/>'
-        . '<text x="50" y="60" text-anchor="middle" class="ring-num">%7$d</text>'
+        . '%8$s'
+        . '<text x="50" y="%10$s" text-anchor="middle" class="ring-num">%7$d</text>'
+        . '%11$s'
         . '</svg></span>',
         e($level), e($aria), $size, e($color), $circ, $offset, $num,
-        ($inline ? ' freshness-ring-inline' : '')
+        $spark,
+        ($inline ? ' freshness-ring-inline' : ''),
+        ($spark !== '' ? '42' : '60'),
+        $caption
     );
 }

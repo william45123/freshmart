@@ -370,6 +370,49 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
                         Add to cart
                     </button>
                 </form>
+
+                <?php // §7.3 sticky buy bar. Same action, same fields, same
+                      // CSRF token as the form above — a second submitter for
+                      // the same operation, not a second code path. Sits above
+                      // the tab bar; hidden at >=1024px where the inline form
+                      // is on screen anyway. ?>
+                <div class="buybar" id="buybar">
+                    <div>
+                        <?php // Reads $freshness, the same source as the main price
+                              // block above. $product has no final_price, so the
+                              // earlier fallback quietly showed the undiscounted
+                              // figure while the page showed the discounted one. ?>
+                        <div class="buybar-price"><?= format_myr((float) ($freshness['final_price'] ?? $product['base_price'])) ?></div>
+                        <?php if (!empty($freshness['is_discounted'])): ?>
+                            <div class="u-t-12 u-muted u-strike"><?= format_myr((float) $product['base_price']) ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <form method="post" action="<?= url('/shop/cart.php') ?>" class="u-flex u-gap-2 u-ai-stretch">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
+                        <input type="number" name="quantity" id="buybar-qty"
+                               value="<?= attr($startVal) ?>"
+                               min="<?= attr($isWeight ? number_format($minVal, 1, '.', '') : (string)(int)$minVal) ?>"
+                               max="<?= attr($maxVal) ?>"
+                               step="<?= $stepVal ?>"
+                               inputmode="decimal"
+                               class="form-control u-w-70 u-ta-c"
+                               aria-label="Quantity">
+                        <button type="submit" class="btn btn-primary">Add to cart</button>
+                    </form>
+                </div>
+                <script>
+                // Keep the two quantity inputs in step so whichever the
+                // customer used last is the one that submits.
+                (function () {
+                    var a = document.querySelector('form input[name="quantity"]:not(#buybar-qty)');
+                    var b = document.getElementById('buybar-qty');
+                    if (!a || !b) return;
+                    a.addEventListener('input', function () { b.value = a.value; });
+                    b.addEventListener('input', function () { a.value = b.value; });
+                })();
+                </script>
             <?php endif; ?>
 
             <?php if (!empty($product['description'])): ?>
