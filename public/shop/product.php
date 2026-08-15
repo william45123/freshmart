@@ -483,8 +483,8 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
         <h2 class="u-t-24">Recently viewed</h2>
         <div class="product-grid-4 u-mt-4">
             <?php foreach ($recentlyViewed as $rv): ?>
-                <a href="<?= url('/shop/product.php?slug=' . urlencode($rv['slug'])) ?>"
-                   class="product-card-v2 u-fg-inherit">
+                <div class="product-card-v2">
+                        <a href="<?= url('/shop/product.php?slug=' . urlencode($rv['slug'])) ?>" class="card-link u-fg-inherit u-nodecor" aria-hidden="false" tabindex="0"></a>
                     <div class="product-card-image">
                         <?php if (!empty($rv['primary_image'])): ?>
                             <img src="<?= upload_url($rv['primary_image']) ?>" alt="<?= attr($rv['name']) ?>" loading="lazy" class="media-fill">
@@ -494,14 +494,27 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
                         <?php if (!empty($rv['expiry_date'])): ?>
                             <?= freshness_badge_html($rv['freshness_level'], $rv['days_remaining']) ?>
                         <?php endif; ?>
-                    </div>
+                    
+                        <?php $__qid = (int) ($rv['id'] ?? 0); if ($__qid): ?>
+                        <form method="post" action="<?= url('/shop/cart.php') ?>">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="product_id" value="<?= $__qid ?>">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="card-quick-add"
+                                    aria-label="Add <?= attr($rv['name'] ?? 'product') ?> to cart">
+                                <?= icon('plus', 20) ?>
+                            </button>
+                        </form>
+                        <?php endif; ?>
+                        </div>
                     <div class="product-card-body">
                         <div class="product-card-name"><?= e($rv['name']) ?></div>
                         <div class="product-card-pricing">
                             <span class="price-final"><?= format_myr($rv['final_price'] ?? $rv['base_price']) ?></span>
                         </div>
                     </div>
-                </a>
+                </div>
             <?php endforeach; ?>
         </div>
     </section>
@@ -517,22 +530,35 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
         <h2 class="u-t-24">Related products</h2>
         <div class="product-grid-4 u-mt-4">
             <?php foreach ($related as $r): ?>
-                <a href="<?= url('/shop/product.php?slug=' . urlencode($r['slug'])) ?>"
-                   class="product-card-v2 u-fg-inherit">
+                <div class="product-card-v2">
+                        <a href="<?= url('/shop/product.php?slug=' . urlencode($r['slug'])) ?>" class="card-link u-fg-inherit u-nodecor" aria-hidden="false" tabindex="0"></a>
                     <div class="product-card-image">
                         <?php if (!empty($r['primary_image'])): ?>
                             <img src="<?= upload_url($r['primary_image']) ?>" alt="<?= attr($r['name']) ?>" loading="lazy" class="media-fill">
                         <?php else: ?>
                             <span><?= icon('leaf', 16) ?></span>
                         <?php endif; ?>
-                    </div>
+                    
+                        <?php $__qid = (int) ($p['id'] ?? 0); if ($__qid): ?>
+                        <form method="post" action="<?= url('/shop/cart.php') ?>">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="product_id" value="<?= $__qid ?>">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="card-quick-add"
+                                    aria-label="Add <?= attr($p['name'] ?? 'product') ?> to cart">
+                                <?= icon('plus', 20) ?>
+                            </button>
+                        </form>
+                        <?php endif; ?>
+                        </div>
                     <div class="product-card-body">
                         <div class="product-card-name"><?= e($r['name']) ?></div>
                         <div class="product-card-pricing">
                             <span class="price-final"><?= format_myr($r['base_price']) ?></span>
                         </div>
                     </div>
-                </a>
+                </div>
             <?php endforeach; ?>
         </div>
     </section>

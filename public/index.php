@@ -483,8 +483,8 @@ function fresh_color($level) {
                     $isLastChance = ($p['freshness_level'] === 'LAST_CHANCE');
                     $barColor     = fresh_color($p['freshness_level']);
                 ?>
-                    <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>"
-                       class="product-card-v2 carousel-slide <?= $isLastChance ? 'last-chance' : '' ?>">
+                    <div class="product-card-v2 carousel-slide <?= $isLastChance ? 'last-chance' : '' ?>">
+                        <a href="<?= url('/shop/product.php?slug=' . urlencode($p['slug'])) ?>" class="card-link u-fg-inherit u-nodecor" aria-hidden="false" tabindex="0"></a>
 
                         <div class="product-card-image">
                             <?php if (!empty($p['primary_image'])): ?>
@@ -498,6 +498,19 @@ function fresh_color($level) {
                             <?php if (!empty($p['is_discounted'])): ?>
                                 <span class="discount-tag-tr">−<?= (int) $p['discount_pct'] ?>%</span>
                             <?php endif; ?>
+                        
+                        <?php $__qid = (int) ($p['id'] ?? 0); if ($__qid): ?>
+                        <form method="post" action="<?= url('/shop/cart.php') ?>">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="product_id" value="<?= $__qid ?>">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="card-quick-add"
+                                    aria-label="Add <?= attr($p['name'] ?? 'product') ?> to cart">
+                                <?= icon('plus', 20) ?>
+                            </button>
+                        </form>
+                        <?php endif; ?>
                         </div>
 
                         <div class="product-card-body">
@@ -515,7 +528,7 @@ function fresh_color($level) {
                                 <?php endif; ?>
                             </div>
                         </div>
-                    </a>
+                    </div>
                 <?php endforeach; ?>
                 </div>
                 <button type="button" class="carousel-nav carousel-nav-next" id="fpNext" aria-label="Next">
@@ -602,22 +615,35 @@ function fresh_color($level) {
             <?php foreach ($recentlyViewed as $rv):
                 $barColor = fresh_color($rv['freshness_level'] ?? 'FRESH');
             ?>
-                <a href="<?= url('/shop/product.php?slug=' . urlencode($rv['slug'])) ?>"
-                   class="product-card-v2">
+                <div class="product-card-v2">
+                        <a href="<?= url('/shop/product.php?slug=' . urlencode($rv['slug'])) ?>" class="card-link u-fg-inherit u-nodecor" aria-hidden="false" tabindex="0"></a>
                     <div class="product-card-image">
                         <?php if (!empty($rv['primary_image'])): ?>
                             <img src="<?= upload_url($rv['primary_image']) ?>" alt="<?= attr($rv['name']) ?>" loading="lazy">
                         <?php else: ?>
                             <span class="product-emoji"><?= icon('cart', 16) ?></span>
                         <?php endif; ?>
-                    </div>
+                    
+                        <?php $__qid = (int) ($rv['id'] ?? 0); if ($__qid): ?>
+                        <form method="post" action="<?= url('/shop/cart.php') ?>">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="product_id" value="<?= $__qid ?>">
+                            <input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="card-quick-add"
+                                    aria-label="Add <?= attr($rv['name'] ?? 'product') ?> to cart">
+                                <?= icon('plus', 20) ?>
+                            </button>
+                        </form>
+                        <?php endif; ?>
+                        </div>
                     <div class="product-card-body">
                         <div class="product-card-name"><?= e($rv['name']) ?></div>
                         <div class="product-card-pricing">
                             <span class="price-final"><?= format_myr($rv['final_price'] ?? $rv['base_price']) ?></span>
                         </div>
                     </div>
-                </a>
+                </div>
             <?php endforeach; ?>
         </div>
     </div>

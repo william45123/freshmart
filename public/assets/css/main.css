@@ -2846,7 +2846,12 @@
 
     @media (max-width: 1024px) {
         .hero-poster { grid-template-columns: 1fr; gap: var(--space-6); }
-        .hero-poster-image { aspect-ratio: 16 / 10; order: -1; }
+        /* The image no longer jumps above the copy. A visitor landing on a
+           phone met a photo with no headline, badge or context above it;
+           source order (eyebrow -> headline -> copy -> actions -> image) is
+           the reading order we want, so the override is gone rather than
+           replaced with a different number. */
+        .hero-poster-image { aspect-ratio: 16 / 10; }
         .hero-poster-stats { gap: var(--space-6); }
     }
 }
@@ -4285,7 +4290,15 @@
     .tabbar.is-stowed { transform: translateY(110%); }
 
     /* Give fixed furniture room so it never covers the last row. */
-    body.has-tabbar { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px)); }
+    body.has-tabbar {
+        padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + var(--space-4));
+        scroll-padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px));
+    }
+    /* Any element sized to the viewport must subtract the bar, or its last
+       line sits underneath it with nothing left to scroll. */
+    body.has-tabbar :where(.min-h-screen, [class*="vh-100"]) {
+        min-block-size: calc(100dvh - var(--tabbar-h) - env(safe-area-inset-bottom, 0px));
+    }
 
     @media (min-width: 1024px) {
         .tabbar { display: none; }
