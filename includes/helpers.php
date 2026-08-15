@@ -226,6 +226,11 @@ function icon(string $name, int $size = 20, float $stroke = 1.75): string
 {
     static $paths = [
         // Phase 3 / C8 — extended set so UI chrome never falls back to emoji.
+        // §9.5 — brand marks for the footer, which used the literal
+        // characters f, circle and eighth-note as social icons.
+        'facebook'        => '<path d="M17 2h-3a5 5 0 0 0-5 5v3H6v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3Z" fill="currentColor" stroke="none"/>',
+        'instagram'       => '<rect width="18" height="18" x="3" y="3" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>',
+        'tiktok'          => '<path d="M15 3c.5 2.4 2 4 4.5 4.2v3.2c-1.7.1-3.2-.4-4.5-1.3v6.4a6 6 0 1 1-6-6c.3 0 .7 0 1 .1v3.3a2.7 2.7 0 1 0 1.9 2.6V3Z" fill="currentColor" stroke="none"/>',
         'wallet'          => '<path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5"/><path d="M17.5 12a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1"/>',
         'truck'           => '<path d="M14 18V6a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h2"/><path d="M14 9h4l3 3v5a1 1 0 0 1-1 1h-1"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
         'lock'            => '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',

@@ -1,5 +1,20 @@
 </main>
 <footer class="site-footer">
+    <?php // §9.5 curve divider. Decorative only, so it is aria-hidden and
+          // carries no text alternative. ?>
+    <svg class="footer-curve" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path d="M0 60 C 240 6 480 6 720 30 C 960 54 1200 54 1440 12 L1440 60 Z"/>
+    </svg>
+
+    <?php // Trust badges folded down from the homepage, where they repeated
+          // on every page below the fold anyway. ?>
+    <div class="footer-trust">
+        <div class="footer-trust-item"><?= icon('truck', 20) ?><span>Free delivery over RM50</span></div>
+        <div class="footer-trust-item"><?= icon('leaf', 20) ?><span>Farm fresh daily</span></div>
+        <div class="footer-trust-item"><?= icon('recycle', 20) ?><span>Zero-waste mission</span></div>
+        <div class="footer-trust-item"><?= icon('lock', 20) ?><span>Secure checkout</span></div>
+    </div>
+
     <div class="container">
         <div class="footer-col footer-col-about">
             <h4>FreshMart</h4>
@@ -9,9 +24,9 @@
                 Last Chance discounts — so you shop with confidence and we cut food waste together.
             </p>
             <div class="footer-social">
-                <a href="https://facebook.com/freshmart.my" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook">f</a>
-                <a href="https://instagram.com/freshmart.my" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram">◎</a>
-                <a href="https://tiktok.com/@freshmart.my" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok">♪</a>
+                <a href="https://facebook.com/freshmart.my" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook"><?= icon('facebook', 18) ?></a>
+                <a href="https://instagram.com/freshmart.my" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><?= icon('instagram', 18) ?></a>
+                <a href="https://tiktok.com/@freshmart.my" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><?= icon('tiktok', 18) ?></a>
             </div>
         </div>
         <div class="footer-col">

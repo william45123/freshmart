@@ -5001,3 +5001,96 @@
         }
     }
 }
+
+@layer components {
+    /* ---- §9.5 Footer -------------------------------------------- */
+    .site-footer {
+        position: relative;
+        margin-top: var(--space-16);
+        padding-top: var(--space-10);
+        background: var(--canvas);
+        color: var(--on-canvas);
+    }
+    .footer-curve {
+        position: absolute;
+        inset-inline: 0;
+        top: 0;
+        transform: translateY(-99%);
+        inline-size: 100%;
+        block-size: clamp(28px, 4vw, 60px);
+        display: block;
+        fill: var(--canvas);
+        pointer-events: none;
+    }
+    .site-footer .container {
+        display: grid;
+        gap: var(--space-8);
+        padding-block: var(--space-8);
+    }
+    @media (min-width: 640px)  { .site-footer .container { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .site-footer .container { grid-template-columns: 2fr 1fr 1fr 1.2fr; gap: var(--space-10); } }
+
+    .site-footer h4 {
+        font-family: var(--font-display);
+        font-size: var(--t-eyebrow);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--on-canvas-muted);
+        margin: 0 0 var(--space-3);
+    }
+    .footer-about { color: var(--on-canvas-muted); max-inline-size: 46ch; line-height: 1.6; }
+    .site-footer ul { list-style: none; margin: 0; padding: 0; display: grid; }
+    .site-footer a { color: var(--on-canvas); text-decoration: none; border: 0; }
+    .site-footer a:hover { color: var(--fresh-ok); }
+    .footer-contact li {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-2);
+        min-block-size: 44px;
+        color: var(--on-canvas-muted);
+    }
+    .footer-contact svg { flex: none; margin-top: 2px; color: var(--on-canvas-muted); }
+
+    /* Real brand marks, in 48px targets. Were the characters f, ◎ and ♪. */
+    .footer-social { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+    .footer-social a {
+        inline-size: 48px;
+        block-size: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: var(--r-full);
+        border: 1px solid var(--canvas-line);
+        color: var(--on-canvas);
+    }
+    .footer-social a:hover { background: var(--canvas-raised); border-color: var(--on-canvas-muted); }
+
+    /* Trust badges, folded down from the homepage. */
+    .footer-trust {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-4);
+        max-inline-size: var(--container);
+        margin-inline: auto;
+        padding: 0 var(--gutter) var(--space-8);
+        border-bottom: 1px solid var(--canvas-line);
+    }
+    @media (min-width: 1024px) { .footer-trust { grid-template-columns: repeat(4, 1fr); } }
+    .footer-trust-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        color: var(--on-canvas-muted);
+        font-size: var(--t-sm);
+    }
+    .footer-trust-item svg { flex: none; color: var(--fresh-ok); }
+
+    .footer-bottom {
+        border-top: 1px solid var(--canvas-line);
+        color: var(--on-canvas-muted);
+        font-size: var(--t-sm);
+        padding: var(--space-5) var(--gutter);
+        text-align: center;
+    }
+    /* The tab bar would otherwise sit on top of the last footer row. */
+    body.has-tabbar .site-footer { padding-bottom: var(--space-4); }
+}
