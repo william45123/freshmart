@@ -6,8 +6,9 @@ Any phase touching markup, CSS or templates is not done until the **rendered
 output** has been looked at, not just its status code. Run
 `tools/validate_markup.py`, take screenshots with `tools/screenshot.py`, and in
 the report separate what was **verified visually** from what was only
-**verified programmatically**. If a page could not be seen, say so plainly
-rather than reporting it as verified.
+**verified programmatically**, and name the pages actually screenshotted —
+"3 of 36" is a fine answer, implying 36 is not. If a page could not be seen,
+say so plainly rather than reporting it as verified.
 
 This exists because a stray `">` rendered at the top-left of every page for a
 whole phase. The suite reported 36/36 clean because it only checked HTTP status
@@ -66,8 +67,7 @@ Nothing. The tree is clean and every phase above is committed.
    delivery cut-off*, value at risk shown on both. Today the cron alerts
    retailers about stock browse has already hidden, with no indication it is
    unbuyable.
-3. **(b) Checkout delivery validation** — NEXT. Rollback UX still needs
-   confirming before any code is written. Last, because it is the only item
+3. ~~**(b)**~~ done in `8bc8e0d`. Original note: because it is the only item
    touching order logic. Constrain the picker to dates every cart item survives;
    re-check server-side at submit; validate against the **FEFO-allocated** batch,
    not the display batch; roll back cleanly on failure. Rollback UX to be
@@ -92,6 +92,12 @@ Nothing. The tree is clean and every phase above is committed.
   the PDO session to `+08:00`; the CLI runs UTC. Anything using `CURDATE()` or
   `NOW()` disagrees across the two, which cost an hour chasing a phantom
   40-vs-44 discrepancy.
+- **Container padding is missing on some page headings** — "Checkout" and "Your
+  cart" render flush against the left viewport edge at 1280px. Seen on
+  screenshots; layout, so Phase 5/6.
+- **17 emoji sites remain**, all in PHP string/array literals: `index.php`
+  `$catEmoji`, `reco_render_section()` headings, `notifications.php`,
+  `wishlist.php`, `admin/dashboard.php`. Not mechanical swaps.
 - **Emoji still in PHP array literals** (`index.php` `$catEmoji` category map,
   `reco_render_section()` heading glyphs). Not mechanical swaps — the category
   circles need real imagery and that is a Phase 6 component decision, not a
