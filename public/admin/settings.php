@@ -197,7 +197,7 @@ admin_layout_start('settings', 'System Settings');
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_freshness">
     <div class="panel u-p-4 u-mb-4 u-maxw-760 u-ovx-auto">
-        <table class="data-table">
+        <table class="data-table data-table">
             <thead>
                 <tr>
                     <th>Level</th>
@@ -211,16 +211,16 @@ admin_layout_start('settings', 'System Settings');
             <tbody>
             <?php foreach ($freshLevels as $lv): $ln = $lv['level_name']; ?>
                 <tr>
-                    <td><code class="u-t-12"><?= e($ln) ?></code></td>
-                    <td><input type="text" name="fresh[<?= e($ln) ?>][label]" value="<?= attr($lv['label_en']) ?>" class="form-control u-w-130" maxlength="50"></td>
-                    <td class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][min]" value="<?= attr((string) $lv['min_percent']) ?>" class="form-control u-w-80"></td>
-                    <td class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][max]" value="<?= attr((string) $lv['max_percent']) ?>" class="form-control u-w-80"></td>
-                    <td>
+                    <td data-label="Level"><code class="u-t-12"><?= e($ln) ?></code></td>
+                    <td data-label="Label"><input type="text" name="fresh[<?= e($ln) ?>][label]" value="<?= attr($lv['label_en']) ?>" class="form-control u-w-130" maxlength="50"></td>
+                    <td data-label="Min %" class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][min]" value="<?= attr((string) $lv['min_percent']) ?>" class="form-control u-w-80"></td>
+                    <td data-label="Max %" class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][max]" value="<?= attr((string) $lv['max_percent']) ?>" class="form-control u-w-80"></td>
+                    <td data-label="Colour">
                         <span class="u-inline-flex u-ai-center u-gap-2">
                             <input type="color" name="fresh[<?= e($ln) ?>][color]" value="<?= attr($lv['color_hex']) ?>" class="u-w-42 u-h-30 u-bordered u-r-6 u-p-2px u-bg-none">
                         </span>
                     </td>
-                    <td class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][discount]" value="<?= attr((string) $lv['auto_discount_pct']) ?>" class="form-control u-w-80"></td>
+                    <td data-label="Auto-discount %" class="u-ta-r"><input type="number" step="0.01" min="0" max="100" name="fresh[<?= e($ln) ?>][discount]" value="<?= attr((string) $lv['auto_discount_pct']) ?>" class="form-control u-w-80"></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

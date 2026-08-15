@@ -287,13 +287,13 @@ admin_layout_start('dashboard', 'Platform Dashboard');
         <div class="chart-card">
             <h3 class="chart-title">Revenue · last 14 days</h3>
             <div class="chart-canvas-wrap">
-                <canvas id="revChart"></canvas>
+                <div class="chart-wrap"><canvas id="revChart"></canvas></div>
             </div>
         </div>
         <div class="chart-card">
             <h3 class="chart-title">Orders by status</h3>
             <div class="chart-canvas-wrap">
-                <canvas id="statusChart"></canvas>
+                <div class="chart-wrap"><canvas id="statusChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -309,14 +309,14 @@ admin_layout_start('dashboard', 'Platform Dashboard');
                 <p class="chart-empty">No sales yet in the last 30 days.</p>
             <?php else: ?>
                 <div class="chart-canvas-wrap u-h-240">
-                    <canvas id="topProductsChart"></canvas>
+                    <div class="chart-wrap"><canvas id="topProductsChart"></canvas></div>
                 </div>
             <?php endif; ?>
         </div>
         <div class="chart-card">
             <h3 class="chart-title">Customer growth</h3>
             <div class="chart-canvas-wrap u-h-240">
-                <canvas id="userGrowthChart"></canvas>
+                <div class="chart-wrap"><canvas id="userGrowthChart"></canvas></div>
             </div>
         </div>
         <div class="chart-card">
@@ -325,7 +325,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
                 <p class="chart-empty">No category sales in the last 30 days.</p>
             <?php else: ?>
                 <div class="chart-canvas-wrap u-h-240">
-                    <canvas id="catRevenueChart"></canvas>
+                    <div class="chart-wrap"><canvas id="catRevenueChart"></canvas></div>
                 </div>
             <?php endif; ?>
         </div>
@@ -339,7 +339,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
         <div class="empty-state">No orders yet.</div>
     <?php else: ?>
         <div class="table-scroll">
-            <table class="data-table">
+            <table class="data-table data-table">
                 <thead>
                     <tr>
                         <th>Order #</th>
@@ -352,11 +352,11 @@ admin_layout_start('dashboard', 'Platform Dashboard');
                 <tbody>
                     <?php foreach ($recentOrders as $o): ?>
                         <tr>
-                            <td><code><?= e($o['order_number']) ?></code></td>
-                            <td><?= e($o['customer'] ?? '—') ?></td>
-                            <td><?= format_datetime($o['placed_at'], 'd M, H:i') ?></td>
-                            <td><span class="status-pill status-<?= strtolower($o['status']) === 'delivered' ? 'active' : 'pending' ?>"><?= e($o['status']) ?></span></td>
-                            <td class="u-ta-r"><strong><?= format_myr($o['total']) ?></strong></td>
+                            <td data-label="Order #"><code><?= e($o['order_number']) ?></code></td>
+                            <td data-label="Customer"><?= e($o['customer'] ?? '—') ?></td>
+                            <td data-label="Placed"><?= format_datetime($o['placed_at'], 'd M, H:i') ?></td>
+                            <td data-label="Status"><span class="status-pill status-<?= strtolower($o['status']) === 'delivered' ? 'active' : 'pending' ?>"><?= e($o['status']) ?></span></td>
+                            <td data-label="Total" class="u-ta-r"><strong><?= format_myr($o['total']) ?></strong></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -430,7 +430,7 @@ new Chart(document.getElementById('revChart'), {
             pointHoverRadius: 5,
         }]
     },
-    options: { ...compactOpts, scales: { y: { beginAtZero: true } } }
+    options: { maintainAspectRatio: false, ...compactOpts, scales: { y: { beginAtZero: true } } }
 });
 
 new Chart(document.getElementById('statusChart'), {

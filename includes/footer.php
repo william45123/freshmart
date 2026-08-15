@@ -129,5 +129,6 @@
     els.forEach(function (e) { io.observe(e); });
 })();
 </script>
+<?php require __DIR__ . '/mobile_nav.php'; ?>
 </body>
 </html>

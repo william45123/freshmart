@@ -168,7 +168,7 @@ retailer_layout_start('orders', 'Orders');
         <?= icon('package', 16) ?> No orders yet.
     </div>
 <?php else: ?>
-    <table class="data-table">
+    <table class="data-table data-table">
         <thead>
             <tr>
                 <th>Order</th>
@@ -192,25 +192,25 @@ retailer_layout_start('orders', 'Orders');
                 };
             ?>
                 <tr>
-                    <td>
+                    <td data-label="Order">
                         <code class="u-t-13"><?= e($o['order_number']) ?></code>
                     </td>
-                    <td>
+                    <td data-label="Customer">
                         <strong><?= e($o['customer_name'] ?? $o['customer_email']) ?></strong>
                         <br><small class="u-muted"><?= e($o['customer_email']) ?></small>
                     </td>
-                    <td>
+                    <td data-label="Placed">
                         <?= format_datetime($o['placed_at'], 'd M Y') ?>
                         <br><small class="u-muted"><?= format_datetime($o['placed_at'], 'H:i') ?></small>
                     </td>
-                    <td><?= (int) $o['retailer_items'] ?></td>
-                    <td><strong><?= format_myr($o['retailer_subtotal']) ?></strong></td>
-                    <td>
+                    <td data-label="Items"><?= (int) $o['retailer_items'] ?></td>
+                    <td data-label="Your Sales"><strong><?= format_myr($o['retailer_subtotal']) ?></strong></td>
+                    <td data-label="Status">
                         <span class="status-pill status-<?= strtolower($o['status']) === 'delivered' ? 'active' : 'pending' ?>">
                             <?= e($o['status']) ?>
                         </span>
                     </td>
-                    <td>
+                    <td data-label="Action">
                         <?php if ($nextStatus): ?>
                             <form method="post" class="u-inline">
                                 <?= csrf_field() ?>

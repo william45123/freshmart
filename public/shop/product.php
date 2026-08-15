@@ -314,7 +314,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
                         <span class="u-t-12 u-muted">next 7 days</span>
                     </div>
                     <div class="u-rel u-h-180">
-                        <canvas id="freshnessChart"></canvas>
+                        <div class="chart-wrap"><canvas id="freshnessChart"></canvas></div>
                     </div>
                     <div class="u-t-12 u-muted u-mt-2">
                         Projected using our power-law model (n=<?= number_format((float) $product['decay_exponent'], 1) ?> for <?= e($product['category_name']) ?>). Buy sooner for peak freshness.

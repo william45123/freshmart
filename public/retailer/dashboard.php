@@ -120,7 +120,7 @@ retailer_layout_start('dashboard', 'Dashboard');
 <?php if (empty($expiringSoon)): ?>
     <div class="empty-state">Nothing expiring in the next 3 days.</div>
 <?php else: ?>
-    <table class="data-table">
+    <table class="data-table data-table">
         <thead>
             <tr>
                 <th>Batch</th>
@@ -137,17 +137,17 @@ retailer_layout_start('dashboard', 'Dashboard');
                 $daysLeft = max(0, days_between(now_my()->format('Y-m-d'), $b['expiry_date']));
             ?>
                 <tr>
-                    <td><code><?= e($b['batch_code']) ?></code></td>
-                    <td><?= e($b['product_name']) ?></td>
-                    <td><?= number_format((float) $b['quantity_remaining'], 2) ?></td>
-                    <td><?= format_date($b['expiry_date']) ?> <small class="u-muted">(<?= relative_date($b['expiry_date']) ?>)</small></td>
-                    <td><?= freshness_ring_html([
+                    <td data-label="Batch"><code><?= e($b['batch_code']) ?></code></td>
+                    <td data-label="Product"><?= e($b['product_name']) ?></td>
+                    <td data-label="Quantity"><?= number_format((float) $b['quantity_remaining'], 2) ?></td>
+                    <td data-label="Expiry"><?= format_date($b['expiry_date']) ?> <small class="u-muted">(<?= relative_date($b['expiry_date']) ?>)</small></td>
+                    <td data-label="Freshness"><?= freshness_ring_html([
                         'freshness_percent' => freshness_percent($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']),
                         'freshness_color'   => freshness_info($level)['color_hex'],
                         'freshness_level'   => $level,
                         'days_remaining'    => $daysLeft,
                     ], 40, true) ?></td>
-                    <td>
+                    <td data-label="Forecast">
                         <?php
                             $pr   = $rate[(int) $b['product_id']] ?? 0.0;
                             $proj = $pr * $daysLeft;
@@ -167,7 +167,7 @@ retailer_layout_start('dashboard', 'Dashboard');
 
 <h2 class="u-t-20 u-mt-8">Stock freshness mix</h2>
 <div class="panel u-maxw-380 u-p-5">
-    <canvas id="freshMixChart" height="220"></canvas>
+    <div class="chart-wrap"><canvas id="freshMixChart"></canvas></div>
 </div>
 <script src="<?= asset('js/chart.umd.min.js') ?>"></script>
 <script>
@@ -182,7 +182,7 @@ new Chart(document.getElementById('freshMixChart'), {
             borderColor: '#ffffff'
         }]
     },
-    options: {
+    options: { maintainAspectRatio: false,
         responsive: true,
         plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } },
         cutout: '62%'

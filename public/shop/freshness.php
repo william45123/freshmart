@@ -119,7 +119,7 @@ require_once __DIR__ . '/../../includes/header.php';
             Each <strong>n</strong> below is grounded in food-science literature, not chosen arbitrarily.
         </p>
 
-        <table class="data-table u-maxw-900">
+        <table class="data-table data-table u-maxw-900">
             <thead>
                 <tr>
                     <th>Category</th>
@@ -130,11 +130,11 @@ require_once __DIR__ . '/../../includes/header.php';
             <tbody>
                 <?php foreach ($categories as $c): ?>
                     <tr>
-                        <td><strong><?= e($c['name']) ?></strong></td>
-                        <td class="u-ta-c u-mono u-t-16 u-fw-600">
+                        <td data-label="Category"><strong><?= e($c['name']) ?></strong></td>
+                        <td data-label="Exponent (n)" class="u-ta-c u-mono u-t-16 u-fw-600">
                             <?= number_format((float) $c['decay_exponent'], 2) ?>
                         </td>
-                        <td class="u-muted u-t-15">
+                        <td data-label="Why this value" class="u-muted u-t-15">
                             <?= e($c['decay_rationale'] ?? '—') ?>
                         </td>
                     </tr>

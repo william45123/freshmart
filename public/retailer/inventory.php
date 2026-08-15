@@ -185,7 +185,7 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
         <?= icon('leaf', 16) ?> No batches yet. Add your first stock batch below.
     </div>
 <?php else: ?>
-    <table class="data-table">
+    <table class="data-table data-table">
         <thead>
             <tr>
                 <th>Batch</th>
@@ -206,25 +206,25 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                 $isTarget = ($highlightBatch > 0 && (int) $b['id'] === $highlightBatch);
             ?>
                 <tr id="batch-<?= (int) $b['id'] ?>"<?= $isTarget ? ' class="is-flagged" tabindex="-1"' : '' ?>>
-                    <td><code><?= e($b['batch_code']) ?></code></td>
-                    <td>
+                    <td data-label="Batch"><code><?= e($b['batch_code']) ?></code></td>
+                    <td data-label="Product">
                         <a href="<?= url('/retailer/inventory.php?product_id=' . $b['product_id']) ?>">
                             <?= e($b['product_name']) ?>
                         </a>
                     </td>
-                    <td><?= format_date($b['received_date']) ?></td>
-                    <td>
+                    <td data-label="Received"><?= format_date($b['received_date']) ?></td>
+                    <td data-label="Expiry">
                         <?= format_date($b['expiry_date']) ?>
                         <br><small class="u-muted">
                             <?= relative_date($b['expiry_date']) ?>
                         </small>
                     </td>
-                    <td>
+                    <td data-label="Quantity">
                         <?= number_format((float) $b['quantity_remaining'], 2) ?>
                         / <?= number_format((float) $b['original_quantity'], 2) ?>
                         <?= e($b['unit_code']) ?>
                     </td>
-                    <td>
+                    <td data-label="Freshness">
                         <?php if ($b['status'] === 'ACTIVE'): ?>
                             <?= freshness_ring_html([
                                 'freshness_percent' => freshness_percent($b['received_date'], $b['expiry_date'], (float) $b['decay_exponent']),
@@ -236,12 +236,12 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
                             <span class="u-muted u-t-14">—</span>
                         <?php endif; ?>
                     </td>
-                    <td>
+                    <td data-label="Status">
                         <span class="status-pill status-<?= $b['status'] === 'ACTIVE' ? 'active' : 'suspended' ?>">
                             <?= e($b['status']) ?>
                         </span>
                     </td>
-                    <td>
+                    <td data-label="Actions">
                         <?php if ($b['status'] === 'ACTIVE'): ?>
                             <details>
                                 <summary class="btn btn-secondary btn-sm u-inline-block">Adjust</summary>

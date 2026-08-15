@@ -320,25 +320,25 @@ admin_layout_start('orders', 'All Orders');
 <?php if (empty($orders)): ?>
     <div class="empty-state"><?= icon('package', 16) ?> No orders found.</div>
 <?php else: ?>
-    <table class="data-table">
+    <table class="data-table data-table">
         <thead>
             <tr><th>Order</th><th>Customer</th><th>Placed</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr>
         </thead>
         <tbody>
             <?php foreach ($orders as $o): ?>
                 <tr>
-                    <td><code class="u-t-13"><?= e($o['order_number']) ?></code></td>
-                    <td>
+                    <td data-label="Order"><code class="u-t-13"><?= e($o['order_number']) ?></code></td>
+                    <td data-label="Customer">
                         <strong><?= e($o['customer_name'] ?? '—') ?></strong>
                         <br><small class="u-muted"><?= e($o['customer_email']) ?></small>
                     </td>
-                    <td>
+                    <td data-label="Placed">
                         <?= format_datetime($o['placed_at'], 'd M Y') ?>
                         <br><small class="u-muted"><?= format_datetime($o['placed_at'], 'H:i') ?></small>
                     </td>
-                    <td><?= (int) $o['item_count'] ?></td>
-                    <td><strong><?= format_myr($o['total']) ?></strong></td>
-                    <td>
+                    <td data-label="Items"><?= (int) $o['item_count'] ?></td>
+                    <td data-label="Total"><strong><?= format_myr($o['total']) ?></strong></td>
+                    <td data-label="Status">
                         <span class="status-pill status-<?= strtolower($o['status']) === 'delivered' ? 'active' : 'pending' ?>">
                             <?= e(str_replace('_',' ',$o['status'])) ?>
                         </span>

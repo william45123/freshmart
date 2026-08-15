@@ -64,7 +64,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
          into the href and broke out of the attribute. -->
     <link rel="icon" type="image/svg+xml" href="<?= asset('favicon.svg') ?>">
 </head>
-<body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?>">
+<body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?><?= str_contains(current_path(), '/shop/checkout.php') ? '' : ' has-tabbar' ?>">
 <header class="site-header <?= $isAdmin ? 'header-admin' : ($isRetailer ? 'header-retailer' : '') ?>">
     <div class="container">
 
@@ -122,6 +122,8 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
 
             <?php if ($isCustomer): ?>
                 <!-- Customer cart icon with badge -->
+                <button type="button" class="btn btn-ghost btn-sm btn-icon search-trigger"
+                        aria-label="Search products"><?= icon('search', 20) ?></button>
                 <a href="<?= url('/shop/cart.php') ?>" class="btn btn-ghost btn-sm btn-icon u-rel" title="Cart">
                     <?= icon('cart') ?>
                     <?php if ($cartCount > 0): ?>
@@ -165,6 +167,20 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         </div>
 
         <!-- Mobile hamburger (shown < 860px) -->
+        <?php // §7.1 mobile top bar: brand + search + bell + menu. These sit
+              // beside the hamburger and are hidden at >=1024px by .search-trigger
+              // and .mobile-only, where the desktop header provides them. ?>
+        <button type="button" class="btn btn-ghost btn-icon search-trigger mobile-only"
+                aria-label="Search products"><?= icon('search', 20) ?></button>
+        <?php if (auth_check()): ?>
+            <a href="<?= url('/notifications.php') ?>"
+               class="btn btn-ghost btn-icon mobile-only u-rel" aria-label="Notifications">
+                <?= icon('bell', 20) ?>
+                <?php if (($unreadNotifs ?? 0) > 0): ?>
+                    <span class="nav-badge nav-badge-alert"><?= min(99, (int) $unreadNotifs) ?></span>
+                <?php endif; ?>
+            </a>
+        <?php endif; ?>
         <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" data-mobile-open>&#9776;</button>
     </div>
 </header>

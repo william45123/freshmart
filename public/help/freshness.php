@@ -69,7 +69,7 @@ t = days since received
 T = total shelf life (days)
 n = category decay exponent</pre>
 
-        <table class="data-table u-mt-6">
+        <table class="data-table data-table u-mt-6">
             <thead>
                 <tr>
                     <th>Category</th>
@@ -80,11 +80,11 @@ n = category decay exponent</pre>
             <tbody>
                 <?php foreach ($categories as $c): ?>
                     <tr>
-                        <td><strong><?= e($c['name']) ?></strong></td>
-                        <td class="u-ta-c u-mono u-t-16">
+                        <td data-label="Category"><strong><?= e($c['name']) ?></strong></td>
+                        <td data-label="Exponent (n)" class="u-ta-c u-mono u-t-16">
                             <?= number_format((float) $c['decay_exponent'], 2) ?>
                         </td>
-                        <td class="u-muted"><?= e($c['decay_rationale'] ?? '') ?></td>
+                        <td data-label="Why" class="u-muted"><?= e($c['decay_rationale'] ?? '') ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

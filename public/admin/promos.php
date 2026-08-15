@@ -131,14 +131,14 @@ admin_layout_start('promos', 'Promo Codes');
 <?php if (empty($promos)): ?>
     <div class="empty-state">No promo codes yet.</div>
 <?php else: ?>
-    <table class="data-table">
+    <table class="data-table data-table">
         <thead>
             <tr><th>Code</th><th>Discount</th><th>Min Order</th><th>Usage</th><th>Validity</th><th>Status</th><th>Action</th></tr>
         </thead>
         <tbody>
         <?php foreach ($promos as $p): ?>
             <tr>
-                <td>
+                <td data-label="Code">
                     <code class="u-t-15 u-bg-primary-lt u-p-pill-xs u-r-sm u-fg-primary-dk u-fw-600">
                         <?= e($p['code']) ?>
                     </code>
@@ -146,7 +146,7 @@ admin_layout_start('promos', 'Promo Codes');
                         <br><small class="u-muted"><?= e($p['description']) ?></small>
                     <?php endif; ?>
                 </td>
-                <td>
+                <td data-label="Discount">
                     <?php if ($p['discount_type'] === 'PERCENTAGE'): ?>
                         <?= number_format((float) $p['discount_value'], 0) ?>%
                         <?php if ($p['max_discount']): ?>
@@ -156,21 +156,21 @@ admin_layout_start('promos', 'Promo Codes');
                         −<?= format_myr($p['discount_value']) ?>
                     <?php endif; ?>
                 </td>
-                <td><?= (float) $p['min_order_value'] > 0 ? format_myr($p['min_order_value']) : '—' ?></td>
-                <td>
+                <td data-label="Min Order"><?= (float) $p['min_order_value'] > 0 ? format_myr($p['min_order_value']) : '—' ?></td>
+                <td data-label="Usage">
                     <?= (int) $p['use_count'] ?> / <?= $p['usage_limit'] === null ? '∞' : (int) $p['usage_limit'] ?>
                 </td>
-                <td class="u-t-13 u-muted">
+                <td data-label="Validity" class="u-t-13 u-muted">
                     <?= format_date($p['starts_at']) ?><br>→ <?= format_date($p['expires_at']) ?>
                 </td>
-                <td>
+                <td data-label="Status">
                     <?php if ($p['is_active'] && strtotime($p['expires_at']) > time()): ?>
                         <span class="status-pill status-active">Active</span>
                     <?php else: ?>
                         <span class="status-pill status-suspended">Inactive</span>
                     <?php endif; ?>
                 </td>
-                <td>
+                <td data-label="Action">
                     <form method="post" class="u-inline">
                         <?= csrf_field() ?>
                         <input type="hidden" name="action" value="toggle">

@@ -54,22 +54,22 @@ admin_layout_start('users', 'Users');
     <a href="<?= url('/admin/users.php?role=ADMIN') ?>" class="btn <?= $roleFilter === 'ADMIN' ? 'btn-primary' : 'btn-secondary' ?> btn-sm">Admins</a>
 </div>
 
-<table class="data-table">
+<table class="data-table data-table">
     <thead>
         <tr><th>User</th><th>Role</th><th>Status</th><th>Orders</th><th>Joined</th><th>Action</th></tr>
     </thead>
     <tbody>
     <?php foreach ($users as $u): ?>
         <tr>
-            <td>
+            <td data-label="User">
                 <strong><?= e($u['full_name'] ?? $u['email']) ?></strong>
                 <br><small class="u-muted"><?= e($u['email']) ?></small>
             </td>
-            <td><?= e($u['role']) ?></td>
-            <td><span class="status-pill status-<?= strtolower($u['status']) === 'active' ? 'active' : 'suspended' ?>"><?= e($u['status']) ?></span></td>
-            <td><?= (int) $u['order_count'] ?></td>
-            <td><?= format_date($u['created_at']) ?></td>
-            <td>
+            <td data-label="Role"><?= e($u['role']) ?></td>
+            <td data-label="Status"><span class="status-pill status-<?= strtolower($u['status']) === 'active' ? 'active' : 'suspended' ?>"><?= e($u['status']) ?></span></td>
+            <td data-label="Orders"><?= (int) $u['order_count'] ?></td>
+            <td data-label="Joined"><?= format_date($u['created_at']) ?></td>
+            <td data-label="Action">
                 <?php if ($u['id'] !== auth_id()): ?>
                     <form method="post" class="u-inline">
                         <?= csrf_field() ?>

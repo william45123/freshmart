@@ -197,7 +197,7 @@ retailer_layout_start('products', 'My Products');
         <?php endif; ?>
     </div>
 <?php else: ?>
-    <table class="data-table">
+    <table class="data-table data-table">
         <thead>
             <tr>
                 <th class="u-w-60">Image</th>
@@ -218,7 +218,7 @@ retailer_layout_start('products', 'My Products');
                 $stockOut = (float) $p['current_stock'] <= 0;
             ?>
                 <tr>
-                    <td>
+                    <td data-label="Image">
                         <div class="u-w-44 u-h-44 u-bg-page u-r u-grid u-place-center u-ovh">
                             <?php if (!empty($p['primary_image'])): ?>
                                 <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>"
@@ -228,19 +228,19 @@ retailer_layout_start('products', 'My Products');
                             <?php endif; ?>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Product">
                         <strong><?= e($p['name']) ?></strong>
                         <?php if ($p['is_featured']): ?>
                             <span class="u-bg-mustard u-fg-white u-t-10 u-p-2-6 u-r-pill u-ls-05 u-upper u-ml-1">★ Featured</span>
                         <?php endif; ?>
                         <br><small class="u-muted"><code><?= e($p['sku']) ?></code></small>
                     </td>
-                    <td class="u-t-14"><?= e($p['category_name']) ?></td>
-                    <td class="u-ta-r">
+                    <td data-label="Category" class="u-t-14"><?= e($p['category_name']) ?></td>
+                    <td data-label="Price" class="u-ta-r">
                         <strong><?= format_myr($p['base_price']) ?></strong>
                         <br><small class="u-muted">/ <?= e($p['unit_code']) ?></small>
                     </td>
-                    <td class="u-ta-r">
+                    <td data-label="Stock" class="u-ta-r">
                         <?php if ($stockOut): ?>
                             <span class="u-fg-accent u-fw-600">Out of stock</span>
                         <?php elseif ($stockLow): ?>
@@ -251,20 +251,20 @@ retailer_layout_start('products', 'My Products');
                             <?= number_format((float) $p['current_stock'], 1) ?> <?= e($p['unit_code']) ?>
                         <?php endif; ?>
                     </td>
-                    <td class="u-ta-c">
+                    <td data-label="Batches" class="u-ta-c">
                         <?= (int) $p['active_batches'] ?>
                     </td>
-                    <td class="u-ta-r u-muted">
+                    <td data-label="Views" class="u-ta-r u-muted">
                         <?= number_format((int) $p['view_count']) ?>
                     </td>
-                    <td>
+                    <td data-label="Status">
                         <?php if ($p['is_active']): ?>
                             <span class="status-pill status-active">Active</span>
                         <?php else: ?>
                             <span class="status-pill status-suspended">Inactive</span>
                         <?php endif; ?>
                     </td>
-                    <td>
+                    <td data-label="Actions">
                         <div class="u-flex u-gap-1">
                             <a href="<?= url('/retailer/product_edit.php?id=' . $p['id']) ?>"
                                class="btn btn-secondary btn-sm">Edit</a>

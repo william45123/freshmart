@@ -221,14 +221,14 @@ retailer_layout_start('reports', 'Product Performance Report');
 <?php if (!empty($topWasted)): ?>
     <div class="panel u-mb-6 u-p-4">
         <h3 class="u-m-0-0-3 u-t-16">Most-wasted products (<?= e($from) ?> → <?= e($to) ?>)</h3>
-        <table class="data-table">
+        <table class="data-table data-table">
             <thead><tr><th>Product</th><th class="u-ta-r">Discarded</th><th class="u-ta-r">Loss</th></tr></thead>
             <tbody>
             <?php foreach ($topWasted as $w): ?>
                 <tr>
-                    <td><?= e($w['name']) ?></td>
-                    <td class="u-ta-r"><?= number_format((float) $w['qty'], 2) ?> <?= e($w['unit_code']) ?></td>
-                    <td class="u-ta-r"><?= format_myr((float) $w['cost']) ?></td>
+                    <td data-label="Product"><?= e($w['name']) ?></td>
+                    <td data-label="Discarded" class="u-ta-r"><?= number_format((float) $w['qty'], 2) ?> <?= e($w['unit_code']) ?></td>
+                    <td data-label="Loss" class="u-ta-r"><?= format_myr((float) $w['cost']) ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
@@ -239,7 +239,7 @@ retailer_layout_start('reports', 'Product Performance Report');
 <?php if (empty($report)): ?>
     <div class="empty-state">No products yet. <a href="<?= url('/retailer/product_edit.php') ?>">Add your first product</a>.</div>
 <?php else: ?>
-    <table class="data-table">
+    <table class="data-table data-table">
         <thead>
             <tr>
                 <th>Product</th>
@@ -260,18 +260,18 @@ retailer_layout_start('reports', 'Product Performance Report');
                     : 0;
             ?>
                 <tr>
-                    <td>
+                    <td data-label="Product">
                         <strong><?= e($r['name']) ?></strong>
                         <br><small class="u-muted"><?= e($r['sku']) ?></small>
                     </td>
-                    <td><?= e($r['category']) ?></td>
-                    <td class="u-ta-r"><?= number_format((float) $r['units_sold'], 2) ?> <?= e($r['unit_code']) ?></td>
-                    <td class="u-ta-r"><?= number_format((int) $r['order_count']) ?></td>
-                    <td class="u-ta-r"><strong><?= format_myr($r['revenue']) ?></strong></td>
-                    <td class="u-ta-r"><?= number_format((float) $r['current_stock'], 2) ?></td>
-                    <td class="u-ta-r u-muted"><?= number_format((int) $r['view_count']) ?></td>
-                    <td class="u-ta-r"><?= number_format($convRate, 1) ?>%</td>
-                    <td class="u-ta-r <?= (float) $r['units_saved_from_waste'] > 0 ? 'u-fg-primary-dk' : 'u-muted' ?>">
+                    <td data-label="Category"><?= e($r['category']) ?></td>
+                    <td data-label="Sold" class="u-ta-r"><?= number_format((float) $r['units_sold'], 2) ?> <?= e($r['unit_code']) ?></td>
+                    <td data-label="Orders" class="u-ta-r"><?= number_format((int) $r['order_count']) ?></td>
+                    <td data-label="Revenue" class="u-ta-r"><strong><?= format_myr($r['revenue']) ?></strong></td>
+                    <td data-label="Stock" class="u-ta-r"><?= number_format((float) $r['current_stock'], 2) ?></td>
+                    <td data-label="Views" class="u-ta-r u-muted"><?= number_format((int) $r['view_count']) ?></td>
+                    <td data-label="Conv. Rate" class="u-ta-r"><?= number_format($convRate, 1) ?>%</td>
+                    <td data-label="Saved" class="u-ta-r <?= (float) $r['units_saved_from_waste'] > 0 ? 'u-fg-primary-dk' : 'u-muted' ?>">
                         <?= number_format((float) $r['units_saved_from_waste'], 2) ?>
                     </td>
                 </tr>

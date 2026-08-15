@@ -122,7 +122,7 @@ retailer_layout_start('discounts', 'Freshness Discounts');
         </div>
 
         <!-- Discount table -->
-        <table class="data-table">
+        <table class="data-table data-table">
             <thead>
                 <tr>
                     <th>Freshness Level</th>
@@ -142,19 +142,19 @@ retailer_layout_start('discounts', 'Freshness Discounts');
                     $max      = $admin ? (float) $admin['max_percent'] : 0;
                 ?>
                     <tr>
-                        <td>
+                        <td data-label="Freshness Level">
                             <span class="fresh-swatch" style="--fresh: <?= e($color) ?>">●</span>
                             <strong><?= e($label) ?></strong>
                             <br><small class="u-muted"><code><?= e($ln) ?></code></small>
                         </td>
-                        <td class="u-muted u-t-14">
+                        <td data-label="Threshold (admin-set)" class="u-muted u-t-14">
                             <?= rtrim(rtrim(number_format($min, 2), '0'), '.') ?>% –
                             <?= rtrim(rtrim(number_format($max, 2), '0'), '.') ?>%
                         </td>
-                        <td class="u-ta-r u-muted">
+                        <td data-label="Platform Default" class="u-ta-r u-muted">
                             <?= rtrim(rtrim(number_format($adminPct, 2), '0'), '.') ?>%
                         </td>
-                        <td class="u-ta-r">
+                        <td data-label="My Discount %" class="u-ta-r">
                             <input type="number" step="0.01" min="0" max="100"
                                    name="disc[<?= e($ln) ?>]"
                                    value="<?= attr(rtrim(rtrim(number_format($myPct, 2), '0'), '.')) ?>"

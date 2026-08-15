@@ -208,6 +208,18 @@ function url_with($overrides = []): string {
 <section class="container browse-layout u-pt-4 u-pb-12">
 
     <!-- Sidebar filters -->
+    <!-- §7.3 Below the laptop breakpoint this aside becomes a bottom sheet:
+         the same controls, reachable without scrolling past them to get to
+         the products. Above it, it is the sidebar it always was. -->
+    <button type="button" class="btn btn-secondary filter-trigger" id="filter-open"
+            aria-expanded="false" aria-controls="filter-sheet">
+        <?= icon('filter', 18) ?> Filters<?= ($catSlug || $subSlug || $availability || $freshness) ? ' · on' : '' ?>
+    </button>
+    <div class="sheet" id="filter-sheet">
+        <div class="sheet-scrim" data-sheet-close></div>
+        <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="Filters">
+            <div><span class="sheet-handle"></span></div>
+            <div class="sheet-body">
     <aside>
         <h3 class="u-t-12 u-upper u-ls-05 u-muted u-mb-3">Categories</h3>
         <div class="u-flex u-col u-gap-1 u-mb-6">
@@ -255,6 +267,14 @@ function url_with($overrides = []): string {
             <?php endforeach; ?>
         </div>
     </aside>
+            </div>
+            <div class="sheet-foot">
+                <button type="button" class="btn btn-primary" data-sheet-close>
+                    Apply filters<span id="filter-count"> (<?= (int) $totalProducts ?>)</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Product grid -->
     <div>
@@ -387,3 +407,32 @@ function url_with($overrides = []): string {
 
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+
+<script>
+// §7.3 filter sheet. The facet links are ordinary <a> navigations, so the
+// count is live by definition — it is re-rendered by the server on each
+// change. The sheet reopens after navigating so the user keeps their place.
+(function () {
+    var sheet = document.getElementById('filter-sheet');
+    var open  = document.getElementById('filter-open');
+    if (!sheet || !open) return;
+    function setOpen(on) {
+        sheet.classList.toggle('is-open', on);
+        open.setAttribute('aria-expanded', on ? 'true' : 'false');
+        document.body.style.overflow = on ? 'hidden' : '';
+        if (on) { try { sessionStorage.setItem('fm_sheet', '1'); } catch (e) {} }
+        else    { try { sessionStorage.removeItem('fm_sheet'); } catch (e) {} }
+    }
+    open.addEventListener('click', function () { setOpen(true); });
+    sheet.querySelectorAll('[data-sheet-close]').forEach(function (el) {
+        el.addEventListener('click', function () { setOpen(false); });
+    });
+    addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+    try {
+        if (sessionStorage.getItem('fm_sheet') === '1' && matchMedia('(max-width: 1023px)').matches) {
+            sheet.classList.add('is-open');
+            open.setAttribute('aria-expanded', 'true');
+        }
+    } catch (e) {}
+})();
+</script>
