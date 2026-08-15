@@ -89,3 +89,35 @@ Nothing. The tree is clean and every phase above is committed.
 
 None outstanding. (b)'s rollback UX is the next thing needing a decision, and it
 will be proposed before any code is written.
+
+---
+
+## Delivering work to William's machine
+
+**The agent cannot push.** There are no GitHub credentials in the container and
+there should not be. `git push` fails with *could not read Username*. Read access
+to `origin` works, which is only useful for checking what has been pushed.
+
+So every phase ends with a **git bundle**, produced without being asked, and the
+handover message states four things. Never write a bare `git pull` — it will
+silently do nothing, because the commits do not exist on any remote.
+
+Bundle, incremental from the recipient's current HEAD:
+
+```
+git bundle create /tmp/<phase>.bundle <their-HEAD>..main
+```
+
+Verify it before sending, by cloning `origin` and applying it — a bundle that
+does not apply is worse than no bundle.
+
+The handover message must say:
+
+1. **Apply** — `git pull C:\path\to\<phase>.bundle main`  (NOT `git pull`)
+2. **Migrations** — which files to Import via phpMyAdmin, in what order, or
+   "none"
+3. **Cron** — whether `php cron\update_freshness.php` needs re-running, or
+   "not needed"
+4. **Confirm** — what should be visible on screen if it worked
+
+Then he pushes to `origin` himself, from his machine, with his credentials.
