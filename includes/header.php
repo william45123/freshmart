@@ -64,7 +64,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
          into the href and broke out of the attribute. -->
     <link rel="icon" type="image/svg+xml" href="<?= asset('favicon.svg') ?>">
 </head>
-<body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?><?= str_contains(current_path(), '/shop/checkout.php') ? '' : ' has-tabbar' ?>">
+<body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?><?= str_contains(current_path(), '/shop/checkout.php') ? ' page-checkout' : ' has-tabbar' ?>">
 <header class="site-header <?= $isAdmin ? 'header-admin' : ($isRetailer ? 'header-retailer' : '') ?>">
     <div class="container">
 

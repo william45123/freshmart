@@ -97,7 +97,7 @@ n = category decay exponent</pre>
         <h2>What happens automatically</h2>
         <div class="u-grid u-cols-fit-260 u-gap-4 u-mt-4">
             <div class="panel u-p-5">
-                <h3 class="u-t-17 u-mb-2">⏰ Every 5 minutes</h3>
+                <h3 class="u-t-17 u-mb-2"><?= icon('clock', 18) ?> Every 5 minutes</h3>
                 <p class="u-muted u-m-0">
                     A background job recalculates freshness for every active batch.
                 </p>
@@ -117,7 +117,7 @@ n = category decay exponent</pre>
                 </p>
             </div>
             <div class="panel u-p-5">
-                <h3 class="u-t-17 u-mb-2">⚠️ Expired = hidden</h3>
+                <h3 class="u-t-17 u-mb-2"><?= icon('alert', 18) ?> Expired = hidden</h3>
                 <p class="u-muted u-m-0">
                     Expired batches are removed from the catalog. Retailers get an alert
                     so they can act on the loss.

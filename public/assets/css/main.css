@@ -5206,3 +5206,64 @@
     .stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .stepper-input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 }
+
+@layer pages {
+    /* ============================================================
+       PHASE 6 — BATCH 2: checkout, orders, freshness explainer
+       ============================================================ */
+
+    /* ---- §5.6 Checkout: zero decorative motion -------------------
+       Hover feedback and focus rings only. Movement on the page where
+       money changes hands reads as instability, so entrance reveals,
+       card lifts, ring draws and toast slides are all suppressed here
+       — not by prefers-reduced-motion, which is the user's setting,
+       but unconditionally on this page. Colour and outline transitions
+       stay: they are feedback, not decoration. */
+    body.page-checkout .reveal,
+    body.page-checkout .reveal.in {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+    body.page-checkout *,
+    body.page-checkout *::before,
+    body.page-checkout *::after {
+        animation: none;
+        transition-property: background-color, border-color, color, outline-color, box-shadow;
+        transition-duration: var(--d-fast);
+    }
+    body.page-checkout .btn:active { transform: none; }
+
+    .co-head { border-top: 0; }
+    @media (min-width: 1024px) {
+        .co-head { pointer-events: none; }
+        .co-head .disclosure-mark { display: none; }
+    }
+
+    /* ---- Orders: status banners --------------------------------- */
+    .refund-status-banner {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--r-md);
+        border: 1px solid var(--color-border);
+        background: var(--color-bg-warm);
+        font-size: var(--t-sm);
+    }
+    .refund-status-banner svg { flex: none; }
+    .refund-status-approved { border-color: var(--success); }
+    .refund-status-rejected { border-color: var(--color-danger); }
+
+    /* ---- Freshness explainer ------------------------------------ */
+    .fresh-level-card { display: grid; gap: var(--space-2); }
+    .fresh-level-card svg { flex: none; }
+    /* The level cards are a scale, so they read as one run of colour
+       rather than five separate boxes. */
+    @media (min-width: 640px) {
+        .fresh-level-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+    }
+    @media (min-width: 1024px) {
+        .fresh-level-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+}

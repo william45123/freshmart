@@ -445,7 +445,7 @@ require_once __DIR__ . '/../../includes/header.php';
             <div>
                 <!-- Shipping Address -->
                 <div class="panel u-p-5 u-mb-4">
-                    <h3 class="u-mt-0 u-t-18">Shipping Address</h3>
+                    <h3 class="u-mt-0 u-t-18 disclosure-head co-head" data-disclosure data-open-default>Shipping Address<span class="disclosure-mark" aria-hidden="true"></span></h3>
 
                     <?php if (!empty($addresses)): ?>
                         <div class="u-flex u-col u-gap-2 u-mb-4">
@@ -502,7 +502,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
                 <!-- Payment Method (simulated) -->
                 <div class="panel u-p-5 u-mb-4">
-                    <h3 class="u-mt-0 u-t-18">Delivery Day</h3>
+                    <h3 class="u-mt-0 u-t-18 disclosure-head co-head" data-disclosure data-open-default>Delivery Day<span class="disclosure-mark" aria-hidden="true"></span></h3>
                     <p class="u-muted u-t-14 u-mt-0 u-mb-3">
                         Choose your preferred delivery day. Earliest available:
                         <?= DELIVERY_LEAD_DAYS === 1 ? 'tomorrow' : 'in ' . (int) DELIVERY_LEAD_DAYS . ' days' ?>.
@@ -535,7 +535,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
                 <!-- Payment Method (simulated) -->
                 <div class="panel u-p-5 u-mb-4">
-                    <h3 class="u-mt-0 u-t-18">Payment Method</h3>
+                    <h3 class="u-mt-0 u-t-18 disclosure-head co-head" data-disclosure data-open-default>Payment Method<span class="disclosure-mark" aria-hidden="true"></span></h3>
                     <?php $walletBalance = wallet_balance($userId); ?>
                     <!-- Wallet payment (real balance) -->
                     <label class="u-block u-p-3 u-bordered-2-primary u-r u-pointer u-mb-2 u-bg-mint">
@@ -650,7 +650,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                             <?php if ($voucherError !== ''): ?>
                                 <div class="u-t-13 u-fg-danger u-mt-2">
-                                    ⚠️ <?= e($voucherError) ?>
+                                    <?= icon('alert', 16) ?> <?= e($voucherError) ?>
                                 </div>
                             <?php elseif ($discount > 0): ?>
                                 <div class="u-t-13 u-fg-primary u-mt-2">
@@ -670,3 +670,32 @@ require_once __DIR__ . '/../../includes/header.php';
 </section>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+
+<script>
+// §7.3 — checkout sections collapse on mobile so the page is not one long
+// scroll. Every section starts OPEN: a checkout that hides what you are about
+// to agree to is worse than a long page. Collapsing is the customer's choice,
+// and the summary is never collapsible.
+(function () {
+    var mq = matchMedia('(max-width: 1023px)');
+    document.querySelectorAll('[data-disclosure]').forEach(function (head, i) {
+        var body = head.nextElementSibling;
+        if (!body) return;
+        body.id = 'co-' + i;
+        head.setAttribute('role', 'button');
+        head.setAttribute('tabindex', '0');
+        head.setAttribute('aria-controls', body.id);
+        function set(open) {
+            head.classList.toggle('is-open', open);
+            head.setAttribute('aria-expanded', open ? 'true' : 'false');
+            body.hidden = !open;
+        }
+        set(true);
+        mq.addEventListener('change', function () { set(true); });
+        head.addEventListener('click', function () { if (mq.matches) set(body.hidden); });
+        head.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); head.click(); }
+        });
+    });
+})();
+</script>

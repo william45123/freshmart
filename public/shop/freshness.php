@@ -69,7 +69,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     </div>
                     <?php if ((float) $row['auto_discount_pct'] > 0): ?>
                         <div class="u-t-14 u-fw-600 u-fg-accent">
-                            ⚡ Auto -<?= (int) $row['auto_discount_pct'] ?>% discount
+                            <?= icon('flame', 18) ?> Auto -<?= (int) $row['auto_discount_pct'] ?>% discount
                         </div>
                     <?php endif; ?>
                 </div>
@@ -154,7 +154,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
         <div class="u-grid u-cols-fit-240 u-gap-4">
             <div class="panel u-p-5">
-                <div class="u-t-24 u-mb-2">⏰</div>
+                <div class="u-t-24 u-mb-2"><?= icon('clock', 18) ?></div>
                 <h3 class="u-t-17 u-m-0-0-2">Every 5 minutes</h3>
                 <p class="u-muted u-m-0 u-t-15 u-lh-15">
                     A background job recalculates freshness for every active batch — so the
@@ -181,7 +181,7 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="panel u-p-5">
-                <div class="u-t-24 u-mb-2">⚠️</div>
+                <div class="u-t-24 u-mb-2"><?= icon('alert', 18) ?></div>
                 <h3 class="u-t-17 u-m-0-0-2">Expired = hidden</h3>
                 <p class="u-muted u-m-0 u-t-15 u-lh-15">
                     Expired batches are removed from the catalog automatically. Retailers

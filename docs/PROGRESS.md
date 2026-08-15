@@ -1,5 +1,19 @@
 # FreshMart redesign — progress
 
+### Standing rule: the second occurrence is the signal
+
+When the same class of defect appears twice, stop fixing the instance and find
+what they share. Both times this was ignored it cost several phases:
+
+- Headings flush to the viewport edge were fixed once as a container quirk,
+  once written off as a deliberate full-bleed, and only on the third occurrence
+  traced to `.u-page-head` using the `padding` shorthand — one Phase 1
+  de-inlining artefact cancelling the gutter on 7 pages from the last layer.
+- `[^>]*` matching past `?>` produced three separate regressions before it was
+  written down as a rule.
+
+Two occurrences means look for the shared cause, not the next instance.
+
 ### Standing rule: the spec describes the audit, not the code
 
 MASTER_IMPLEMENTATION_PROMPT_V2.md documents the state at the time it was

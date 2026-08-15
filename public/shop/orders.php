@@ -159,10 +159,10 @@ if ($orderId > 0) {
             <div class="refund-status-banner refund-status-<?= strtolower($openRefund['status']) ?>">
                 <?php
                 $statusText = [
-                    'REQUESTED' => '⏳ Refund requested — the seller is reviewing your request.',
-                    'ESCALATED' => '⏳ Refund escalated — an admin is making a final decision.',
-                    'APPROVED'  => '✓ Refund approved — ' . format_myr((float)$openRefund['amount']) . ' credited to your wallet.',
-                    'REJECTED'  => '✕ Refund declined.' . (!empty($openRefund['decision_note']) ? ' Reason: ' . e($openRefund['decision_note']) : ''),
+                    'REQUESTED' => icon('clock', 16) . ' Refund requested — the seller is reviewing your request.',
+                    'ESCALATED' => icon('clock', 16) . ' Refund escalated — an admin is making a final decision.',
+                    'APPROVED'  => icon('check', 16) . ' Refund approved — ' . format_myr((float)$openRefund['amount']) . ' credited to your wallet.',
+                    'REJECTED'  => icon('x', 16) . ' Refund declined.' . (!empty($openRefund['decision_note']) ? ' Reason: ' . e($openRefund['decision_note']) : ''),
                     'CANCELLED' => 'Refund request cancelled.',
                 ][$openRefund['status']] ?? $openRefund['status'];
                 echo $statusText;
