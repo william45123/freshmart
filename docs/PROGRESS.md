@@ -95,6 +95,8 @@ is uncommitted and why.
 | `93f1533` | Fix: empty `alt` on order item images (`$item['name']` → `product_name`) |
 | `d9d586c` | Fix: cron never withdrew a discount when a batch left LAST_CHANCE |
 | `349e696` | **F3** — expiry alerts link to `inventory.php?batch=`, with scroll + focus + non-colour highlight |
+| `3ddc30e` | **Phase 6 batch 1** — browse facets + sticky bar, product disclosures + gallery, cart steppers + swipe-remove; root-caused `.u-page-head` shorthand cancelling the gutter on 7 pages |
+| `dcd7a51` | **Phase 6 batch 2** — checkout zero-motion (§5.6) + collapsible sections, orders refund banners, freshness explainer; all batch-2 glyphs → `icon()` |
 | `8bc8e0d` | **(b)** checkout validates the delivery date against the earliest-expiring batch in the FEFO allocation |
 | `2f54a78` | **(a) DELIVERY_LEAD_DAYS** + **F4** two-state expiry alerts (sellable / past cut-off) with value at risk |
 | `c7ad174` | Fix: favicon `href` broken by an icon substitution; 26 stranded v4 hexes; `validate_markup.py` added |
