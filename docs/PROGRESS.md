@@ -57,6 +57,14 @@ is uncommitted and why.
 | `93f1533` | Fix: empty `alt` on order item images (`$item['name']` → `product_name`) |
 | `d9d586c` | Fix: cron never withdrew a discount when a batch left LAST_CHANCE |
 | `349e696` | **F3** — expiry alerts link to `inventory.php?batch=`, with scroll + focus + non-colour highlight |
+| `8bc8e0d` | **(b)** checkout validates the delivery date against the earliest-expiring batch in the FEFO allocation |
+| `2f54a78` | **(a) DELIVERY_LEAD_DAYS** + **F4** two-state expiry alerts (sellable / past cut-off) with value at risk |
+| `c7ad174` | Fix: favicon `href` broken by an icon substitution; 26 stranded v4 hexes; `validate_markup.py` added |
+| `b6b4bce` | **Phase 4** — breakpoints 24 → 3 canonical, `--gutter`, 48px touch targets, role-aware tab bar, full-screen mobile search, 14 tables → cards, 7 charts wrapped, filter bottom sheet |
+| `d506089` | **Phase 5a** — sticky buybar, freshness arc sparkline (§9.2), one product card + quick-add (§9.1), flash → toast, empty states, pagination |
+| `5af4b48` | Fix: hero reading order on mobile, tab-bar scroll clearance, quick-add on all 6 card sites |
+| `58dbb2e` | **Phase 5b chrome** — header 95px → 68px (no wrap, no overflow), drawer rebuilt as a 3-row grid with long-tail nav, button/form states, desktop table |
+| `6a51a48` | **Phase 5c footer** — `--canvas`, curve divider, 4 columns, real brand SVGs replacing `f ◎ ♪`, trust badges folded in. **§9 chrome complete** |
 | `aa95ef7` | (yours) local `APP_URL` — **do not overwrite**; the test harness now restores `config.php` via a trap |
 | `d601485` | **Phase 3** — v4 tokens re-pointed as aliases onto the new scale, self-hosted woff2 (C5), local Chart.js (C4), `icon()` 16 → 47 glyphs and 74 emoji removed (C8), C3 colour migration, focus rings, body 16px |
 
