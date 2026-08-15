@@ -1,5 +1,17 @@
 # FreshMart redesign — progress
 
+### Standing rule: never regex HTML tags in this codebase
+
+`[^>]*` stops at the `>` inside `<?= … ?>`, so any regex written to match a
+tag will silently match the wrong span. This has caused **three** regressions:
+the favicon `href` broken by an `icon()` substitution, a quick-add form placed
+outside its product loop, and a card conversion that matched nothing at all.
+
+Mask PHP regions first (`re.sub(r'<\?.*?\?>', …, flags=re.S)`) or use PHP's
+`token_get_all()`, then match `</tag>` by **tag balance**, never by regex. The
+same applies to any checker written to *verify* markup — the first duplicate-
+class detector shared the bug it was looking for and reported a clean pass.
+
 ### Standing rule: "verified" means looked at
 
 Any phase touching markup, CSS or templates is not done until the **rendered
