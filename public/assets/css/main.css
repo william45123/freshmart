@@ -121,15 +121,15 @@
   --font-display:"Archivo",system-ui,sans-serif;
   --font-sans:"Instrument Sans","Inter",system-ui,-apple-system,sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",monospace;
-  --t-display:clamp(3.5rem,10vw,9rem);  --t-h1:clamp(2.5rem,5.5vw,4.25rem);
-  --t-h2:clamp(1.875rem,3.4vw,2.75rem); --t-h3:clamp(1.375rem,2vw,1.75rem);
+  --t-display:clamp(2.5rem,0.33rem + 9.63vw,9rem);  --t-h1:clamp(1.75rem,0.92rem + 3.70vw,4.25rem);
+  --t-h2:clamp(1.375rem,0.92rem + 2.04vw,2.75rem); --t-h3:clamp(1.125rem,0.92rem + 0.93vw,1.75rem);
   --t-h4:1.125rem; --t-body-lg:1.0625rem; --t-body:1rem; --t-sm:.875rem;
-  --t-eyebrow:.6875rem; --t-data:.9375rem; --t-data-xl:clamp(2rem,4vw,3.25rem);
+  --t-eyebrow:.6875rem; --t-data:.9375rem; --t-data-xl:clamp(1.5rem,0.92rem + 2.59vw,3.25rem);
   /* Space */
   --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;
   --space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;
   --space-16:64px;--space-20:96px;--space-24:128px;--space-32:160px;
-  --section-y:clamp(4rem,9vw,8rem);
+  --section-y:clamp(2.5rem,0.67rem + 8.15vw,8rem);
   --container:1320px; --container-wide:1440px; --measure:68ch;
   /* Radius */
   --r-xs:6px;--r-sm:10px;--r-md:14px;--r-lg:20px;--r-xl:28px;--r-full:999px;
@@ -302,7 +302,7 @@
         margin: 0 auto;
         padding: 0 var(--space-6);
     }
-    .section { padding: var(--space-12) 0; }
+    .section { padding-block: var(--space-12); }
     .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-6); }
 }
 
@@ -2309,7 +2309,7 @@
 
     /* --- Breathing room (Thrive) --- */
     @media (min-width: 1024px) {
-        .section { padding: var(--space-16) 0; }
+        .section { padding-block: var(--space-16); }
         .product-grid-4 { gap: var(--space-6) var(--space-5); }
     }
     .section-header h2, .freshness-banner h2 { letter-spacing: -0.015em; }
@@ -2532,7 +2532,7 @@
        ============================================================ */
 
     /* ---- Circular category cards ---- */
-    .category-circles-section { padding: var(--space-10) 0 var(--space-4); }
+    .category-circles-section { padding-block: var(--space-10) var(--space-4); }
     .category-circles {
         display: grid;
         grid-template-columns: repeat(9, 1fr);
@@ -2711,7 +2711,7 @@
     /* ============================================================
        HERO POSTER BANNER (big top banner, eco style)
        ============================================================ */
-    .hero-poster-section { padding: var(--space-8) 0 var(--space-4); }
+    .hero-poster-section { padding-block: var(--space-8) var(--space-4); }
     .hero-poster {
         display: grid;
         grid-template-columns: 1.05fr 0.95fr;
@@ -2874,7 +2874,7 @@
        ============================================================ */
 
     /* ---- Trust badges strip ---- */
-    .trust-badges-section { padding: var(--space-4) 0 0; }
+    .trust-badges-section { padding-block: var(--space-4) 0; }
     .trust-badges {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -4201,10 +4201,12 @@
     main > div:not([class]) {
         padding-inline: var(--gutter);
     }
-    /* Nested containers must not double the gutter. */
-    .container .container,
-    .container-wide .container,
-    main > section > .container { padding-inline: 0; }
+    /* .container is the single owner of the horizontal gutter. Sections set
+       vertical rhythm only — see the padding-block conversions below — so a
+       nested container cannot double it and cannot be left with none.
+       Only a container directly inside another container needs zeroing. */
+    .container > .container,
+    .container-wide > .container { padding-inline: 0; }
     @media (min-width: 640px)  { :root { --gutter: 28px; } }
     @media (min-width: 1024px) { :root { --gutter: 40px; } }
 
@@ -4753,12 +4755,18 @@
        Was 95px at 1280 because "Last Chance" wrapped to two lines and
        the greeting to three, while the search box shrank to "Search
        fre:". One row, fixed height, nothing wraps. */
-    .site-header {
-        block-size: var(--header-h-mobile);
+    /* The flex row is .site-header > .container, not .site-header. Rules
+       written against the header itself had no row to lay out — the 1280
+       result that looked correct came from the legacy rules underneath. */
+    .site-header > .container {
         display: flex;
         align-items: center;
         gap: var(--space-3);
-        padding-inline: var(--gutter);
+        min-inline-size: 0;
+    }
+    .site-header > .container > * { min-inline-size: 0; }
+    .site-header {
+        block-size: var(--header-h-mobile);
         background: color-mix(in srgb, var(--color-surface) 88%, transparent);
         border-bottom: 1px solid var(--color-border);
         position: sticky;
@@ -4769,9 +4777,9 @@
         @media (min-width: 640px) { .site-header { backdrop-filter: blur(10px); } }
     }
     @media (min-width: 1024px) {
-        .site-header { block-size: var(--header-h); gap: var(--space-5); }
+        .site-header { block-size: var(--header-h); }
+        .site-header > .container { gap: var(--space-5); }
     }
-    .site-header > * { min-inline-size: 0; }
 
     .brand {
         font-family: var(--font-display);
@@ -5266,4 +5274,105 @@
     @media (min-width: 1024px) {
         .fresh-level-grid { grid-template-columns: repeat(4, 1fr); }
     }
+}
+
+@layer components {
+    /* ============================================================
+       PHASE 6 — MOBILE PROPORTION PASS
+       ============================================================ */
+
+    /* ---- Header: the row was wider than the viewport -------------
+       .nav-toggle sat 26px past the right edge on every page, and the
+       role-header CTA 40–58px past it on retailer/admin. The 48px
+       touch floor gave every action a hard minimum, and enough of them
+       in a nowrap row exceeded 360px. The row may now shrink, and the
+       brand truncates before anything is pushed off. */
+    .site-header { overflow: hidden; }
+    .brand { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+    .header-actions { min-inline-size: 0; flex-wrap: nowrap; }
+    .nav-toggle {
+        flex: 0 0 auto;
+        inline-size: 48px;
+        block-size: 48px;
+        display: grid;
+        place-items: center;
+        background: none;
+        border: 0;
+        font-size: 1.25rem;
+    }
+    /* Role headers put a CTA beside the actions; below the laptop
+       breakpoint the drawer carries it instead. */
+    @media (max-width: 1024px) {
+        .site-header .header-cta,
+        .header-admin .btn-primary,
+        .header-retailer .btn-primary { display: none; }
+    }
+
+    /* ---- Forms: never side-by-side below the tablet breakpoint ----
+       .form-row kept two fields in a row at 360, so PHONE, ADDRESS
+       LINE and POSTCODE were clipped past the right edge on checkout. */
+    .form-row,
+    .form-grid,
+    .form-row-2,
+    .form-row-3 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    @media (min-width: 640px) {
+        .form-row, .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .form-row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .form-row > *, .form-grid > * { min-inline-size: 0; }
+    .form-control { max-inline-size: 100%; }
+
+    /* Anything laid out in columns must be allowed to shrink, or a
+       long value pushes the whole row past the edge. */
+    .panel, .card, .cart-item, .order-row { min-inline-size: 0; }
+    .panel > *, .cart-item > * { min-inline-size: 0; }
+
+    /* ---- Category circles: 3-across was clipping the labels ------ */
+    .category-circles { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+    @media (min-width: 480px)  { .category-circles { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 640px)  { .category-circles { grid-template-columns: repeat(5, 1fr); } }
+    @media (min-width: 1024px) { .category-circles { grid-template-columns: repeat(9, 1fr); } }
+    .cat-circle-label {
+        font-size: var(--t-sm);
+        line-height: 1.25;
+        text-wrap: balance;
+        hyphens: auto;
+    }
+
+    /* ---- Carousel dots were 24px past the edge ------------------- */
+    .carousel-dots { flex-wrap: wrap; justify-content: center; max-inline-size: 100%; }
+
+    /* ---- Spacing: type came down, so padding follows -------------
+       Desktop-sized padding around smaller type read as cramped
+       content in a large box. */
+    .product-card-body { padding: var(--space-3); }
+    @media (min-width: 640px) { .product-card-body { padding: var(--space-4); } }
+    .panel { padding: var(--space-4); }
+    @media (min-width: 640px) { .panel { padding: var(--space-5); } }
+    .section-header { gap: var(--space-3); flex-wrap: wrap; }
+    .section-header h2 { margin: 0; min-inline-size: 0; }
+    .section-link { flex: none; white-space: nowrap; }
+}
+
+@layer utilities {
+    /* The u-cols-* utilities came from Phase 1 de-inlining, where they were
+       fixed desktop column counts written into a style attribute. At 360 a
+       two-column grid clipped checkout's Phone, Address and Postcode past the
+       right edge. They collapse to one column below the tablet breakpoint and
+       restore their column count above it — the shared cause behind the same
+       defect on several pages, rather than a per-page override. */
+    @media (max-width: 640px) {
+        .u-cols-2, .u-cols-3, .u-cols-2-1, .u-cols-1-auto,
+        .u-cols-3-auto, .u-cols-7, .u-cols-1-380, .u-cols-media {
+            grid-template-columns: 1fr;
+        }
+    }
+    /* Grid and flex children must be allowed to shrink below their content. */
+    .u-grid > *, .u-flex > * { min-inline-size: 0; }
+    .u-flex { flex-wrap: wrap; }
+    .u-nowrap { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
 }
