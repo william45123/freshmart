@@ -2,7 +2,7 @@
    FreshMart — main.css
    ------------------------------------------------------------
    Phase 1 architecture (§3 C2): one cascade layer order, no
-   !important, no tenth patch block. Sections keep their original
+   forced overrides, no tenth patch block. Sections keep their original
    source order — a layer may be opened repeatedly, and the cascade
    honours the declared order below, not block position.
 
@@ -17,6 +17,80 @@
 @layer tokens, base, components, pages, utilities;
 
 @layer tokens {
+/* ------------------------------------------------------------
+   C5 — self-hosted faces. Latin subsets, ~180KB total.
+   ------------------------------------------------------------ */
+@font-face {
+    font-family: "Archivo";
+    src: url("../fonts/archivo-latin-400-normal.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Archivo";
+    src: url("../fonts/archivo-latin-500-normal.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Archivo";
+    src: url("../fonts/archivo-latin-600-normal.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Archivo";
+    src: url("../fonts/archivo-latin-700-normal.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Instrument Sans";
+    src: url("../fonts/instrument-sans-latin-400-normal.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Instrument Sans";
+    src: url("../fonts/instrument-sans-latin-500-normal.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Instrument Sans";
+    src: url("../fonts/instrument-sans-latin-600-normal.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Instrument Sans";
+    src: url("../fonts/instrument-sans-latin-700-normal.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "IBM Plex Mono";
+    src: url("../fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "IBM Plex Mono";
+    src: url("../fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* ------------------------------------------------------------
    §6 DESIGN TOKENS — the target system. Installed in Phase 1 so
    every later phase has one place to draw from; applied from
@@ -89,79 +163,73 @@
 
 
 /* ------------------------------------------------------------
-   LEGACY BRIDGE — the v4 boutique tokens, kept so Phase 1 is a
-   pure structural change with no visual delta. Declared after the
-   block above so these values win wherever the two collide
-   (--header-h, --font-sans, --font-mono, --fresh-*, --space-*).
-   Phase 3 ("Visual foundation") deletes this block; nothing else
-   needs to change for the new scale to take over.
+   PHASE 3 — the v4 token names now alias the new scale rather than
+   carrying their own values. Every existing component reads
+   var(--color-*), so re-pointing here moves the whole site onto the
+   new palette, type and elevation without touching a single
+   component rule. Components get rebuilt in Phase 5; this is the
+   token change on its own.
+
+   These aliases are transitional. As each component is rebuilt it
+   should read the new token directly and stop using the old name.
    ------------------------------------------------------------ */
 :root {
-    /* === BRAND COLORS === */
-    --color-primary:        #4a5a3a;   /* Olive (CTA) */
-    --color-primary-dark:   #3a4a2a;
-    --color-primary-light:  #e8e0d0;   /* Warm beige (was bright green) */
-    --color-accent:         #b85c38;   /* Terracotta (Last Chance) */
-    --color-accent-light:   #f0e6dd;
+    /* Brand */
+    --color-primary:       var(--pine);
+    --color-primary-dark:  var(--pine-deep);
+    --color-primary-light: var(--pine-tint);
 
-    /* === FRESHNESS PALETTE (softer, earthy) === */
-    --fresh-very:    #4a5a3a;   /* Olive */
-    --fresh-ok:      #7a8467;   /* Sage muted */
-    --fresh-soon:    #c9a55a;   /* Mustard */
-    --fresh-last:    #b85c38;   /* Terracotta */
-    --fresh-expired: #8b2e1f;   /* Deep rust */
+    /* Accent: the v4 rust/mustard have no equivalent in the new
+       system, so they map onto the warm end of the freshness ink
+       ramp rather than inventing a colour outside it. */
+    --color-accent:        var(--fresh-last-ink);
+    --color-accent-light:  var(--fresh-last-tint);
+    --color-mustard:       var(--fresh-soon-ink);
 
-    /* === NEUTRALS — warm, paper-like === */
-    --color-bg:           #faf6ef;   /* Cream */
-    --color-bg-warm:      #f0eadc;   /* Warm beige (cards, sections) */
-    --color-surface:      #fdfaf3;
-    --color-surface-alt:  #f5efe2;
-    --color-border:       #e0d8c6;
-    --color-border-dark:  #c9bfa8;
-    --color-text:         #2a2a26;   /* Ink (not pure black) */
-    --color-text-muted:   #5a5a52;
-    --color-text-light:   #7a8467;   /* Sage muted */
-    --color-text-faint:   #a8a29e;
+    /* Surfaces */
+    --color-bg:            var(--paper);
+    --color-bg-warm:       var(--mist);
+    --color-surface:       var(--surface);
+    --color-surface-alt:   var(--surface-sunk);
+    --color-border:        var(--line);
+    --color-border-dark:   var(--line-strong);
 
-    /* === SEMANTIC === */
-    --color-success: #4a5a3a;
-    --color-warning: #c9a55a;
-    --color-danger:  #8b2e1f;
-    --color-info:    #5a6f7a;
+    /* Ink. v4 had three muted greys; the new scale has two, so
+       --color-text-light and --color-text-muted converge. */
+    --color-text:          var(--ink);
+    --color-text-muted:    var(--ink-muted);
+    --color-text-light:    var(--ink-muted);
+    --color-text-faint:    var(--ink-faint);
 
-    /* === TYPOGRAPHY === */
-    --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
-    --font-sans:  "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
-                  "Helvetica Neue", Arial, sans-serif;
-    --font-mono:  "SF Mono", Monaco, "Cascadia Code", monospace;
+    /* Semantic */
+    --color-success:       var(--success);
+    --color-warning:       var(--warning);
+    --color-danger:        var(--danger);
+    --color-info:          var(--info);
 
-    /* === SPACING === */
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    --space-10: 2.5rem;
-    --space-12: 3rem;
-    --space-16: 4rem;
+    /* Type. --font-sans and --font-mono are no longer redefined
+       here, so the values in the block above take effect. */
+    --font-serif:          var(--font-display);
 
-    /* === BORDERS — square-ish, boutique === */
-    --radius-sm: 2px;
-    --radius:    3px;
-    --radius-lg: 4px;
-    --radius-xl: 6px;
+    /* Radius. The new scale is considerably rounder, so each old
+       name maps one step down to keep the jump proportionate on
+       components that have not been rebuilt yet. --radius-md was
+       referenced by the markup but never defined in v4; it resolves
+       for the first time here. */
+    --radius-sm:           var(--r-xs);
+    --radius:              var(--r-sm);
+    --radius-md:           var(--r-md);
+    --radius-lg:           var(--r-md);
+    --radius-xl:           var(--r-lg);
 
-    /* No shadows — flat boutique aesthetic */
-    --shadow-sm: none;
-    --shadow:    none;
-    --shadow-md: 0 2px 8px rgba(74, 90, 58, 0.06);
-    --shadow-lg: 0 4px 16px rgba(74, 90, 58, 0.08);
+    /* Elevation ramp */
+    --shadow-sm:           var(--e-1);
+    --shadow:              var(--e-2);
+    --shadow-md:           var(--e-3);
+    --shadow-lg:           var(--e-4);
 
-    /* Layout */
-    --max-width: 1280px;
-    --header-h:  64px;
+    /* Layout. --header-h is no longer redefined here either. */
+    --max-width:           var(--container);
 }
 }
 
@@ -174,7 +242,7 @@
     body {
         margin: 0;
         font-family: var(--font-sans);
-        font-size: 15px;
+        font-size: var(--t-body);   /* 16px, up from 15px */
         line-height: 1.6;
         color: var(--color-text);
         background: var(--color-bg);
@@ -236,6 +304,25 @@
     }
     .section { padding: var(--space-12) 0; }
     .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-6); }
+}
+
+@layer base {
+    /* ------------------------------------------------------------
+       §10 — a visible focus ring on every interactive element.
+       :focus-visible only, so pointer users never see it while
+       keyboard users always do. Declared in `base` so a component
+       can still opt out deliberately rather than by accident.
+       ------------------------------------------------------------ */
+    :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+        outline: 2px solid var(--pine);
+        outline-offset: 2px;
+        border-radius: var(--r-xs);
+    }
+    /* On the dark retailer canvas the pine ring disappears into the
+       background, so the ring flips to the light ink there. */
+    .role-retailer :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+        outline-color: var(--on-canvas);
+    }
 }
 
 @layer components {
@@ -3696,8 +3783,8 @@
        Generated from the Phase 1 de-inlining pass: these carry the
        declarations that used to sit in 835 style="" attributes.
        Single-purpose and value-preserving — nothing here was
-       restyled, only relocated. Last layer, so it needs no
-       !important to win.
+       restyled, only relocated. Last layer, so it wins on layer
+       order alone.
        ============================================================ */
 
     /* ---- Colour ---- */
@@ -4001,7 +4088,7 @@
     /* ---- Motion guardrails (§8.3) ----
        Lifted out of the DESIGN PASS block. In the utilities layer it beats
        every hover rule in components and pages, so the reduced-motion reset
-       no longer needs !important to win a same-specificity tie. */
+       no longer needs a forced override to win a specificity tie. */
     @media (prefers-reduced-motion: reduce) {
         .reveal, .reveal.in { opacity: 1; transform: none; transition: none; }
         /*: this reset needs to reliably beat the ECO-REDESIGN

@@ -51,12 +51,15 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($pageTitle ?? 'FreshMart — Fresh Produce, Delivered') ?></title>
     <meta name="description" content="Malaysia's freshness-first online grocery — backed by FEFO inventory and a transparent Freshness Indicator.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- C5: fonts are self-hosted in public/assets/fonts. No CDN — this
+         project is demoed live and has to work with no network. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= asset('fonts/instrument-sans-latin-400-normal.woff2') ?>">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+          href="<?= asset('fonts/archivo-latin-700-normal.woff2') ?>">
     <link rel="stylesheet" href="<?= asset('css/main.css') ?>">
     <noscript><style>@layer utilities{.reveal{opacity:1;transform:none}}</style></noscript>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥬</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22><?= icon('leaf', 16) ?></text></svg>">
 </head>
 <body class="<?= $isAdmin ? 'role-admin' : ($isRetailer ? 'role-retailer' : 'role-customer') ?>">
 <header class="site-header <?= $isAdmin ? 'header-admin' : ($isRetailer ? 'header-retailer' : '') ?>">
@@ -141,7 +144,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                     <!-- Customer extras: wishlist + orders + wallet -->
                     <a href="<?= url('/wishlist.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="Wishlist"><?= icon('heart') ?></a>
                     <a href="<?= url('/shop/orders.php') ?>" class="btn btn-ghost btn-sm btn-icon" title="My orders"><?= icon('package') ?></a>
-                    <a href="<?= url('/wallet.php') ?>" class="btn btn-ghost btn-sm btn-icon nav-wallet" title="My wallet">💳</a>
+                    <a href="<?= url('/wallet.php') ?>" class="btn btn-ghost btn-sm btn-icon nav-wallet" title="My wallet"><?= icon('wallet', 16) ?></a>
                 <?php endif; ?>
 
                 <!-- Greeting + Profile link -->
@@ -214,7 +217,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         <?php if ($isCustomer): ?>
             <a href="<?= url('/wishlist.php') ?>"><?= icon('heart', 18) ?> Wishlist</a>
             <a href="<?= url('/shop/orders.php') ?>"><?= icon('package', 18) ?> My orders</a>
-            <a href="<?= url('/wallet.php') ?>">💳 My wallet</a>
+            <a href="<?= url('/wallet.php') ?>"><?= icon('wallet', 16) ?> My wallet</a>
         <?php endif; ?>
         <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>"><?= icon('user', 18) ?> <?= e(auth_name()) ?></a>
         <a class="btn btn-outline mobile-nav-cta" href="<?= url('/auth/logout.php') ?>">Logout</a>

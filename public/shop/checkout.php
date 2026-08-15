@@ -438,7 +438,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     <label class="u-block u-p-3 u-bordered-2-primary u-r u-pointer u-mb-2 u-bg-mint">
                         <input type="radio" name="payment_method" value="WALLET" class="u-mr-6px"
                                <?= $walletBalance <= 0 ? 'disabled' : '' ?>>
-                        💰 <strong>FreshMart Wallet</strong>
+                        <?= icon('coins', 16) ?> <strong>FreshMart Wallet</strong>
                         <span class="u-float-r u-fw-600 u-fg-primary">
                             Balance: <?= format_myr($walletBalance) ?>
                         </span>
@@ -451,10 +451,10 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="u-grid u-cols-fit-120 u-gap-2">
                         <?php foreach ([
                             'FPX'           => '🏦 FPX',
-                            'CREDIT_CARD'   => '💳 Card',
+                            'CREDIT_CARD'   => 'Card',
                             'EWALLET'       => '📱 E-Wallet',
                             'BANK_TRANSFER' => '🏧 Transfer',
-                            'COD'           => '💵 Cash on Delivery',
+                            'COD'           => 'Cash on Delivery',
                         ] as $code => $label): ?>
                             <label class="u-block u-p-3 u-bordered u-r u-pointer u-ta-c">
                                 <input type="radio" name="payment_method" value="<?= $code ?>"
@@ -464,14 +464,14 @@ require_once __DIR__ . '/../../includes/header.php';
                         <?php endforeach; ?>
                     </div>
                     <p class="u-muted u-t-13 u-mt-3 u-mb-0">
-                        💡 Payment is simulated — no real charge will be made.
+                        <?= icon('lightbulb', 16) ?> Payment is simulated — no real charge will be made.
                     </p>
                 </div>
 
                 <!-- FEFO Allocation Preview (the FYP demo highlight!) -->
                 <div class="u-bg-primary-lt u-bordered-primary u-r-lg u-p-5 u-mb-4">
                     <h3 class="u-mt-0 u-t-18 u-fg-primary-dk">
-                        📦 FEFO Allocation Preview
+                        <?= icon('package', 16) ?> FEFO Allocation Preview
                     </h3>
                     <p class="u-t-15 u-ink u-mb-3">
                         Your order will be fulfilled from these specific batches (earliest expiry first):
@@ -535,7 +535,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="u-mt-4 u-pt-4 u-bt-dashed">
                         <details <?= ($voucherCode !== '') ? 'open' : '' ?>>
                             <summary class="u-pointer u-t-14 u-fw-600 u-fg-primary-dk u-noselect">
-                                🎟️ Have a voucher code?
+                                <?= icon('ticket', 16) ?>️ Have a voucher code?
                             </summary>
                             <div class="u-flex u-gap-2 u-mt-3">
                                 <input type="text" name="voucher_code"

@@ -36,7 +36,7 @@ require_once __DIR__ . '/../includes/header.php';
                 </div>
             </div>
             <div class="hero-image u-bg-primary-lt">
-                <span class="hero-emoji">🥬</span>
+                <span class="hero-emoji"><?= icon('leaf', 16) ?></span>
             </div>
         </div>
     </div>
@@ -53,21 +53,21 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="u-grid u-cols-3 u-gap-6">
             <div class="level-card level-card-very u-p-5">
-                <div class="u-t-32 u-mb-2">📦</div>
+                <div class="u-t-32 u-mb-2"><?= icon('package', 16) ?></div>
                 <h3 class="u-m-0-0-2 u-t-18">FEFO Inventory</h3>
                 <p class="u-muted u-t-14 u-lh-16 u-m-0">
                     First-Expired-First-Out batch tracking. Customers always get the earliest-expiry items first, with full traceability per batch code.
                 </p>
             </div>
             <div class="level-card level-card-last u-p-5">
-                <div class="u-t-32 u-mb-2">💰</div>
+                <div class="u-t-32 u-mb-2"><?= icon('coins', 16) ?></div>
                 <h3 class="u-m-0-0-2 u-t-18">Auto-Discount</h3>
                 <p class="u-muted u-t-14 u-lh-16 u-m-0">
                     Items entering "Last Chance" (≤25% freshness) automatically get 15% off. No manual price changes. Move stock before it expires.
                 </p>
             </div>
             <div class="level-card level-card-info u-p-5">
-                <div class="u-t-32 u-mb-2">📊</div>
+                <div class="u-t-32 u-mb-2"><?= icon('chart', 16) ?></div>
                 <h3 class="u-m-0-0-2 u-t-18">Reports + CSV Export</h3>
                 <p class="u-muted u-t-14 u-lh-16 u-m-0">
                     Track units sold, revenue, conversion rate, and "saved from waste" KPI. Export to CSV for Excel. Filter by date range.

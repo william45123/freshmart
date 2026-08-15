@@ -128,7 +128,7 @@ require_once __DIR__ . '/../includes/header.php';
         <div class="impact-callout u-mt-4">
             <div class="impact-figure"><?= number_format($myKgRescued, 1) ?> kg</div>
             <div class="impact-text">
-                of food <strong>you&rsquo;ve rescued from waste</strong> by choosing Last Chance items. 🌱
+                of food <strong>you&rsquo;ve rescued from waste</strong> by choosing Last Chance items. <?= icon('leaf', 16) ?>
             </div>
         </div>
     <?php endif; ?>
@@ -156,7 +156,7 @@ require_once __DIR__ . '/../includes/header.php';
 
     <?php if (empty($addresses)): ?>
         <div class="empty-state u-p-6">
-            📍 No saved addresses. Add one below.
+            <?= icon('pin', 16) ?> No saved addresses. Add one below.
         </div>
     <?php else: ?>
         <div class="u-flex u-col u-gap-3 u-mb-6">

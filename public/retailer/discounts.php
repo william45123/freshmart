@@ -166,7 +166,7 @@ retailer_layout_start('discounts', 'Freshness Discounts');
         </table>
 
         <p class="u-muted u-t-13 u-mt-2">
-            💡 Tip: A common strategy is to leave Very Fresh and Fresh at 0%, and only discount
+            <?= icon('lightbulb', 16) ?> Tip: A common strategy is to leave Very Fresh and Fresh at 0%, and only discount
             Enjoy Soon and Last Chance items to move stock before it expires.
         </p>
 

@@ -187,7 +187,7 @@ retailer_layout_start('reports', 'Product Performance Report');
         <div class="kpi-value u-fg-accent">−<?= format_myr($totalCommission) ?></div>
     </div>
     <div class="kpi-card u-bg-credit u-bc-credit">
-        <div class="kpi-label">💰 Your Net Payout</div>
+        <div class="kpi-label"><?= icon('coins', 16) ?> Your Net Payout</div>
         <div class="kpi-value u-fg-credit"><?= format_myr($totalPayout) ?></div>
     </div>
     <div class="kpi-card">
@@ -199,7 +199,7 @@ retailer_layout_start('reports', 'Product Performance Report');
         <div class="kpi-value"><?= number_format($totalOrders) ?></div>
     </div>
     <div class="kpi-card u-bg-primary-lt u-bc-primary">
-        <div class="kpi-label">🌱 Saved from Waste</div>
+        <div class="kpi-label"><?= icon('leaf', 16) ?> Saved from Waste</div>
         <div class="kpi-value u-fg-primary-dk">
             <?= number_format($totalSaved, 2) ?> units
         </div>
@@ -250,7 +250,7 @@ retailer_layout_start('reports', 'Product Performance Report');
                 <th class="u-ta-r">Stock</th>
                 <th class="u-ta-r">Views</th>
                 <th class="u-ta-r">Conv. Rate</th>
-                <th class="u-ta-r">🌱 Saved</th>
+                <th class="u-ta-r"><?= icon('leaf', 16) ?> Saved</th>
             </tr>
         </thead>
         <tbody>
@@ -281,7 +281,7 @@ retailer_layout_start('reports', 'Product Performance Report');
 <?php endif; ?>
 
 <p class="u-mt-4 u-t-13 u-muted">
-    📊 "Saved from waste" counts units sold while the batch was in Last Chance status —
+    <?= icon('chart', 16) ?> "Saved from waste" counts units sold while the batch was in Last Chance status —
     these would likely have expired and been thrown away otherwise.
 </p>
 

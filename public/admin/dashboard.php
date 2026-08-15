@@ -268,7 +268,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
         <?php endif; ?>
         <?php if ($pendingReviews > 0): ?>
             <a href="<?= url('/admin/reviews.php?filter=pending') ?>" class="action-card action-card-warn">
-                <div class="action-icon">⭐</div>
+                <div class="action-icon"><?= icon('star', 16) ?></div>
                 <div class="action-body">
                     <div class="action-count"><?= $pendingReviews ?></div>
                     <div class="action-label">Review<?= $pendingReviews === 1 ? '' : 's' ?> awaiting moderation</div>
@@ -402,7 +402,7 @@ admin_layout_start('dashboard', 'Platform Dashboard');
     </p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="<?= asset('js/chart.umd.min.js') ?>"></script>
 <script>
 const series   = <?= json_encode($series) ?>;
 const byStatus = <?= json_encode($ordersByStatus) ?>;

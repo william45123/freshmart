@@ -89,10 +89,10 @@ require_once __DIR__ . '/../../includes/header.php';
             <div class="role-toggle">
                 <input type="radio" id="role-customer" name="role" value="CUSTOMER"
                     <?= $preselect === 'CUSTOMER' ? 'checked' : '' ?>>
-                <label for="role-customer">🛒 Customer</label>
+                <label for="role-customer"><?= icon('cart', 16) ?> Customer</label>
                 <input type="radio" id="role-retailer" name="role" value="RETAILER"
                     <?= $preselect === 'RETAILER' ? 'checked' : '' ?>>
-                <label for="role-retailer">🥬 Retailer</label>
+                <label for="role-retailer"><?= icon('leaf', 16) ?> Retailer</label>
             </div>
 
             <div class="form-group">

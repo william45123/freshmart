@@ -62,7 +62,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     <?php if (!empty($item['primary_image'])): ?>
                         <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" class="media-fill">
                     <?php else: ?>
-                        🥬
+                        <?= icon('leaf', 16) ?>
                     <?php endif; ?>
                 </div>
                 <div>
@@ -93,7 +93,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <div class="u-grid u-cols-2 u-gap-4 u-mb-6">
         <div class="panel u-p-5">
-            <h3 class="u-mt-0 u-t-16">📍 Shipping to</h3>
+            <h3 class="u-mt-0 u-t-16"><?= icon('pin', 16) ?> Shipping to</h3>
             <p class="u-m-0 u-t-15 u-muted">
                 <strong class="u-ink"><?= e($order['recipient_name']) ?></strong><br>
                 <?= e($order['line1']) ?><br>
@@ -101,7 +101,7 @@ require_once __DIR__ . '/../../includes/header.php';
             </p>
         </div>
         <div class="panel u-p-5">
-            <h3 class="u-mt-0 u-t-16">📦 Tracking</h3>
+            <h3 class="u-mt-0 u-t-16"><?= icon('package', 16) ?> Tracking</h3>
             <p class="u-m-0 u-t-15 u-muted">
                 <strong class="u-ink"><?= e($order['tracking_number']) ?></strong><br>
                 <?= e($order['payment_method']) ?> · <?= e($order['transaction_ref']) ?><br>

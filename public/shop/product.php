@@ -232,7 +232,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
             <div class="u-t-13 u-muted u-mb-2">
                 <?= e($product['retailer_name']) ?>
                 <?php if (!empty($product['origin'])): ?>
-                    · 📍 <?= e($product['origin']) ?>
+                    · <?= icon('pin', 16) ?> <?= e($product['origin']) ?>
                 <?php endif; ?>
             </div>
             <h1 class="u-mb-3"><?= e($product['name']) ?></h1>
@@ -395,7 +395,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
             <?php if ($canReview): ?>
                 <a href="<?= url('/shop/review.php?product_id=' . $product['id']) ?>"
                    class="btn btn-primary btn-sm">
-                    ✏️ Write a Review
+                    <?= icon('edit', 16) ?> Write a Review
                 </a>
             <?php endif; ?>
         </div>
@@ -424,7 +424,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
                     <?php if (!empty($r['reply_body'])): ?>
                         <div class="u-mt-3 u-ml-4 u-p-3 u-bg-primary-lt u-bl-primary u-r">
                             <div class="u-t-11 u-ls-10 u-upper u-fg-primary-dk u-fw-600 u-mb-1">
-                                🏢 <?= e($r['retailer_name'] ?? 'Seller') ?> replied · <?= format_date($r['reply_at']) ?>
+                                <?= icon('store', 16) ?> <?= e($r['retailer_name'] ?? 'Seller') ?> replied · <?= format_date($r['reply_at']) ?>
                             </div>
                             <p class="u-m-0 u-ink u-lh-15 u-t-15"><?= nl2br(e($r['reply_body'])) ?></p>
                         </div>
@@ -446,7 +446,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
                         <?php if (!empty($rv['primary_image'])): ?>
                             <img src="<?= upload_url($rv['primary_image']) ?>" alt="<?= attr($rv['name']) ?>" loading="lazy" class="media-fill">
                         <?php else: ?>
-                            <span>🥬</span>
+                            <span><?= icon('leaf', 16) ?></span>
                         <?php endif; ?>
                         <?php if (!empty($rv['expiry_date'])): ?>
                             <?= freshness_badge_html($rv['freshness_level'], $rv['days_remaining']) ?>
@@ -480,7 +480,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
                         <?php if (!empty($r['primary_image'])): ?>
                             <img src="<?= upload_url($r['primary_image']) ?>" alt="<?= attr($r['name']) ?>" loading="lazy" class="media-fill">
                         <?php else: ?>
-                            <span>🥬</span>
+                            <span><?= icon('leaf', 16) ?></span>
                         <?php endif; ?>
                     </div>
                     <div class="product-card-body">
@@ -497,7 +497,7 @@ $ld = array_filter($ld, fn($v) => $v !== null && $v !== '');
 </section>
 
 <?php if (!empty($forecast)): ?>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="<?= asset('js/chart.umd.min.js') ?>"></script>
 <script>
 (function () {
     var canvas = document.getElementById('freshnessChart');

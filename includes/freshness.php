@@ -30,7 +30,7 @@
  *   FRESH        50-75%  Lime    #84cc16
  *   ENJOY_SOON   25-50%  Yellow  #eab308
  *   LAST_CHANCE  < 25%   Orange  #ea580c   (auto-discount 15%)
- *   EXPIRED      <= 0    Red     #dc2626   (hidden from catalog)
+ *   EXPIRED      <= 0    Red     #B3341F   (hidden from catalog)
  */
 
 require_once __DIR__ . '/db.php';
@@ -145,7 +145,7 @@ function freshness_config(): array
     }
     $cache['EXPIRED'] = [
         'level_name'        => 'EXPIRED',
-        'color_hex'         => '#dc2626',
+        'color_hex'         => '#B3341F',
         'label_en'          => 'Expired',
         'auto_discount_pct' => 0.00,
         'alert_retailer'    => true,

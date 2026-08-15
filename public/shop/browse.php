@@ -247,7 +247,7 @@ function url_with($overrides = []): string {
 
         <h3 class="u-t-12 u-upper u-ls-05 u-muted u-mb-3">Freshness</h3>
         <div class="u-flex u-col u-gap-1">
-            <?php foreach (['' => 'Any', 'VERY_FRESH' => 'Very Fresh', 'FRESH' => 'Fresh', 'ENJOY_SOON' => 'Enjoy Soon', 'LAST_CHANCE' => 'Last Chance 🔥'] as $key => $label): ?>
+            <?php foreach (['' => 'Any', 'VERY_FRESH' => 'Very Fresh', 'FRESH' => 'Fresh', 'ENJOY_SOON' => 'Enjoy Soon', 'LAST_CHANCE' => 'Last Chance'] as $key => $label): ?>
                 <a href="<?= url_with(['freshness' => $key ?: null, 'page' => null]) ?>"
                    class="facet-link<?= $freshness === $key ? ' is-active' : '' ?>">
                     <?= e($label) ?>

@@ -169,7 +169,7 @@ retailer_layout_start('dashboard', 'Dashboard');
 <div class="panel u-maxw-380 u-p-5">
     <canvas id="freshMixChart" height="220"></canvas>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="<?= asset('js/chart.umd.min.js') ?>"></script>
 <script>
 new Chart(document.getElementById('freshMixChart'), {
     type: 'doughnut',

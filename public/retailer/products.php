@@ -190,7 +190,7 @@ retailer_layout_start('products', 'My Products');
             <p class="u-t-17">No products match your filters.</p>
             <a href="<?= url('/retailer/products.php') ?>" class="btn btn-secondary btn-sm">Clear filters</a>
         <?php else: ?>
-            <p class="u-t-17">📦 No products yet.</p>
+            <p class="u-t-17"><?= icon('package', 16) ?> No products yet.</p>
             <a href="<?= url('/retailer/product_edit.php') ?>" class="btn btn-primary u-mt-2">
                 Add your first product
             </a>
@@ -224,7 +224,7 @@ retailer_layout_start('products', 'My Products');
                                 <img src="<?= upload_url($p['primary_image']) ?>" alt="<?= attr($p['name']) ?>"
                                      class="media-fill">
                             <?php else: ?>
-                                <span class="u-t-20">🥬</span>
+                                <span class="u-t-20"><?= icon('leaf', 16) ?></span>
                             <?php endif; ?>
                         </div>
                     </td>
@@ -284,7 +284,7 @@ retailer_layout_start('products', 'My Products');
                                 <button type="submit" class="btn btn-ghost btn-sm u-fg-danger"
                                        
                                         onclick="return confirm('Delete <?= attr($p['name']) ?>? This can be undone by contacting admin.')">
-                                    🗑
+                                    <?= icon('trash', 16) ?>
                                 </button>
                             </form>
                         </div>

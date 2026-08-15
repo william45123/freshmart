@@ -163,7 +163,7 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="panel u-p-5">
-                <div class="u-t-24 u-mb-2">📉</div>
+                <div class="u-t-24 u-mb-2"><?= icon('chart', 16) ?></div>
                 <h3 class="u-t-17 u-m-0-0-2">Last Chance = -15%</h3>
                 <p class="u-muted u-m-0 u-t-15 u-lh-15">
                     Items entering the Last Chance tier automatically get a 15% discount —
@@ -172,7 +172,7 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="panel u-p-5">
-                <div class="u-t-24 u-mb-2">🥬</div>
+                <div class="u-t-24 u-mb-2"><?= icon('leaf', 16) ?></div>
                 <h3 class="u-t-17 u-m-0-0-2">FEFO sells first</h3>
                 <p class="u-muted u-m-0 u-t-15 u-lh-15">
                     When you check out, the system picks the batch with the earliest expiry —

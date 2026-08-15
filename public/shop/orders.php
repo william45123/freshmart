@@ -133,7 +133,7 @@ if ($orderId > 0) {
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="reorder">
                 <input type="hidden" name="order_id" value="<?= $order['id'] ?>">
-                <button type="submit" class="btn btn-secondary btn-sm">🔄 Reorder</button>
+                <button type="submit" class="btn btn-secondary btn-sm"><?= icon('refresh', 16) ?> Reorder</button>
             </form>
         </div>
         <p class="u-muted">
@@ -312,7 +312,7 @@ if ($orderId > 0) {
                         <?php if (!empty($item['primary_image'])): ?>
                             <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['product_name']) ?>" loading="lazy" class="media-fill">
                         <?php else: ?>
-                            🥬
+                            <?= icon('leaf', 16) ?>
                         <?php endif; ?>
                     </div>
                     <div>
@@ -351,7 +351,7 @@ if ($orderId > 0) {
 
         <div class="u-grid u-cols-2 u-gap-4">
             <div class="panel u-p-4">
-                <h4 class="u-mt-0 u-t-15">📍 Delivery</h4>
+                <h4 class="u-mt-0 u-t-15"><?= icon('pin', 16) ?> Delivery</h4>
                 <p class="u-m-0 u-t-14 u-muted">
                     <?= e($order['recipient_name']) ?><br>
                     <?= e($order['line1']) ?><br>
@@ -364,7 +364,7 @@ if ($orderId > 0) {
                 <?php endif; ?>
             </div>
             <div class="panel u-p-4">
-                <h4 class="u-mt-0 u-t-15">💳 Payment</h4>
+                <h4 class="u-mt-0 u-t-15"><?= icon('wallet', 16) ?> Payment</h4>
                 <p class="u-m-0 u-t-14 u-muted">
                     <?= e($order['payment_method']) ?> · <?= e($order['payment_status']) ?><br>
                     Ref: <code><?= e($order['transaction_ref']) ?></code>
@@ -397,7 +397,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <?php if (empty($orders)): ?>
         <div class="empty-state u-mt-6">
-            <p class="u-t-17">📦 No orders yet</p>
+            <p class="u-t-17"><?= icon('package', 16) ?> No orders yet</p>
             <a href="<?= url('/shop/browse.php') ?>" class="btn btn-primary u-mt-3">Browse products</a>
         </div>
     <?php else: ?>

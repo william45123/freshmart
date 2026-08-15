@@ -33,9 +33,9 @@
         <div class="footer-col">
             <h4>Contact</h4>
             <ul class="footer-contact">
-                <li>📧 hello@freshmart.my</li>
-                <li>📞 +60 3-8888 1234</li>
-                <li>📍 Cyberjaya, Selangor,<br>&nbsp;&nbsp;&nbsp;&nbsp;Malaysia</li>
+                <li><?= icon('mail', 16) ?> hello@freshmart.my</li>
+                <li><?= icon('phone', 16) ?> +60 3-8888 1234</li>
+                <li><?= icon('pin', 16) ?> Cyberjaya, Selangor,<br>&nbsp;&nbsp;&nbsp;&nbsp;Malaysia</li>
             </ul>
         </div>
     </div>

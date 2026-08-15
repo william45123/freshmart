@@ -71,7 +71,7 @@ require_once __DIR__ . '/../includes/header.php';
                     <button type="submit" class="btn btn-primary btn-sm">Top up</button>
                 </div>
             </form>
-            <p class="wallet-topup-note">💡 Payment is simulated for this demo — top-up adds to your balance instantly.</p>
+            <p class="wallet-topup-note"><?= icon('lightbulb', 16) ?> Payment is simulated for this demo — top-up adds to your balance instantly.</p>
         </div>
 
         <!-- Transactions -->
@@ -79,7 +79,7 @@ require_once __DIR__ . '/../includes/header.php';
 
         <?php if (empty($transactions)): ?>
             <div class="empty-state u-p-10-6">
-                <div class="empty-state-icon">💳</div>
+                <div class="empty-state-icon"><?= icon('wallet', 16) ?></div>
                 <div class="empty-state-title">No transactions yet</div>
                 <div class="empty-state-text">When you receive a refund or cancel an order, it'll show up here.</div>
             </div>

@@ -182,7 +182,7 @@ retailer_layout_start('inventory', 'Inventory · FEFO Batches', $action);
 
 <?php if (empty($batches)): ?>
     <div class="empty-state">
-        🥬 No batches yet. Add your first stock batch below.
+        <?= icon('leaf', 16) ?> No batches yet. Add your first stock batch below.
     </div>
 <?php else: ?>
     <table class="data-table">

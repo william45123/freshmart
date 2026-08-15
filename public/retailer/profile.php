@@ -188,7 +188,7 @@ retailer_layout_start('profile', 'My Profile');
         </div>
     </div>
 
-    <h3 class="u-t-17 u-m-5-0-4">🏢 Business info</h3>
+    <h3 class="u-t-17 u-m-5-0-4"><?= icon('store', 16) ?> Business info</h3>
 
     <div class="form-group">
         <label>Company name *</label>
@@ -224,7 +224,7 @@ retailer_layout_start('profile', 'My Profile');
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="change_password">
 
-    <h3 class="u-mt-0 u-t-17 u-mb-4">🔒 Change password</h3>
+    <h3 class="u-mt-0 u-t-17 u-mb-4"><?= icon('lock', 16) ?> Change password</h3>
 
     <div class="form-group">
         <label>Current password *</label>

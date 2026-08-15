@@ -182,7 +182,7 @@ if ($orderId > 0) {
                 </p>
             </div>
             <div class="panel u-p-4">
-                <h4 class="u-mt-0 u-t-15">📍 Delivery</h4>
+                <h4 class="u-mt-0 u-t-15"><?= icon('pin', 16) ?> Delivery</h4>
                 <p class="u-m-0 u-t-14 u-muted">
                     <?= e($order['recipient_name']) ?><br>
                     <?= e($order['line1']) ?><br>
@@ -193,7 +193,7 @@ if ($orderId > 0) {
                 </p>
             </div>
             <div class="panel u-p-4">
-                <h4 class="u-mt-0 u-t-15">💳 Payment</h4>
+                <h4 class="u-mt-0 u-t-15"><?= icon('wallet', 16) ?> Payment</h4>
                 <p class="u-m-0 u-t-14 u-muted">
                     <?= e($order['payment_method'] ?? '—') ?> · <?= e($order['payment_status'] ?? '—') ?><br>
                     <?php if (!empty($order['transaction_ref'])): ?>Ref: <code><?= e($order['transaction_ref']) ?></code><?php endif; ?>
@@ -318,7 +318,7 @@ admin_layout_start('orders', 'All Orders');
 </div>
 
 <?php if (empty($orders)): ?>
-    <div class="empty-state">📦 No orders found.</div>
+    <div class="empty-state"><?= icon('package', 16) ?> No orders found.</div>
 <?php else: ?>
     <table class="data-table">
         <thead>

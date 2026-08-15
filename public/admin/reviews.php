@@ -143,7 +143,7 @@ admin_layout_start('reviews', 'Review Moderation');
 
 <?php if (empty($reviews)): ?>
     <div class="empty-state">
-        <p class="u-t-17">⭐ No reviews in this filter.</p>
+        <p class="u-t-17"><?= icon('star', 16) ?> No reviews in this filter.</p>
     </div>
 <?php else: ?>
     <div class="u-flex u-col u-gap-3 u-maxw-900">
@@ -208,7 +208,7 @@ admin_layout_start('reviews', 'Review Moderation');
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="review_id" value="<?= $r['id'] ?>">
                             <input type="hidden" name="filter" value="<?= attr($filter) ?>">
-                            <button type="submit" class="btn btn-ghost btn-sm u-w-full u-fg-danger">🗑 Delete</button>
+                            <button type="submit" class="btn btn-ghost btn-sm u-w-full u-fg-danger"><?= icon('trash', 16) ?> Delete</button>
                         </form>
                     </div>
                 </div>

@@ -103,14 +103,14 @@ n = category decay exponent</pre>
                 </p>
             </div>
             <div class="panel u-p-5">
-                <h3 class="u-t-17 u-mb-2">📉 Last chance = -15%</h3>
+                <h3 class="u-t-17 u-mb-2"><?= icon('chart', 16) ?> Last chance = -15%</h3>
                 <p class="u-muted u-m-0">
                     Items entering the <em>Last Chance</em> tier automatically get a 15% discount
                     to help them sell before they expire.
                 </p>
             </div>
             <div class="panel u-p-5">
-                <h3 class="u-t-17 u-mb-2">🥬 FEFO sells first</h3>
+                <h3 class="u-t-17 u-mb-2"><?= icon('leaf', 16) ?> FEFO sells first</h3>
                 <p class="u-muted u-m-0">
                     When you check out, the system picks the batch with the earliest expiry —
                     First-Expired-First-Out — to minimise waste.

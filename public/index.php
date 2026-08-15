@@ -245,7 +245,7 @@ function fresh_color($level) {
                 <div class="stat-value"><?= number_format($stats['products']) ?></div>
             </div>
             <div class="stat-item highlight">
-                <div class="stat-label">🌱 Saved from waste</div>
+                <div class="stat-label"><?= icon('leaf', 16) ?> Saved from waste</div>
                 <div class="stat-value"><?= number_format($stats['saved_kg'], 0) ?> <span class="stat-unit">items</span></div>
             </div>
             <div class="stat-item">
@@ -265,7 +265,7 @@ function fresh_color($level) {
     <div class="container">
         <div class="hero-poster">
             <div class="hero-poster-text">
-                <div class="hero-poster-eyebrow">🌿 Farm fresh, delivered</div>
+                <div class="hero-poster-eyebrow"><?= icon('leaf', 16) ?> Farm fresh, delivered</div>
                 <h1 class="hero-poster-title">
                     Fresh produce,<br><span class="scribble">honest freshness.</span>
                 </h1>
@@ -318,28 +318,28 @@ function fresh_color($level) {
     <div class="container">
         <div class="trust-badges">
             <div class="trust-badge">
-                <span class="trust-badge-icon">🚚</span>
+                <span class="trust-badge-icon"><?= icon('truck', 16) ?></span>
                 <div class="trust-badge-text">
                     <div class="trust-badge-title">Free delivery over RM50</div>
                     <div class="trust-badge-sub">On all orders</div>
                 </div>
             </div>
             <div class="trust-badge">
-                <span class="trust-badge-icon">🌿</span>
+                <span class="trust-badge-icon"><?= icon('leaf', 16) ?></span>
                 <div class="trust-badge-text">
                     <div class="trust-badge-title">Farm fresh daily</div>
                     <div class="trust-badge-sub">Sourced locally</div>
                 </div>
             </div>
             <div class="trust-badge">
-                <span class="trust-badge-icon">♻️</span>
+                <span class="trust-badge-icon"><?= icon('recycle', 16) ?></span>
                 <div class="trust-badge-text">
                     <div class="trust-badge-title">Zero-waste mission</div>
                     <div class="trust-badge-sub">Last Chance deals</div>
                 </div>
             </div>
             <div class="trust-badge">
-                <span class="trust-badge-icon">🔒</span>
+                <span class="trust-badge-icon"><?= icon('lock', 16) ?></span>
                 <div class="trust-badge-text">
                     <div class="trust-badge-title">Secure checkout</div>
                     <div class="trust-badge-sub">Safe & encrypted</div>
@@ -375,7 +375,7 @@ function fresh_color($level) {
             <?php if ($stats['last_chance'] > 0): ?>
                 <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="cat-circle cat-circle-alert">
                     <div class="cat-circle-img">
-                        <span class="cat-circle-emoji">🔥</span>
+                        <span class="cat-circle-emoji"><?= icon('flame', 16) ?></span>
                     </div>
                     <div class="cat-circle-name">Last Chance</div>
                     <div class="cat-circle-count"><?= $stats['last_chance'] ?> deals</div>
@@ -390,7 +390,7 @@ function fresh_color($level) {
     <div class="container">
         <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>" class="lc-promo">
             <div class="lc-promo-content">
-                <div class="lc-promo-kicker">🔥 Last Chance</div>
+                <div class="lc-promo-kicker"><?= icon('flame', 16) ?> Last Chance</div>
                 <div class="lc-promo-title">15% off — or more</div>
                 <div class="lc-promo-sub">
                     Every item near its best-before date is automatically discounted.
@@ -410,7 +410,7 @@ function fresh_color($level) {
             <div class="u-flex u-ai-baseline u-jc-between u-mb-4 u-wrap u-gap-2">
                 <div>
                     <div class="banner-eyebrow">Grab a deal</div>
-                    <h2 class="u-m-1-0-0 u-t-22">🎟️ Vouchers you can use</h2>
+                    <h2 class="u-m-1-0-0 u-t-22"><?= icon('ticket', 16) ?>️ Vouchers you can use</h2>
                 </div>
                 <span class="u-t-13 u-muted">
                     Copy a code, then paste it at checkout
@@ -608,7 +608,7 @@ function fresh_color($level) {
                         <?php if (!empty($rv['primary_image'])): ?>
                             <img src="<?= upload_url($rv['primary_image']) ?>" alt="<?= attr($rv['name']) ?>" loading="lazy">
                         <?php else: ?>
-                            <span class="product-emoji">🛒</span>
+                            <span class="product-emoji"><?= icon('cart', 16) ?></span>
                         <?php endif; ?>
                     </div>
                     <div class="product-card-body">
@@ -677,14 +677,14 @@ function fresh_color($level) {
     <div class="container">
         <div class="service-banners">
             <div class="service-banner service-banner-green">
-                <div class="service-banner-icon">🚚</div>
+                <div class="service-banner-icon"><?= icon('truck', 16) ?></div>
                 <div class="service-banner-text">
                     <div class="service-banner-title">Free shipping above RM50</div>
                     <div class="service-banner-sub">Stock up and save — delivery's on us over RM50.</div>
                 </div>
             </div>
             <div class="service-banner service-banner-cream">
-                <div class="service-banner-icon">📅</div>
+                <div class="service-banner-icon"><?= icon('calendar', 16) ?></div>
                 <div class="service-banner-text">
                     <div class="service-banner-title">Choose your delivery date</div>
                     <div class="service-banner-sub">Pick the day that suits you — freshness planned around it.</div>

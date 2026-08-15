@@ -167,7 +167,7 @@ retailer_layout_start('reviews', 'Customer Reviews');
 
 <?php if (empty($reviews)): ?>
     <div class="empty-state">
-        <p class="u-t-17">⭐ No reviews in this filter yet.</p>
+        <p class="u-t-17"><?= icon('star', 16) ?> No reviews in this filter yet.</p>
     </div>
 <?php else: ?>
     <div class="u-flex u-col u-gap-3 u-maxw-800">
@@ -201,7 +201,7 @@ retailer_layout_start('reviews', 'Customer Reviews');
                 <?php if (!empty($r['reply_id'])): ?>
                     <div class="u-mt-3 u-p-3 u-bg-primary-lt u-bl-primary u-r">
                         <div class="u-t-11 u-ls-10 u-upper u-fg-primary-dk u-fw-600 u-mb-1">
-                            🏢 Your reply · <?= format_datetime($r['reply_at'], 'd M Y') ?>
+                            <?= icon('store', 16) ?> Your reply · <?= format_datetime($r['reply_at'], 'd M Y') ?>
                         </div>
                         <p class="u-m-0 u-ink u-lh-15"><?= nl2br(e($r['reply_body'])) ?></p>
                     </div>
@@ -210,7 +210,7 @@ retailer_layout_start('reviews', 'Customer Reviews');
                 <!-- Reply form -->
                 <details class="u-mt-3" <?= $autoOpen ? 'open' : '' ?>>
                     <summary class="u-pointer u-t-14 u-fw-600 u-fg-primary-dk">
-                        <?= !empty($r['reply_id']) ? '✏️ Edit reply' : '💬 Reply to this review' ?>
+                        <?= !empty($r['reply_id']) ? 'Edit reply' : 'Reply to this review' ?>
                     </summary>
                     <form method="post" class="u-mt-3">
                         <?= csrf_field() ?>

@@ -165,7 +165,7 @@ retailer_layout_start('orders', 'Orders');
 
 <?php if (empty($orders)): ?>
     <div class="empty-state">
-        📦 No orders yet.
+        <?= icon('package', 16) ?> No orders yet.
     </div>
 <?php else: ?>
     <table class="data-table">

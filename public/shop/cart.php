@@ -70,7 +70,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <?php if ($cart['count'] === 0): ?>
         <div class="empty-state">
-            <div class="empty-state-icon">🛒</div>
+            <div class="empty-state-icon"><?= icon('cart', 16) ?></div>
             <div class="empty-state-title">Your cart is empty</div>
             <div class="empty-state-text">Looks like you haven't added anything yet. Explore our fresh produce and Last Chance deals.</div>
             <a href="<?= url('/shop/browse.php') ?>" class="btn btn-primary btn-lg">Browse products</a>
@@ -88,7 +88,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <?php if (!empty($item['primary_image'])): ?>
                                 <img src="<?= upload_url($item['primary_image']) ?>" alt="<?= attr($item['name']) ?>" loading="lazy" class="media-fill">
                             <?php else: ?>
-                                <span class="u-t-32">🥬</span>
+                                <span class="u-t-32"><?= icon('leaf', 16) ?></span>
                             <?php endif; ?>
                         </a>
 
@@ -99,7 +99,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             </a>
                             <?php if (!empty($item['origin'])): ?>
                                 <div class="u-muted u-t-13 u-mb-2">
-                                    📍 <?= e($item['origin']) ?>
+                                    <?= icon('pin', 16) ?> <?= e($item['origin']) ?>
                                 </div>
                             <?php endif; ?>
                             <div class="u-muted u-t-14">
@@ -197,7 +197,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <?php if (!empty($availablePromos)): ?>
                 <div class="panel u-p-5 u-mt-4">
                     <h3 class="u-t-11 u-ls-10 u-upper u-muted u-m-0-0-3">
-                        🎟️ Promo codes you can use
+                        <?= icon('ticket', 16) ?>️ Promo codes you can use
                     </h3>
                     <div class="u-flex u-col u-gap-2">
                         <?php foreach ($availablePromos as $promo):

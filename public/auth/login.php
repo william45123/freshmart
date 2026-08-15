@@ -54,7 +54,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <div class="auth-page">
     <div class="auth-card">
-        <h1>Welcome back 👋</h1>
+        <h1>Welcome back <?= icon('user', 16) ?></h1>
         <p class="subtitle">Log in to continue shopping fresh produce.</p>
 
         <?php foreach ($errors as $err): ?>
