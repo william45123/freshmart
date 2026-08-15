@@ -259,10 +259,17 @@
         letter-spacing: -0.01em;
         color: var(--color-text);
     }
-    h1 { font-size: 2.5rem; }
-    h2 { font-size: 1.875rem; }
-    h3 { font-size: 1.375rem; }
-    h4 { font-size: 1.125rem; font-family: var(--font-sans); font-weight: 500; }
+    /* Wired to the §6 scale. These were fixed rem values, so recalibrating
+       the clamps moved nothing — checkout's h1 measured 24px at 360, 768 and
+       1280 alike. The tokens are now the single source for heading size, and
+       the per-element values are gone. */
+    h1 { font-size: var(--t-h1); }
+    h2 { font-size: var(--t-h2); }
+    h3 { font-size: var(--t-h3); }
+    h4 { font-size: var(--t-h4); font-family: var(--font-sans); font-weight: 500; }
+    .t-display { font-size: var(--t-display); }
+    h1, h2, h3 { line-height: 1.1; text-wrap: balance; }
+    h4 { line-height: 1.3; }
     h5, h6 { font-family: var(--font-sans); font-weight: 500; }
 
     p { margin: 0 0 var(--space-4) 0; color: var(--color-text); }
@@ -856,7 +863,7 @@
         gap: var(--space-12);
         align-items: center;
     }
-    .freshness-banner h2 { margin: 4px 0 var(--space-3); font-size: 1.875rem; }
+    .freshness-banner h2 { margin: 4px 0 var(--space-3); }
     .freshness-banner p { color: var(--color-text-muted); line-height: 1.7; margin-bottom: var(--space-4); }
     .freshness-levels-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
     .level-card {
@@ -2745,7 +2752,7 @@
     }
     .hero-poster-title {
         font-family: var(--font-serif);
-        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        font-size: var(--t-h1);   /* was its own clamp with a 2.2rem floor */
         font-weight: 500;
         line-height: 1.05;
         letter-spacing: -0.02em;
@@ -5375,4 +5382,43 @@
     .u-grid > *, .u-flex > * { min-inline-size: 0; }
     .u-flex { flex-wrap: wrap; }
     .u-nowrap { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+
+@layer components {
+    /* ---- Remaining 360px overflow sources ------------------------
+       Each is a fixed desktop width or column count that cannot shrink.
+       Fixed at the rule, not per page. */
+
+    /* Guest header CTA: the drawer carries Sign Up below the laptop
+       breakpoint, so the header does not need it too. */
+    @media (max-width: 1024px) {
+        .site-header .nav-cta,
+        .site-header > .container > .btn-primary,
+        .header-actions > .btn-primary { display: none; }
+    }
+
+    /* orders: the row is a fixed 4-column grid and the right-aligned
+       total column has no room to shrink at 360. */
+    @media (max-width: 640px) {
+        .order-row {
+            grid-template-columns: 1fr;
+            gap: var(--space-2);
+            text-align: left;
+        }
+        .order-row .u-ta-r { text-align: left; }
+    }
+
+    /* become-retailer level cards sat in a fixed multi-column grid. */
+    .level-card { min-inline-size: 0; overflow-wrap: anywhere; }
+    .level-grid, .levels-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    @media (min-width: 640px)  { .level-grid, .levels-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (min-width: 1024px) { .level-grid, .levels-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
+
+    /* Long unbroken strings — batch codes, emails, URLs — are a common
+       last cause of a row exceeding the viewport. */
+    .panel, .card, td, dd, .cart-item, .level-card { overflow-wrap: break-word; }
 }

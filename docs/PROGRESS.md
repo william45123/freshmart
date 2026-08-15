@@ -1,265 +1,238 @@
-# FreshMart redesign — progress
+# FreshMart redesign — PROGRESS
 
-### Standing rule: the second occurrence is the signal
+**Start every session by reading this file and `git log --oneline -20`.**
+Re-orient from the repository, never from memory. If the log shows work you
+don't recognise, say so and **verify** it — don't redo it and don't claim it.
+That has happened twice in this project and both times the work was sound.
 
+Never end a session with a phase partly committed. Commit it, or state plainly
+what is uncommitted and why.
+
+---
+
+## STANDING RULES
+
+These were all learned the expensive way. Each cost at least one phase.
+
+### 1. Never verify with a metric the fix changes
+Phase 4 added `overflow-x: hidden` **and** reported "no horizontal scroll on any
+page I measured". Those are the same fact: with `overflow-x: hidden`,
+`scrollWidth` can never exceed `clientWidth`, so overflow becomes silent
+clipping and the check always passes. 32 of 32 pages were overflowing while the
+check said 0.
+
+Measure the thing the user sees — element rectangles against `clientWidth` —
+not a proxy that your own change controls. Same failure: the first
+duplicate-class detector shared the exact bug it was hunting and reported clean.
+
+### 2. The second occurrence is the signal
 When the same class of defect appears twice, stop fixing the instance and find
-what they share. Both times this was ignored it cost several phases:
-
-- Headings flush to the viewport edge were fixed once as a container quirk,
-  once written off as a deliberate full-bleed, and only on the third occurrence
+what they share.
+- Headings flush to the viewport edge: fixed once as a container quirk, once
+  written off as an intentional full-bleed, and only on the third occurrence
   traced to `.u-page-head` using the `padding` shorthand — one Phase 1
   de-inlining artefact cancelling the gutter on 7 pages from the last layer.
-- `[^>]*` matching past `?>` produced three separate regressions before it was
-  written down as a rule.
+- `[^>]*` matching past `?>`: three separate regressions before it was written
+  down.
 
-Two occurrences means look for the shared cause, not the next instance.
+### 3. Never regex HTML tags in this codebase
+`[^>]*` stops at the `>` inside `<?= … ?>`, so any tag regex silently matches
+the wrong span. Three regressions: the favicon `href` broken by an `icon()`
+substitution, a quick-add form placed outside its product loop, and a card
+conversion that matched nothing.
 
-### Standing rule: the spec describes the audit, not the code
+Mask PHP first (`re.sub(r'<\?.*?\?>', …, flags=re.S)`) or use PHP's
+`token_get_all()`, then match the closing tag by **balance**. This applies to
+checkers as much as to transformers.
 
-MASTER_IMPLEMENTATION_PROMPT_V2.md documents the state at the time it was
-written. Anything carried from it into PROGRESS or a report must be verified
-against the code first. "Chart.js loads from the CDN globally" was true at
-audit time, was fixed in Phase 3, and was still being reported as outstanding
-two phases later — including once when William explicitly asked for it to be
-confirmed.
+### 4. The spec describes the audit, not the code
+`MASTER_IMPLEMENTATION_PROMPT_V2.md` documents the state when it was written.
+Verify anything carried from it against the code before repeating it. "Chart.js
+loads from a CDN globally" was true at audit time, fixed in Phase 3, and still
+being reported as outstanding two phases later.
 
-### Standing rule: glyph inventories are measured, not recalled
+### 5. "Verified" means looked at
+A page that returns 200 with an empty error log can still render broken. A stray
+`">` sat at the top-left of **every page** for a whole phase behind a green
+suite. Run `tools/validate_markup.py`, take screenshots with
+`tools/screenshot.py`, and in any report **separate what was verified visually
+from what was verified programmatically, and name the pages actually
+screenshotted**. "3 of 36" is a fine answer; implying 36 is not.
 
+### 6. Glyph inventories are measured, not recalled
 Grepping a list of characters you remember finds only what you already thought
-of. Use unicode properties (`\p{Extended_Pictographic}`), and report by
-category — pictographic, variation selectors, dingbats — because the total
-depends on the definition.
+of. Use `\p{Extended_Pictographic}`, and report by category — the total depends
+entirely on the definition.
 
 **The C8 line, by function not by character:**
 - **Replace with `icon()`** — anything standing alone as a symbol for a concept
-  (`✓` and `⚠` in facet labels, and equivalents).
-- **Keep** — anything acting as punctuation inside running text (`→` in a link
-  label, `★` in a rating widget, `−`/`+` in steppers, `≈` before a number).
-- All 44 pictographic and their variation selectors go, wherever they sit.
-- Convert as each page is touched; no separate sweep.
+  (`✓`/`⚠` in facet labels, `⏳`/`✓`/`✕` in status banners).
+- **Keep** — punctuation inside running text (`→` in a link label, `★` in a
+  rating widget, `−`/`+` in steppers, `≈` before a number).
+- All pictographic characters and their U+FE0F selectors go, wherever they sit.
+- Convert as each page is touched. No separate sweep.
 
-### Standing rule: never regex HTML tags in this codebase
+### 7. Verify through the app's connection, not the CLI
+`db.php` pins the PDO session to `+08:00`; the `mariadb` CLI runs UTC. Anything
+using `CURDATE()`/`NOW()` disagrees across the two. This cost an hour chasing a
+phantom 40-vs-44 discrepancy that was purely a timezone artefact.
 
-`[^>]*` stops at the `>` inside `<?= … ?>`, so any regex written to match a
-tag will silently match the wrong span. This has caused **three** regressions:
-the favicon `href` broken by an `icon()` substitution, a quick-add form placed
-outside its product loop, and a card conversion that matched nothing at all.
+### 8. Any change touching the database ships as a migration file
+`database/migrations/`, phpMyAdmin-Import-runnable, idempotent, with
+verification and rollback SQL in comments. See `SETUP.md`.
 
-Mask PHP regions first (`re.sub(r'<\?.*?\?>', …, flags=re.S)`) or use PHP's
-`token_get_all()`, then match `</tag>` by **tag balance**, never by regex. The
-same applies to any checker written to *verify* markup — the first duplicate-
-class detector shared the bug it was looking for and reported a clean pass.
-
-### Standing rule: "verified" means looked at
-
-Any phase touching markup, CSS or templates is not done until the **rendered
-output** has been looked at, not just its status code. Run
-`tools/validate_markup.py`, take screenshots with `tools/screenshot.py`, and in
-the report separate what was **verified visually** from what was only
-**verified programmatically**, and name the pages actually screenshotted —
-"3 of 36" is a fine answer, implying 36 is not. If a page could not be seen,
-say so plainly rather than reporting it as verified.
-
-This exists because a stray `">` rendered at the top-left of every page for a
-whole phase. The suite reported 36/36 clean because it only checked HTTP status
-and the PHP error log. William found it in a screenshot.
-
-Related: when a claim is broad ("the palette moved"), grep for the **old
-values**, not just the token names, before making it. 26 hardcoded hexes
-survived a re-point that was reported as wholesale.
+### 9. Never commit `APP_URL` as `127.0.0.1:8899`
+The test harnesses rewrite `includes/config.php` and restore it via a `trap`.
+A crashed run once leaked the test URL into a commit. Check before committing.
 
 ---
 
-**Read this and `git log --oneline -15` before doing anything.** Re-orient from
-the repository, not from memory. If the log shows work you don't recognise, say
-so and verify it — don't redo it. (On 2026-08-14 three commits appeared during a
-context gap; they turned out to be sound, but only because they were checked
-rather than assumed.)
+## HANDOVER MECHANICS
 
-Never end a turn with a phase partly committed. Commit it, or say plainly what
-is uncommitted and why.
+The previous agent could not push — no credentials, `git push` failed with
+*could not read Username*. Work shipped as **git bundles**, verified by cloning
+`origin` and applying before sending. Never write a bare `git pull` in
+instructions; it silently does nothing. The form is:
+
+```
+git pull C:\path\to\<bundle> main
+```
+
+Every handover states: apply command · migrations to Import and their order ·
+whether cron must re-run · what should be visible if it worked.
+
+**Claude Code running locally can push directly, so this constraint is gone.**
 
 ---
 
-## Complete
+## STATE
+
+Working tree clean. All phases below committed.
 
 | Commit | What |
 |---|---|
-| `528d7d6` | **Phase 1** — de-inline templates (835 → 10 inline styles, the 10 being `--fresh` / `--pct` / `--n` / `--step` carriers), `main.css` rebuilt on `@layer tokens, base, components, pages, utilities`, 21 `!important` removed, six `<style>` blocks relocated, `.section-gap` deleted, anchor underline scoped |
-| `6e77ad7` | **Admin guard** — the ADMIN role check ran *after* the request was handled; 7 of 8 pages committed POST mutations before it. Reproduced a CUSTOMER suspending another user. `admin_check()` now runs at the top of each page |
-| `aae6e5d` | **Error logging** — `error_log` was unset; now `storage/logs/php-error.log` with a fallback if unwritable |
-| `b16135c` | **F1** — freshness cache on `stock_batches` (`freshness_pct`, `freshness_level`, `freshness_synced_at`, `idx_freshness`), `freshness_sync_batches()`, `fefo_restock()` hook |
-| `227a5f6` | **Demo-date tool** — `tools/refresh_demo_dates.php`, idempotent, solves dates backwards from target freshness |
-| `a70dfb9` | Tool: price-override consistency report, opt-in `--clear-notifications` |
-| `37237a2` | **F2** — freshness/availability filtering moved into SQL against a joined display batch, pagination restored, `fresh-desc` + `value` sorts, `BROWSE_PAGE_SIZE = 12` |
-| `93f1533` | Fix: empty `alt` on order item images (`$item['name']` → `product_name`) |
-| `d9d586c` | Fix: cron never withdrew a discount when a batch left LAST_CHANCE |
-| `349e696` | **F3** — expiry alerts link to `inventory.php?batch=`, with scroll + focus + non-colour highlight |
-| `3ddc30e` | **Phase 6 batch 1** — browse facets + sticky bar, product disclosures + gallery, cart steppers + swipe-remove; root-caused `.u-page-head` shorthand cancelling the gutter on 7 pages |
-| `dcd7a51` | **Phase 6 batch 2** — checkout zero-motion (§5.6) + collapsible sections, orders refund banners, freshness explainer; all batch-2 glyphs → `icon()` |
+| `528d7d6` | **Phase 1** — de-inline 835 → 10 inline styles (the 10 are `--fresh`/`--pct`/`--n`/`--step` carriers); `main.css` rebuilt on `@layer tokens, base, components, pages, utilities`; 21 `!important` → 0; six `<style>` blocks relocated |
+| `6e77ad7` | **Admin guard** — the ADMIN check ran *after* the request was handled; 7 of 8 pages committed POST mutations first. Reproduced a CUSTOMER suspending another user. `admin_check()` now runs at the top of each page |
+| `aae6e5d` | **Error logging** — `error_log` was unset; now `storage/logs/php-error.log` |
+| `b16135c` | **F1** — freshness cache on `stock_batches` + `idx_freshness`, `freshness_sync_batches()`, `fefo_restock()` hook |
+| `227a5f6` `a70dfb9` | **Demo-date tool** — idempotent, solves dates backwards from target freshness |
+| `37237a2` | **F2** — freshness/availability filtering into SQL against a joined display batch; pagination restored; `fresh-desc`/`value` sorts; `BROWSE_PAGE_SIZE=12` |
+| `93f1533` `d9d586c` `349e696` | alt-text fix · cron withdraws stale discounts · **F3** alert deep links |
+| `2f54a78` | **(a) `DELIVERY_LEAD_DAYS`** + **F4** two-state expiry alerts with value at risk |
 | `8bc8e0d` | **(b)** checkout validates the delivery date against the earliest-expiring batch in the FEFO allocation |
-| `2f54a78` | **(a) DELIVERY_LEAD_DAYS** + **F4** two-state expiry alerts (sellable / past cut-off) with value at risk |
-| `c7ad174` | Fix: favicon `href` broken by an icon substitution; 26 stranded v4 hexes; `validate_markup.py` added |
-| `b6b4bce` | **Phase 4** — breakpoints 24 → 3 canonical, `--gutter`, 48px touch targets, role-aware tab bar, full-screen mobile search, 14 tables → cards, 7 charts wrapped, filter bottom sheet |
-| `d506089` | **Phase 5a** — sticky buybar, freshness arc sparkline (§9.2), one product card + quick-add (§9.1), flash → toast, empty states, pagination |
-| `5af4b48` | Fix: hero reading order on mobile, tab-bar scroll clearance, quick-add on all 6 card sites |
-| `58dbb2e` | **Phase 5b chrome** — header 95px → 68px (no wrap, no overflow), drawer rebuilt as a 3-row grid with long-tail nav, button/form states, desktop table |
-| `6a51a48` | **Phase 5c footer** — `--canvas`, curve divider, 4 columns, real brand SVGs replacing `f ◎ ♪`, trust badges folded in. **§9 chrome complete** |
-| `aa95ef7` | (yours) local `APP_URL` — **do not overwrite**; the test harness now restores `config.php` via a trap |
-| `d601485` | **Phase 3** — v4 tokens re-pointed as aliases onto the new scale, self-hosted woff2 (C5), local Chart.js (C4), `icon()` 16 → 47 glyphs and 74 emoji removed (C8), C3 colour migration, focus rings, body 16px |
-
-Verified for all of the above: 56 PHP files lint clean, 36 pages render with no
-PHP errors, escaping calls unchanged at 819, no duplicate `class` attributes.
-
-## In progress
-
-Nothing. The tree is clean and every phase above is committed.
-
-## Phase 5 — NOT done, carried forward
-
-Delivered: buybar, freshness arc, card unification + quick-add, toasts, empty
-states, pagination, touch targets.
-
-§9 chrome is complete. Remaining gaps:
-- **Drawer icon alignment** — rows without an icon sit flush left while
-  iconned rows are indented. Cosmetic.
-- **Per-page §7.3 treatments** — Home rails, product gallery, cart steppers,
-  checkout collapsible sections, notifications grouping. Component-level, not
-  chrome.
-- **Notification bell is auth-gated**, so guests see brand + search + menu.
-  Deliberate; flip it if a sign-in prompt is wanted there.
-- **Product page breadcrumb sits outside the gutter container** — the hero is
-  deliberately full-bleed; the breadcrumb should not be.
-- **Legacy `max-width` rules** — invert as each is rewritten, per the agreed
-  approach. Most are still pending because most components are still pending.
-
-## Phase 4 — carried into Phase 5
-
-Not done, and not claimed:
-- **Sticky add-to-cart bar on product.** `.buybar` CSS exists and is styled;
-  the markup was never wired into `shop/product.php`.
-- **Mobile-first inversion of legacy component rules.** Values are on the
-  canonical scale but legacy rules are still `max-width`. They get inverted as
-  Phase 5 rewrites them, not twice.
-- **Sub-44px targets remain**: `.brand` (134x35), `.facet-link` (150x36),
-  `select.form-control` (166x35), carousel dots (24x8), footer links (~19px
-  tall). The 48px floor covers buttons and nav; these are component-level and
-  belong with the Phase 5 rebuilds.
-- **Per-page mobile treatments** in §7.3 for Home / Product / Cart / Checkout /
-  Orders / Notifications — rails, gallery, steppers, collapsible sections. Those
-  are component work.
-
-## Next, in this order (agreed)
-
-1. ~~**(a) `DELIVERY_LEAD_DAYS`**~~ done in `2f54a78`. Original note: — `config.php`, shared by browse's
-   expiry predicate and checkout's delivery-day picker. Behaviour-identical
-   refactor: `expiry_date > CURDATE()` already equals
-   `>= CURDATE() + 1` on a DATE column, but reads as "not expired today" when it
-   is actually enforcing a delivery-lead rule.
-2. ~~**F4**~~ done in `2f54a78`. Original note: pre-expiry alerts at ENJOY_SOON and LAST_CHANCE, deduped per batch
-   per level, with a **two-state** message: *still sellable* vs *past the
-   delivery cut-off*, value at risk shown on both. Today the cron alerts
-   retailers about stock browse has already hidden, with no indication it is
-   unbuyable.
-3. ~~**(b)**~~ done in `8bc8e0d`. Original note: because it is the only item
-   touching order logic. Constrain the picker to dates every cart item survives;
-   re-check server-side at submit; validate against the **FEFO-allocated** batch,
-   not the display batch; roll back cleanly on failure. Rollback UX to be
-   proposed and confirmed before building.
-
-## Known pending
-
-- **Manual-price caveat.** The cron's `else` that clears
-  `selling_price_override` is safe *only because the cron is its sole writer* —
-  verified: two writes, both in `freshness.php`; `fefo_restock()`'s INSERT omits
-  the column; no retailer or admin screen sets it; the seed ships zero non-NULL
-  values. **If a retailer promo-price feature is ever added, that `else` will
-  wipe it on every cron run.** The fix then is a separate column or an
-  `is_manual_price` flag — not a condition bolted onto the `else`.
-- **F7 delivery-date label.** Items arriving on their expiry day should be
-  labelled "Arrives on its last day", computed against the delivery date rather
-  than today. Approved, deferred to F7.
-- **`BROWSE_PAGE_SIZE`** (`config.php`, 12) is also intended as the mobile
-  "Load more" chunk size (§7.3). Read it there rather than adding a second
-  number.
-- **Verify through the app's connection, not the `mariadb` CLI.** `db.php` pins
-  the PDO session to `+08:00`; the CLI runs UTC. Anything using `CURDATE()` or
-  `NOW()` disagrees across the two, which cost an hour chasing a phantom
-  40-vs-44 discrepancy.
-- **Container padding is missing on some page headings** — "Checkout" and "Your
-  cart" render flush against the left viewport edge at 1280px. Seen on
-  screenshots; layout, so Phase 5/6.
-- **Emoji / glyph inventory — measured, not remembered.** The earlier figure of
-  17 was wrong: it came from grepping a list of glyphs I happened to recall,
-  which is the same class of error as regexing tags. Scanned with unicode
-  properties (`\p{Extended_Pictographic}`) rather than a glyph list:
-
-  | Count | Files | Category |
-  |---|---|---|
-  | **44** | 20 | pictographic — true emoji (⏳ ⚠ 🛒 📥 ✅ 👤 🥬 …) |
-  | **11** | 8 | U+FE0F variation selectors, invisible, paired with a base char |
-  | **123** | 29 | dingbats/arrows/stars used as UI glyphs (→ ★ ✓ − ≈) |
-
-  34 distinct files touched. §3 C8 says remove emoji from *UI chrome*; body copy
-  may keep them. The 44 pictographic are the C8 target. The 123 dingbats are a
-  separate judgement — `→` in a link label and `★` in a rating widget are
-  typography, not emoji, but `✓`/`⚠` in facet labels are icons and should be
-  `icon()` calls. Decide the boundary before treating this as one number.
-- **Emoji still in PHP array literals** (`index.php` `$catEmoji` category map,
-  `reco_render_section()` heading glyphs). Not mechanical swaps — the category
-  circles need real imagery and that is a Phase 6 component decision, not a
-  token change.
-- **Verify markup, not just status codes.** A 200 with clean PHP logs can still
-  render broken. The Phase 3 favicon regression put an `icon()` call inside an
-  `href=""`; its quotes closed the attribute and the rest of the tag appeared as
-  the visible text `">` on every page. `tools/validate_markup.py` now runs on
-  every page in both harnesses and checks for attribute-escape debris, markup
-  inside URL attributes, unbalanced quotes in a start tag, and raw `<?` in the
-  response.
-- **Colour hardcoded inside a `data:` URI cannot be reached by a token.** The
-  hero scribble kept the v4 terracotta through the whole Phase 3 re-point for
-  exactly this reason. When re-pointing tokens, grep the old palette's literal
-  hexes as well as the token names.
-- **Any change touching the database ships as a migration file** in
-  `database/migrations/`. Standing rule.
-- **Demo data ages out.** The seed's window ends 2026-08-15. Run
-  `tools/refresh_demo_dates.php` before every demo, and always *before*
-  `cron/update_freshness.php` — the cron expires stale batches and that is not
-  covered by the F1 rollback.
-
-## Open decisions
-
-None outstanding. (b)'s rollback UX is the next thing needing a decision, and it
-will be proposed before any code is written.
+| `c7ad174` | favicon `href` regression · 26 stranded v4 hexes · `validate_markup.py` |
+| `d601485` | **Phase 3** — v4 tokens re-pointed as aliases onto the §6 scale, self-hosted woff2, local Chart.js, `icon()` 16 → 50 glyphs, C3 colour migration, focus rings |
+| `b6b4bce` | **Phase 4** — breakpoints 24 → 3 canonical, `--gutter`, 48px touch targets, role-aware tab bar, mobile search, 14 tables → cards, charts wrapped, filter sheet |
+| `d506089` `5af4b48` | **Phase 5a** — buybar, freshness arc sparkline, one product card + quick-add on all 6 sites, toasts |
+| `58dbb2e` `6a51a48` | **Phase 5b/c chrome** — header 95px → 68px, drawer rebuilt, buttons/forms/table, footer with real brand SVGs |
+| `3ddc30e` | **Phase 6 batch 1** — browse facets + sticky bar, product disclosures, cart steppers + swipe-remove; root-caused `.u-page-head` |
+| `dcd7a51` | **Phase 6 batch 2** — checkout zero-motion (§5.6) + collapsible sections, orders refund banners, freshness explainer |
+| `edf357f` | **Mobile proportion pass** — overflow 32 → 10 pages, clamp floors recalibrated, section shorthands, category circles |
+| *(final)* | headings wired to type tokens, overflow 10 → 9, harnesses moved into `tools/` |
 
 ---
 
-## Delivering work to William's machine
+## NEXT — in priority order
 
-**The agent cannot push.** There are no GitHub credentials in the container and
-there should not be. `git push` fails with *could not read Username*. Read access
-to `origin` works, which is only useful for checking what has been pushed.
+### 1. Headings are wired to the tokens but something still overrides them
+`h1/h2/h3/h4` now read `var(--t-h1)` etc. **But checkout's `h1` still measures
+24px at 360, 768 and 1280 alike** — flat, so a more specific rule is winning.
+Find it (likely a utility class on the element, or a later `pages`-layer rule)
+and remove it rather than raising specificity. This is the single change that
+most affects mobile proportions; the clamp recalibration alone moved very little
+because almost nothing read the tokens.
 
-So every phase ends with a **git bundle**, produced without being asked, and the
-handover message states four things. Never write a bare `git pull` — it will
-silently do nothing, because the commits do not exist on any remote.
+Recalibrated floors, calibrated against 360px, maxima unchanged:
+`--t-display` 2.5rem · `--t-h1` 1.75rem · `--t-h2` 1.375rem · `--t-h3` 1.125rem
+· `--t-data-xl` 1.5rem · `--section-y` 2.5rem.
 
-Bundle, incremental from the recipient's current HEAD:
+### 2. Nine pages still overflow at 360
+Run `python3 tools/check_overflow.py` (needs the dev server on :8899) for the
+current list. Last known:
+- **8 retailer/admin pages** — `button.nav-toggle +14px`. The role headers carry
+  an extra CTA the customer header does not.
+- **`/become-retailer.php`** — `div.level-card +85px`, a fixed-width card.
 
-```
-git bundle create /tmp/<phase>.bundle <their-HEAD>..main
-```
+Fix at the rule, not per page. Check the shared cause first (rule 2).
 
-Verify it before sending, by cloning `origin` and applying it — a bundle that
-does not apply is worse than no bundle.
+### 3. Phase 6 remaining
+Batch 3 was never started: **auth** (login, register, forgot/reset) and the
+**account pages** (wallet, wishlist, notifications, profile). Then the
+**homepage last**, per the agreed order. Pick up §7.3 per-page treatments as you
+go — Home rails, notifications grouping — rather than as a separate pass.
 
-The handover message must say:
+### 4. Phases 7–9, untouched
+- **Phase 7** — retailer console (§9.6, F10 order timeline)
+- **Phase 8** — admin console, dark `--canvas` role theme
+- **Phase 9** — accessibility sweep (§10), performance, `prefers-reduced-motion`
+  audit, PWA (§7.6)
 
-1. **Apply** — `git pull C:\path\to\<phase>.bundle main`  (NOT `git pull`)
-2. **Migrations** — which files to Import via phpMyAdmin, in what order, or
-   "none"
-3. **Cron** — whether `php cron\update_freshness.php` needs re-running, or
-   "not needed"
-4. **Confirm** — what should be visible on screen if it worked
+### 5. Known open items
+- **Footer layout** — hit-areas and colours done; the four-column grid is new but
+  the content hierarchy inside it is unchanged.
+- **Drawer icon alignment** — rows without an icon sit flush left while iconned
+  rows indent. Cosmetic.
+- **Product breadcrumb sits outside the gutter container.** The hero is
+  deliberately full-bleed; the breadcrumb should not be.
+- **Notification bell is auth-gated**, so guests see brand + search + menu. This
+  was a deliberate override of §7.1 — a guest bell can only link to a login wall
+  and show zero. Agreed with William. Flip it only if a sign-in prompt is wanted.
+- **Manual-price hazard.** The cron's `else` clearing `selling_price_override` is
+  safe **only because the cron is its sole writer** — verified: two writes, both
+  in `freshness.php`; `fefo_restock()`'s INSERT omits the column; no UI sets it;
+  the seed ships zero non-NULL values. **If a retailer promo-price feature is
+  ever added, that `else` wipes it on every cron run.** The fix then is a
+  separate column or an `is_manual_price` flag, not a condition on the `else`.
+- **Emoji remaining** — measured by category, not a single number. Convert as
+  pages are touched, per rule 6. Batch 1 and 2 pages are already clean.
+- **Legacy `max-width` media queries** — values are on the canonical scale but
+  legacy rules are still `max-width`. Invert each as its component is rewritten;
+  do not do a separate pass.
 
-Then he pushes to `origin` himself, from his machine, with his credentials.
+---
+
+## THINGS THAT ARE NOT OBVIOUS FROM THE CODE
+
+- **Demo data ages out.** The seed's window ends **2026-08-15**. Past that the
+  whole catalogue reads EXPIRED and browse goes empty. Run
+  `php tools/refresh_demo_dates.php` **before** `php cron/update_freshness.php`,
+  every time, before every demo. The cron is destructive on stale data — it
+  expires the catalogue in one pass and the F1 rollback does **not** undo it.
+- **`freshness_config.color_hex` must never be hardcoded.** It is admin-editable
+  and injected at render time as `style="--fresh: <hex>"`. Changing a value in
+  the DB must change the site immediately. This is C3 and it is load-bearing.
+- **`fefo_restock()` is the only `INSERT INTO stock_batches` in the codebase.**
+  That is why the freshness cache hook lives there.
+- **The header's flex row is `.site-header > .container`, not `.site-header`.**
+  Rules written against the header itself are inert. This wasted an entire
+  header rebuild.
+- **`u-*` utilities are Phase 1 de-inlining artefacts** holding fixed desktop
+  values. `u-cols-2` clipped checkout at 360; `u-page-head` cancelled the gutter
+  on 7 pages. Suspect them first for any responsive defect.
+- **`.container` is the single owner of the horizontal gutter.** Sections set
+  vertical rhythm only (`padding-block`). Do not add inline padding to sections
+  and do not zero it on nested containers.
+- **Checkout suppresses all decorative motion** via a `page-checkout` body class,
+  unconditionally — not via `prefers-reduced-motion`, which is the user's
+  setting. Verified against browse as a control: checkout NONE, browse six.
+- **Test accounts**: `admin@freshmart.my` · `retailer@cameron.my` ·
+  `cherry@example.my`. For local testing, set a known password with
+  `UPDATE users SET password_hash='<php password_hash output>';`
+  **and restore afterwards** — leaving every account on a test password once
+  polluted a database snapshot.
+- **The CSRF field is `name="_csrf"`**, not `csrf_token`. Getting this wrong
+  makes every scripted login fail with a token mismatch that looks like an auth
+  bug.
+
+## TOOLING (all in `tools/`)
+
+| Script | Purpose |
+|---|---|
+| `refresh_demo_dates.php` | Re-anchor demo dates to `CURDATE()`. Idempotent. `--dry-run`, `--clear-notifications` |
+| `validate_markup.py` | Attribute-escape debris, markup in URL attributes, unbalanced quotes, raw `<?` in output |
+| `screenshot.py` | Rendered captures + top-of-page text + JS console errors |
+| `check_overflow.py` | Per-element horizontal overflow at 360px across all 32 pages |
+| `render_public.sh` / `render_auth.sh` | Boot DB + dev server, render every page, fail on PHP errors or markup findings |
+
+The render scripts rewrite `APP_URL` and restore it via a `trap`. Playwright with
+headless Chromium is required for `screenshot.py` and `check_overflow.py`.
