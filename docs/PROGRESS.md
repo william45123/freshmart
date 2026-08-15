@@ -56,19 +56,18 @@ Nothing. The tree is clean and every phase above is committed.
 
 ## Next, in this order (agreed)
 
-0. **(a) `DELIVERY_LEAD_DAYS` constant** — NOT done in Phase 3, deferred with
-   the rest of (a) → F4 → (b).
-1. **(a) `DELIVERY_LEAD_DAYS` constant** — `config.php`, shared by browse's
+1. ~~**(a) `DELIVERY_LEAD_DAYS`**~~ done in `2f54a78`. Original note: — `config.php`, shared by browse's
    expiry predicate and checkout's delivery-day picker. Behaviour-identical
    refactor: `expiry_date > CURDATE()` already equals
    `>= CURDATE() + 1` on a DATE column, but reads as "not expired today" when it
    is actually enforcing a delivery-lead rule.
-2. **F4** — pre-expiry alerts at ENJOY_SOON and LAST_CHANCE, deduped per batch
+2. ~~**F4**~~ done in `2f54a78`. Original note: pre-expiry alerts at ENJOY_SOON and LAST_CHANCE, deduped per batch
    per level, with a **two-state** message: *still sellable* vs *past the
    delivery cut-off*, value at risk shown on both. Today the cron alerts
    retailers about stock browse has already hidden, with no indication it is
    unbuyable.
-3. **(b) Checkout delivery validation** — last, because it is the only item
+3. **(b) Checkout delivery validation** — NEXT. Rollback UX still needs
+   confirming before any code is written. Last, because it is the only item
    touching order logic. Constrain the picker to dates every cart item survives;
    re-check server-side at submit; validate against the **FEFO-allocated** batch,
    not the display batch; roll back cleanly on failure. Rollback UX to be
