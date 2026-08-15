@@ -101,7 +101,6 @@ Not done, and not claimed:
 - **Mobile-first inversion of legacy component rules.** Values are on the
   canonical scale but legacy rules are still `max-width`. They get inverted as
   Phase 5 rewrites them, not twice.
-- **Per-page Chart.js loading** (§7.5) — still global.
 - **Sub-44px targets remain**: `.brand` (134x35), `.facet-link` (150x36),
   `select.form-control` (166x35), carousel dots (24x8), footer links (~19px
   tall). The 48px floor covers buttons and nav; these are component-level and
@@ -150,9 +149,22 @@ Not done, and not claimed:
 - **Container padding is missing on some page headings** — "Checkout" and "Your
   cart" render flush against the left viewport edge at 1280px. Seen on
   screenshots; layout, so Phase 5/6.
-- **17 emoji sites remain**, all in PHP string/array literals: `index.php`
-  `$catEmoji`, `reco_render_section()` headings, `notifications.php`,
-  `wishlist.php`, `admin/dashboard.php`. Not mechanical swaps.
+- **Emoji / glyph inventory — measured, not remembered.** The earlier figure of
+  17 was wrong: it came from grepping a list of glyphs I happened to recall,
+  which is the same class of error as regexing tags. Scanned with unicode
+  properties (`\p{Extended_Pictographic}`) rather than a glyph list:
+
+  | Count | Files | Category |
+  |---|---|---|
+  | **44** | 20 | pictographic — true emoji (⏳ ⚠ 🛒 📥 ✅ 👤 🥬 …) |
+  | **11** | 8 | U+FE0F variation selectors, invisible, paired with a base char |
+  | **123** | 29 | dingbats/arrows/stars used as UI glyphs (→ ★ ✓ − ≈) |
+
+  34 distinct files touched. §3 C8 says remove emoji from *UI chrome*; body copy
+  may keep them. The 44 pictographic are the C8 target. The 123 dingbats are a
+  separate judgement — `→` in a link label and `★` in a rating widget are
+  typography, not emoji, but `✓`/`⚠` in facet labels are icons and should be
+  `icon()` calls. Decide the boundary before treating this as one number.
 - **Emoji still in PHP array literals** (`index.php` `$catEmoji` category map,
   `reco_render_section()` heading glyphs). Not mechanical swaps — the category
   circles need real imagery and that is a Phase 6 component decision, not a
