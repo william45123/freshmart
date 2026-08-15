@@ -60,16 +60,17 @@ Nothing. The tree is clean and every phase above is committed.
 Delivered: buybar, freshness arc, card unification + quick-add, toasts, empty
 states, pagination, touch targets.
 
-Still outstanding from §9:
-- **Header and drawer rebuild** — untouched beyond the mobile top bar.
+Still outstanding from §9 — this is the bulk of the phase:
+- **Header and drawer rebuild** — untouched beyond the mobile top bar
+  (search + bell added). The desktop header and the slide-in drawer are still
+  v4 structure with new tokens painted on.
 - **Footer rebuild** — only the link hit-areas changed.
 - **Buttons and forms** — 52px control height applied; the variants,
   states and layouts are not rebuilt.
 - **Tables** — mobile card conversion is done (Phase 4); the desktop table
   component is not rebuilt.
-- **Quick-add on the other 5 card sites** — index.php (x2), product.php (x2),
-  recommendations.php still use the `<a>` wrapper, so they get the new card
-  styling but no quick-add button.
+- **Notification bell is auth-gated**, so guests see brand + search + menu.
+  Deliberate; flip it if a sign-in prompt is wanted there.
 - **Product page breadcrumb sits outside the gutter container** — the hero is
   deliberately full-bleed; the breadcrumb should not be.
 - **Legacy `max-width` rules** — invert as each is rewritten, per the agreed
