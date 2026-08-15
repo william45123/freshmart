@@ -25,6 +25,8 @@ is uncommitted and why.
 | `93f1533` | Fix: empty `alt` on order item images (`$item['name']` → `product_name`) |
 | `d9d586c` | Fix: cron never withdrew a discount when a batch left LAST_CHANCE |
 | `349e696` | **F3** — expiry alerts link to `inventory.php?batch=`, with scroll + focus + non-colour highlight |
+| `aa95ef7` | (yours) local `APP_URL` — **do not overwrite**; the test harness now restores `config.php` via a trap |
+| `d601485` | **Phase 3** — v4 tokens re-pointed as aliases onto the new scale, self-hosted woff2 (C5), local Chart.js (C4), `icon()` 16 → 47 glyphs and 74 emoji removed (C8), C3 colour migration, focus rings, body 16px |
 
 Verified for all of the above: 56 PHP files lint clean, 36 pages render with no
 PHP errors, escaping calls unchanged at 819, no duplicate `class` attributes.
@@ -35,6 +37,8 @@ Nothing. The tree is clean and every phase above is committed.
 
 ## Next, in this order (agreed)
 
+0. **(a) `DELIVERY_LEAD_DAYS` constant** — NOT done in Phase 3, deferred with
+   the rest of (a) → F4 → (b).
 1. **(a) `DELIVERY_LEAD_DAYS` constant** — `config.php`, shared by browse's
    expiry predicate and checkout's delivery-day picker. Behaviour-identical
    refactor: `expiry_date > CURDATE()` already equals
@@ -70,6 +74,12 @@ Nothing. The tree is clean and every phase above is committed.
   the PDO session to `+08:00`; the CLI runs UTC. Anything using `CURDATE()` or
   `NOW()` disagrees across the two, which cost an hour chasing a phantom
   40-vs-44 discrepancy.
+- **Emoji still in PHP array literals** (`index.php` `$catEmoji` category map,
+  `reco_render_section()` heading glyphs). Not mechanical swaps — the category
+  circles need real imagery and that is a Phase 6 component decision, not a
+  token change.
+- **Any change touching the database ships as a migration file** in
+  `database/migrations/`. Standing rule.
 - **Demo data ages out.** The seed's window ends 2026-08-15. Run
   `tools/refresh_demo_dates.php` before every demo, and always *before*
   `cron/update_freshness.php` — the cron expires stale batches and that is not
