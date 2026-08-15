@@ -72,15 +72,13 @@ Nothing. The tree is clean and every phase above is committed.
 Delivered: buybar, freshness arc, card unification + quick-add, toasts, empty
 states, pagination, touch targets.
 
-Still outstanding from §9 — this is the bulk of the phase:
-- **Header and drawer rebuild** — untouched beyond the mobile top bar
-  (search + bell added). The desktop header and the slide-in drawer are still
-  v4 structure with new tokens painted on.
-- **Footer rebuild** — only the link hit-areas changed.
-- **Buttons and forms** — 52px control height applied; the variants,
-  states and layouts are not rebuilt.
-- **Tables** — mobile card conversion is done (Phase 4); the desktop table
-  component is not rebuilt.
+§9 is now substantially complete. Remaining gaps:
+- **Footer** — link hit-areas and colours only; the layout is unchanged.
+- **Drawer icon alignment** — rows without an icon sit flush left while
+  iconned rows are indented. Cosmetic.
+- **Per-page §7.3 treatments** — Home rails, product gallery, cart steppers,
+  checkout collapsible sections, notifications grouping. Component-level, not
+  chrome.
 - **Notification bell is auth-gated**, so guests see brand + search + menu.
   Deliberate; flip it if a sign-in prompt is wanted there.
 - **Product page breadcrumb sits outside the gutter container** — the hero is
