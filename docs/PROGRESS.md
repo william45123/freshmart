@@ -72,8 +72,7 @@ Nothing. The tree is clean and every phase above is committed.
 Delivered: buybar, freshness arc, card unification + quick-add, toasts, empty
 states, pagination, touch targets.
 
-§9 is now substantially complete. Remaining gaps:
-- **Footer** — link hit-areas and colours only; the layout is unchanged.
+§9 chrome is complete. Remaining gaps:
 - **Drawer icon alignment** — rows without an icon sit flush left while
   iconned rows are indented. Cosmetic.
 - **Per-page §7.3 treatments** — Home rails, product gallery, cart steppers,
