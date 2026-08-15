@@ -36,7 +36,8 @@ try {
     echo "  Expired:       {$summary['expired']} batches\n";
     echo "  Discounted:    {$summary['discounted']} batches\n";
     echo "  Un-discounted: {$summary['undiscounted']} batches\n";
-    echo "  Alerts sent:   {$summary['alerts']} notifications\n";
+    echo "  Alerts sent:   {$summary['alerts']} notifications"
+       . " (still sellable: {$summary['alerts_sellable']}, past cut-off: {$summary['alerts_cutoff']})\n";
     echo "  Elapsed:       {$elapsed}ms\n";
     echo "[" . date('Y-m-d H:i:s') . "] Done.\n\n";
     exit(0);

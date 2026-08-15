@@ -48,6 +48,14 @@ define('GUEST_CART_HOURS',  24);
 // "Load more" control, so both read from one place.
 define('BROWSE_PAGE_SIZE',    12);
 
+// Days between an order being placed and the earliest it can arrive.
+// Drives BOTH the checkout delivery-day picker and the catalogue's expiry
+// predicate: a batch is only sellable if it is still good on the day it can
+// actually reach the customer. Previously this rule was spelled
+// `expiry_date > CURDATE()`, which is numerically the same at a lead of 1
+// but reads as "not expired today" and would not follow if the lead changed.
+define('DELIVERY_LEAD_DAYS',  1);
+
 define('DEFAULT_SHIPPING_FEE',   5.00);
 define('FREE_SHIPPING_THRESHOLD', 50.00);
 

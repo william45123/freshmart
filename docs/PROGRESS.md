@@ -1,5 +1,24 @@
 # FreshMart redesign — progress
 
+### Standing rule: "verified" means looked at
+
+Any phase touching markup, CSS or templates is not done until the **rendered
+output** has been looked at, not just its status code. Run
+`tools/validate_markup.py`, take screenshots with `tools/screenshot.py`, and in
+the report separate what was **verified visually** from what was only
+**verified programmatically**. If a page could not be seen, say so plainly
+rather than reporting it as verified.
+
+This exists because a stray `">` rendered at the top-left of every page for a
+whole phase. The suite reported 36/36 clean because it only checked HTTP status
+and the PHP error log. William found it in a screenshot.
+
+Related: when a claim is broad ("the palette moved"), grep for the **old
+values**, not just the token names, before making it. 26 hardcoded hexes
+survived a re-point that was reported as wholesale.
+
+---
+
 **Read this and `git log --oneline -15` before doing anything.** Re-orient from
 the repository, not from memory. If the log shows work you don't recognise, say
 so and verify it — don't redo it. (On 2026-08-14 three commits appeared during a

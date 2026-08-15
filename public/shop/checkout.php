@@ -160,7 +160,7 @@ if (is_post() && input('action') === 'place_order') {
         }
 
         $paymentMethod = (string) input('payment_method', 'FPX');
-        $deliveryDate  = (string) input('preferred_delivery_date', date('Y-m-d', strtotime('+1 day')));
+        $deliveryDate  = (string) input('preferred_delivery_date', date('Y-m-d', strtotime('+' . (int) DELIVERY_LEAD_DAYS . ' days')));
 
         if (empty($errors)) {
             try {
@@ -413,10 +413,13 @@ require_once __DIR__ . '/../../includes/header.php';
                 <div class="panel u-p-5 u-mb-4">
                     <h3 class="u-mt-0 u-t-18">Delivery Day</h3>
                     <p class="u-muted u-t-14 u-mt-0 u-mb-3">
-                        Choose your preferred delivery day. Earliest available: tomorrow.
+                        Choose your preferred delivery day. Earliest available:
+                        <?= DELIVERY_LEAD_DAYS === 1 ? 'tomorrow' : 'in ' . (int) DELIVERY_LEAD_DAYS . ' days' ?>.
                     </p>
                     <div class="u-grid u-cols-7 u-gap-2">
-                        <?php for ($i = 1; $i <= 7; $i++):
+                        <?php // Starts at DELIVERY_LEAD_DAYS, the same constant the
+                              // catalogue's expiry predicate uses.
+                        for ($i = DELIVERY_LEAD_DAYS; $i < DELIVERY_LEAD_DAYS + 7; $i++):
                             $d = date('Y-m-d', strtotime("+$i days"));
                             $label = $i === 1 ? 'Tomorrow' : ($i === 2 ? 'In 2 days' : date('D', strtotime($d)));
                         ?>

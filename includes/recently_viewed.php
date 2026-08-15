@@ -59,11 +59,11 @@ function recently_viewed_products(?int $excludeProductId = null, int $limit = 6)
                  WHERE pi.product_id = p.id AND pi.is_primary = 1 LIMIT 1) AS primary_image,
                 (SELECT sb.expiry_date FROM stock_batches sb
                  WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-                   AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()
+                   AND sb.quantity_remaining > 0 AND " . sql_deliverable("sb.expiry_date") . "
                  ORDER BY sb.expiry_date ASC LIMIT 1) AS expiry_date,
                 (SELECT sb.received_date FROM stock_batches sb
                  WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-                   AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()
+                   AND sb.quantity_remaining > 0 AND " . sql_deliverable("sb.expiry_date") . "
                  ORDER BY sb.expiry_date ASC LIMIT 1) AS received_date
          FROM products p
          JOIN categories c ON c.id = p.category_id

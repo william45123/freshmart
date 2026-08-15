@@ -37,7 +37,7 @@ $heroProduct = db_one(
      JOIN stock_batches sb ON sb.id = (
         SELECT id FROM stock_batches
         WHERE product_id = p.id AND status = 'ACTIVE'
-          AND quantity_remaining > 0 AND expiry_date > CURDATE()
+          AND quantity_remaining > 0 AND " . sql_deliverable("expiry_date") . "
         ORDER BY expiry_date ASC LIMIT 1
      )
      WHERE p.is_active = 1 AND p.deleted_at IS NULL
@@ -62,19 +62,19 @@ $products = db_all(
         (
             SELECT sb.id FROM stock_batches sb
             WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-              AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()
+              AND sb.quantity_remaining > 0 AND " . sql_deliverable("sb.expiry_date") . "
             ORDER BY sb.expiry_date ASC LIMIT 1
         ) AS display_batch_id,
         (
             SELECT sb.expiry_date FROM stock_batches sb
             WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-              AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()
+              AND sb.quantity_remaining > 0 AND " . sql_deliverable("sb.expiry_date") . "
             ORDER BY sb.expiry_date ASC LIMIT 1
         ) AS expiry_date,
         (
             SELECT sb.received_date FROM stock_batches sb
             WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-              AND sb.quantity_remaining > 0 AND sb.expiry_date > CURDATE()
+              AND sb.quantity_remaining > 0 AND " . sql_deliverable("sb.expiry_date") . "
             ORDER BY sb.expiry_date ASC LIMIT 1
         ) AS received_date
      FROM products p
@@ -114,7 +114,7 @@ $activeBatches = db_all(
      JOIN products p   ON p.id = sb.product_id
      JOIN categories c ON c.id = p.category_id
      WHERE sb.status = 'ACTIVE' AND sb.quantity_remaining > 0
-       AND sb.expiry_date > CURDATE()"
+       AND " . sql_deliverable("sb.expiry_date") . ""
 );
 $lastChanceCount = 0;
 foreach ($activeBatches as $b) {

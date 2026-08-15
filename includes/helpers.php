@@ -86,6 +86,19 @@ function relative_date($date): string
 // URL / path helpers
 // =====================================================================
 
+/**
+ * SQL fragment for "this batch is still good on the earliest day it could be
+ * delivered". Written once so the catalogue and checkout cannot drift apart.
+ *
+ * At DELIVERY_LEAD_DAYS = 1 this is identical to the old `> CURDATE()` on a
+ * DATE column; the point is that the rule now states its reason and follows
+ * the lead time if it ever changes.
+ */
+function sql_deliverable(string $col = 'expiry_date'): string
+{
+    return "$col >= DATE_ADD(CURDATE(), INTERVAL " . (int) DELIVERY_LEAD_DAYS . " DAY)";
+}
+
 function url(string $path = ''): string
 {
     return rtrim(APP_URL, '/') . '/' . ltrim($path, '/');
@@ -219,7 +232,7 @@ function icon(string $name, int $size = 20, float $stroke = 1.75): string
         'mail'            => '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
         'phone'           => '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92"/>',
         'ticket'          => '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
-        'recycle'         => '<path d="M7 19H4.8a2 2 0 0 1-1.7-3l1.4-2.3"/><path d="m14 16-3 3 3 3"/><path d="M8.3 8.6 6.9 6.3a2 2 0 0 1 1.7-3H12"/><path d="m9 6 3-3-3-3" transform="translate(0 6)"/><path d="M17 8.6 18.4 11a2 2 0 0 1-1.7 3H14"/>',
+        'recycle'         => '<path d="M12 3.5 14.2 7.3"/><path d="m12 3.5-2.2 3.8"/><path d="M9.8 7.3H14.2"/><path d="m5.6 15.6-2.2-3.8a1.6 1.6 0 0 1 1.4-2.4h3"/><path d="m6.6 12.4-1 3.2 3.2 1"/><path d="m18.4 15.6 2.2-3.8a1.6 1.6 0 0 0-1.4-2.4h-3"/><path d="m17.4 12.4 1 3.2-3.2 1"/><path d="M8.2 20.5h7.6a1.6 1.6 0 0 0 1.4-2.4"/><path d="M6.8 18.1a1.6 1.6 0 0 0 1.4 2.4"/>',
         'store'           => '<path d="m2 7 1.5-4h17L22 7"/><path d="M2 7h20v3a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Z"/><path d="M4 12v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8"/>',
         'chart'           => '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m7 15 3-4 3 3 5-6"/>',
         'coins'           => '<circle cx="9" cy="9" r="6"/><path d="M15.5 4.2a6 6 0 0 1 0 15.6"/><path d="M9 6v6l3 2"/>',

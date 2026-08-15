@@ -411,11 +411,11 @@ function freshness_sync_batches(?array $ids = null, int $limit = 200): array
  */
 function freshness_run_automation(): array
 {
-    $summary = ['scanned' => 0, 'synced' => 0, 'expired' => 0, 'discounted' => 0, 'undiscounted' => 0, 'alerts' => 0];
+    $summary = ['scanned' => 0, 'synced' => 0, 'expired' => 0, 'discounted' => 0, 'undiscounted' => 0, 'alerts' => 0, 'alerts_sellable' => 0, 'alerts_cutoff' => 0];
 
     $batches = db_all(
         "SELECT sb.id, sb.product_id, sb.received_date, sb.expiry_date,
-                sb.selling_price_override, sb.status,
+                sb.selling_price_override, sb.status, sb.quantity_remaining,
                 p.base_price, p.retailer_id, p.name AS product_name,
                 COALESCE(p.decay_exponent_override, c.decay_exponent, 1.00) AS decay_exponent
          FROM stock_batches sb
@@ -475,6 +475,77 @@ function freshness_run_automation(): array
                 );
                 $summary['discounted']++;
             }
+
+        // ------------------------------------------------------------
+        // F4 — warn the retailer BEFORE the loss, not after.
+        //
+        // Two states, because they need different action and the old
+        // single-shape alert conflated them: a batch past the delivery
+        // cut-off is no longer purchasable at all, so telling the retailer
+        // to "rescue" it is telling them to rescue stock nobody can buy.
+        //
+        //   sellable  — still reachable by a customer; markdown works
+        //   cut-off   — expires inside the delivery lead time, so the
+        //               catalogue has already hidden it; only in-store,
+        //               donation or write-off remain
+        //
+        // Value at risk is on both, because that is the number that decides
+        // how hard to act. Deduplicated per batch per level, so a batch
+        // sitting at ENJOY_SOON for four days produces one alert, not one
+        // every five minutes — and crossing into LAST_CHANCE produces a new
+        // one, because that is new information.
+        // ------------------------------------------------------------
+        if (in_array($level, ['ENJOY_SOON', 'LAST_CHANCE'], true)) {
+            $qty = (float) $b['quantity_remaining'];
+            if ($qty > 0) {
+                $unit    = (float) ($b['selling_price_override'] ?? $b['base_price']);
+                $atRisk  = $qty * $unit;
+                $cutoff  = (new DateTimeImmutable('today', new DateTimeZone(APP_TIMEZONE)))
+                             ->modify('+' . (int) DELIVERY_LEAD_DAYS . ' days');
+                $expires = new DateTimeImmutable((string) $b['expiry_date'], new DateTimeZone(APP_TIMEZONE));
+                $sellable = $expires >= $cutoff;
+                $days     = (int) $expires->diff(new DateTimeImmutable('today', new DateTimeZone(APP_TIMEZONE)))->days;
+
+                // one alert per batch per level
+                $already = db_scalar(
+                    "SELECT COUNT(*) FROM notifications
+                      WHERE type = 'EXPIRY_ALERT'
+                        AND link = ?
+                        AND title LIKE ?",
+                    ['/retailer/inventory.php?batch=' . $b['id'], $level . ':%']
+                );
+
+                if (!$already) {
+                    $retailerUserId = db_scalar(
+                        "SELECT user_id FROM retailers WHERE id = ?", [$b['retailer_id']]
+                    );
+                    if ($retailerUserId) {
+                        $qtyLabel = rtrim(rtrim(number_format($qty, 2), '0'), '.');
+                        if ($sellable) {
+                            $title = $level . ': ' . $b['product_name'];
+                            $body  = $qtyLabel . ' units still on sale, '
+                                   . format_myr($atRisk) . ' at risk. '
+                                   . ($days === 1 ? 'Last day to sell is tomorrow.'
+                                                  : 'About ' . $days . ' days of selling time left.');
+                        } else {
+                            $title = $level . ': ' . $b['product_name'] . ' — past the delivery cut-off';
+                            $body  = $qtyLabel . ' units, ' . format_myr($atRisk)
+                                   . ' at risk. This batch expires within the '
+                                   . (int) DELIVERY_LEAD_DAYS . '-day delivery window, so it is no '
+                                   . 'longer purchasable online. Mark down in-store, donate, or write off.';
+                        }
+                        db_run(
+                            "INSERT INTO notifications (user_id, type, title, body, link)
+                             VALUES (?, 'EXPIRY_ALERT', ?, ?, ?)",
+                            [$retailerUserId, $title, $body, '/retailer/inventory.php?batch=' . $b['id']]
+                        );
+                        $summary['alerts']++;
+                        $summary[$sellable ? 'alerts_sellable' : 'alerts_cutoff']++;
+                    }
+                }
+            }
+        }
+
         } elseif (!empty($b['selling_price_override'])) {
             // The discount rule is "LAST_CHANCE batches are marked down". Applying
             // it was implemented; withdrawing it was not, because in normal

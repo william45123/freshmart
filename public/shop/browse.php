@@ -54,7 +54,7 @@ $displayBatchJoin = "
          WHERE sb.product_id = p.id
            AND sb.status = 'ACTIVE'
            AND sb.quantity_remaining > 0
-           AND sb.expiry_date > CURDATE()
+           AND " . sql_deliverable("sb.expiry_date") . "
          ORDER BY sb.expiry_date ASC, sb.id ASC
          LIMIT 1
     )";
@@ -63,7 +63,7 @@ $displayBatchJoin = "
 // filter and shown on the card. Defined once so filter and display agree.
 $totalStockExpr = "(SELECT COALESCE(SUM(sb.quantity_remaining),0) FROM stock_batches sb
                      WHERE sb.product_id = p.id AND sb.status = 'ACTIVE'
-                       AND sb.expiry_date > CURDATE())";
+                       AND " . sql_deliverable("sb.expiry_date") . ")";
 
 // Build WHERE clauses. The display-batch JOIN above replaces the old
 // EXISTS(...) guard: a product with no qualifying batch no longer joins.
@@ -237,7 +237,7 @@ function url_with($overrides = []): string {
 
         <h3 class="u-t-12 u-upper u-ls-05 u-muted u-mb-3">Availability</h3>
         <div class="u-flex u-col u-gap-1 u-mb-6">
-            <?php foreach (['' => 'Any', 'in_stock' => '✓ In Stock', 'low_stock' => '⚠️ Low Stock'] as $key => $label): ?>
+            <?php foreach (['' => 'Any', 'in_stock' => 'In Stock', 'low_stock' => 'Low Stock'] as $key => $label): ?>
                 <a href="<?= url_with(['availability' => $key ?: null, 'page' => null]) ?>"
                    class="facet-link<?= $availability === $key ? ' is-active' : '' ?>">
                     <?= e($label) ?>
@@ -260,7 +260,11 @@ function url_with($overrides = []): string {
     <div>
         <div class="u-flex u-jc-between u-ai-center u-mb-4">
             <span class="u-muted">
-                <?= count($products) ?> product<?= count($products) === 1 ? '' : 's' ?>
+                <?php // The filtered total, not the page slice. Before F2 the
+                      // freshness filter ran in PHP after LIMIT, so this could
+                      // only ever report the current page; now the count query
+                      // shares the main query's predicate and the two agree. ?>
+                <?= $totalProducts ?> product<?= $totalProducts === 1 ? '' : 's' ?>
             </span>
             <form method="get" class="u-flex u-gap-2 u-ai-center">
                 <?php foreach ($_GET as $k => $v): if ($k === 'sort') continue; ?>
