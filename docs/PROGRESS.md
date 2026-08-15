@@ -55,6 +55,23 @@ PHP errors, escaping calls unchanged at 819, no duplicate `class` attributes.
 
 Nothing. The tree is clean and every phase above is committed.
 
+## Phase 4 — carried into Phase 5
+
+Not done, and not claimed:
+- **Sticky add-to-cart bar on product.** `.buybar` CSS exists and is styled;
+  the markup was never wired into `shop/product.php`.
+- **Mobile-first inversion of legacy component rules.** Values are on the
+  canonical scale but legacy rules are still `max-width`. They get inverted as
+  Phase 5 rewrites them, not twice.
+- **Per-page Chart.js loading** (§7.5) — still global.
+- **Sub-44px targets remain**: `.brand` (134x35), `.facet-link` (150x36),
+  `select.form-control` (166x35), carousel dots (24x8), footer links (~19px
+  tall). The 48px floor covers buttons and nav; these are component-level and
+  belong with the Phase 5 rebuilds.
+- **Per-page mobile treatments** in §7.3 for Home / Product / Cart / Checkout /
+  Orders / Notifications — rails, gallery, steppers, collapsible sections. Those
+  are component work.
+
 ## Next, in this order (agreed)
 
 1. ~~**(a) `DELIVERY_LEAD_DAYS`**~~ done in `2f54a78`. Original note: — `config.php`, shared by browse's
