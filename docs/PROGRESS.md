@@ -1,0 +1,81 @@
+# FreshMart redesign — progress
+
+**Read this and `git log --oneline -15` before doing anything.** Re-orient from
+the repository, not from memory. If the log shows work you don't recognise, say
+so and verify it — don't redo it. (On 2026-08-14 three commits appeared during a
+context gap; they turned out to be sound, but only because they were checked
+rather than assumed.)
+
+Never end a turn with a phase partly committed. Commit it, or say plainly what
+is uncommitted and why.
+
+---
+
+## Complete
+
+| Commit | What |
+|---|---|
+| `528d7d6` | **Phase 1** — de-inline templates (835 → 10 inline styles, the 10 being `--fresh` / `--pct` / `--n` / `--step` carriers), `main.css` rebuilt on `@layer tokens, base, components, pages, utilities`, 21 `!important` removed, six `<style>` blocks relocated, `.section-gap` deleted, anchor underline scoped |
+| `6e77ad7` | **Admin guard** — the ADMIN role check ran *after* the request was handled; 7 of 8 pages committed POST mutations before it. Reproduced a CUSTOMER suspending another user. `admin_check()` now runs at the top of each page |
+| `aae6e5d` | **Error logging** — `error_log` was unset; now `storage/logs/php-error.log` with a fallback if unwritable |
+| `b16135c` | **F1** — freshness cache on `stock_batches` (`freshness_pct`, `freshness_level`, `freshness_synced_at`, `idx_freshness`), `freshness_sync_batches()`, `fefo_restock()` hook |
+| `227a5f6` | **Demo-date tool** — `tools/refresh_demo_dates.php`, idempotent, solves dates backwards from target freshness |
+| `a70dfb9` | Tool: price-override consistency report, opt-in `--clear-notifications` |
+| `37237a2` | **F2** — freshness/availability filtering moved into SQL against a joined display batch, pagination restored, `fresh-desc` + `value` sorts, `BROWSE_PAGE_SIZE = 12` |
+| `93f1533` | Fix: empty `alt` on order item images (`$item['name']` → `product_name`) |
+| `d9d586c` | Fix: cron never withdrew a discount when a batch left LAST_CHANCE |
+| `349e696` | **F3** — expiry alerts link to `inventory.php?batch=`, with scroll + focus + non-colour highlight |
+
+Verified for all of the above: 56 PHP files lint clean, 36 pages render with no
+PHP errors, escaping calls unchanged at 819, no duplicate `class` attributes.
+
+## In progress
+
+Nothing. The tree is clean and every phase above is committed.
+
+## Next, in this order (agreed)
+
+1. **(a) `DELIVERY_LEAD_DAYS` constant** — `config.php`, shared by browse's
+   expiry predicate and checkout's delivery-day picker. Behaviour-identical
+   refactor: `expiry_date > CURDATE()` already equals
+   `>= CURDATE() + 1` on a DATE column, but reads as "not expired today" when it
+   is actually enforcing a delivery-lead rule.
+2. **F4** — pre-expiry alerts at ENJOY_SOON and LAST_CHANCE, deduped per batch
+   per level, with a **two-state** message: *still sellable* vs *past the
+   delivery cut-off*, value at risk shown on both. Today the cron alerts
+   retailers about stock browse has already hidden, with no indication it is
+   unbuyable.
+3. **(b) Checkout delivery validation** — last, because it is the only item
+   touching order logic. Constrain the picker to dates every cart item survives;
+   re-check server-side at submit; validate against the **FEFO-allocated** batch,
+   not the display batch; roll back cleanly on failure. Rollback UX to be
+   proposed and confirmed before building.
+
+## Known pending
+
+- **Manual-price caveat.** The cron's `else` that clears
+  `selling_price_override` is safe *only because the cron is its sole writer* —
+  verified: two writes, both in `freshness.php`; `fefo_restock()`'s INSERT omits
+  the column; no retailer or admin screen sets it; the seed ships zero non-NULL
+  values. **If a retailer promo-price feature is ever added, that `else` will
+  wipe it on every cron run.** The fix then is a separate column or an
+  `is_manual_price` flag — not a condition bolted onto the `else`.
+- **F7 delivery-date label.** Items arriving on their expiry day should be
+  labelled "Arrives on its last day", computed against the delivery date rather
+  than today. Approved, deferred to F7.
+- **`BROWSE_PAGE_SIZE`** (`config.php`, 12) is also intended as the mobile
+  "Load more" chunk size (§7.3). Read it there rather than adding a second
+  number.
+- **Verify through the app's connection, not the `mariadb` CLI.** `db.php` pins
+  the PDO session to `+08:00`; the CLI runs UTC. Anything using `CURDATE()` or
+  `NOW()` disagrees across the two, which cost an hour chasing a phantom
+  40-vs-44 discrepancy.
+- **Demo data ages out.** The seed's window ends 2026-08-15. Run
+  `tools/refresh_demo_dates.php` before every demo, and always *before*
+  `cron/update_freshness.php` — the cron expires stale batches and that is not
+  covered by the F1 rollback.
+
+## Open decisions
+
+None outstanding. (b)'s rollback UX is the next thing needing a decision, and it
+will be proposed before any code is written.
