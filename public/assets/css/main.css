@@ -381,6 +381,18 @@
         padding: 4px 0;
     }
     .nav-links a:hover { color: var(--color-primary); }
+    /* .label-ico sets inline-flex; inside the header's flex row that item was
+       shrinking until "Last Chance" broke across two lines. */
+    .site-header .nav-links a,
+    .site-header .nav-links a.label-ico {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+        min-inline-size: 0;
+    }
+    .site-header .nav-links a > * { flex: none; }
     .nav-links a.alert { color: var(--color-accent); }
 
     .nav-right {
@@ -4352,9 +4364,9 @@
         color: var(--color-text);
     }
     @media (min-width: 1024px) {
-        .search-trigger { display: none; }
-        /* matches .search-overlay.is-open's specificity so it wins on order
-           rather than on force */
+        /* .btn-icon also sets display, at equal specificity — name both so
+           this wins on the selector rather than on source order. */
+        .search-trigger, .btn.search-trigger, .btn-icon.search-trigger { display: none; }
         .search-overlay, .search-overlay.is-open { display: none; }
     }
 
@@ -4722,5 +4734,270 @@
         background: var(--color-primary);
         color: #fff;
         border-color: var(--color-primary);
+    }
+}
+
+/* ============================================================
+   PHASE 5 — CHROME (§9): header, drawer, footer, controls, table
+   ------------------------------------------------------------
+   The parts on every page. Written mobile-first; the legacy
+   max-width rules these supersede are inverted here rather than
+   left for a later pass, per the agreed approach.
+   ============================================================ */
+
+@layer components {
+    /* ---- Header --------------------------------------------------
+       Was 95px at 1280 because "Last Chance" wrapped to two lines and
+       the greeting to three, while the search box shrank to "Search
+       fre:". One row, fixed height, nothing wraps. */
+    .site-header {
+        block-size: var(--header-h-mobile);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding-inline: var(--gutter);
+        background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+        border-bottom: 1px solid var(--color-border);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+    @supports (backdrop-filter: blur(8px)) {
+        @media (min-width: 640px) { .site-header { backdrop-filter: blur(10px); } }
+    }
+    @media (min-width: 1024px) {
+        .site-header { block-size: var(--header-h); gap: var(--space-5); }
+    }
+    .site-header > * { min-inline-size: 0; }
+
+    .brand {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: var(--t-h4);
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        text-decoration: none;
+        color: var(--color-text);
+        flex: 0 0 auto;
+    }
+    .brand-logo { display: inline-grid; place-items: center; color: var(--color-primary); }
+
+    .nav-links {
+        display: none;
+        align-items: center;
+        gap: var(--space-4);
+        flex: 0 0 auto;
+    }
+    @media (min-width: 1024px) { .nav-links { display: flex; } }
+    .nav-links a {
+        /* The 48px touch-target rule made these inline-grid, whose default
+           flow is row — so an icon + label stacked vertically and "Last
+           Chance" broke across two lines. Column flow, and the label itself
+           does not wrap. */
+        grid-auto-flow: column;
+        white-space: nowrap;
+        flex: none;                     /* header is a flex row; do not shrink */
+        font-size: var(--t-sm);
+        font-weight: 500;
+        color: var(--color-text);
+        text-decoration: none;
+        border: 0;
+        gap: 6px;
+    }
+    .nav-links a:hover { color: var(--color-primary); }
+    /* .label-ico sets inline-flex; inside the header's flex row that item was
+       shrinking until "Last Chance" broke across two lines. */
+    .site-header .nav-links a,
+    .site-header .nav-links a.label-ico {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+        min-inline-size: 0;
+    }
+    .site-header .nav-links a > * { flex: none; }
+    .nav-links a.alert { color: var(--color-accent); }
+
+    /* Search takes the slack, but never below a usable width. */
+    .nav-search { display: none; }
+    @media (min-width: 1024px) {
+        .nav-search {
+            display: block;
+            flex: 1 1 auto;
+            min-inline-size: 220px;
+            max-inline-size: 420px;
+            margin: 0;
+        }
+        .nav-search input {
+            inline-size: 100%;
+            min-block-size: 44px;
+            border-radius: var(--r-full);
+            border: 1px solid var(--color-border);
+            background: var(--color-bg);
+            padding-inline: 40px var(--space-4);
+            font-size: var(--t-sm);
+        }
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+        margin-inline-start: auto;
+        flex: 0 0 auto;
+    }
+    /* The greeting wrapped to three lines. It is a single nowrap chip
+       that truncates rather than reflowing the header. */
+    .header-greeting {
+        display: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-inline-size: 12ch;
+        font-size: var(--t-sm);
+        color: var(--color-text-muted);
+    }
+    @media (min-width: 1280px) { .header-greeting { display: block; } }
+
+    /* ---- Drawer --------------------------------------------------
+       The panel overflowed its own width — the search submit sat
+       outside the right edge. Full height, safe-area aware, and it
+       carries the long tail only: the tab bar already has Home,
+       Browse, Cart, Orders and Account, so repeating them here is
+       two ways to reach the same five things. */
+    .mobile-nav {
+        position: fixed;
+        inset-block: 0;
+        inset-inline-end: 0;
+        z-index: 85;
+        inline-size: min(88vw, 360px);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        background: var(--color-surface);
+        border-inline-start: 1px solid var(--color-border);
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        transform: translateX(100%);
+        transition: transform var(--d-base) var(--ease-out);
+        overflow: hidden;
+    }
+    .mobile-nav.is-open { transform: none; }
+    .mobile-nav-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-5);
+        border-bottom: 1px solid var(--color-border);
+    }
+    .mobile-nav-body { overflow-y: auto; padding: var(--space-3) var(--space-5); }
+    .mobile-nav a {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        min-block-size: 52px;
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text);
+        text-decoration: none;
+    }
+    .mobile-nav a:last-child { border-bottom: 0; }
+    .mobile-nav-section {
+        font-size: var(--t-eyebrow);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        margin: var(--space-4) 0 var(--space-1);
+    }
+    .mobile-nav-foot { padding: var(--space-4) var(--space-5); border-top: 1px solid var(--color-border); }
+    .mobile-nav-foot .btn { inline-size: 100%; }
+    /* The drawer's own search form was overflowing; it is a grid now. */
+    .mobile-nav-search { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); }
+    .mobile-nav-search input { min-inline-size: 0; }
+    .mobile-nav-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 84;
+        background: rgba(12, 18, 16, 0.45);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity var(--d-base) var(--ease-out), visibility var(--d-base);
+    }
+    .mobile-nav-backdrop.is-open { opacity: 1; visibility: visible; }
+    @media (min-width: 1024px) {
+        .mobile-nav, .mobile-nav-backdrop, .nav-toggle { display: none; }
+    }
+
+    /* ---- Buttons -------------------------------------------------- */
+    .btn {
+        border-radius: var(--r-full);
+        font-weight: 600;
+        font-size: var(--t-sm);
+        border: 1px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background var(--d-fast) var(--ease-out),
+                    border-color var(--d-fast) var(--ease-out);
+    }
+    .btn-primary { background: var(--color-primary); color: #fff; }
+    .btn-primary:hover { background: var(--color-primary-dark); }
+    .btn-secondary {
+        background: var(--color-surface);
+        color: var(--color-text);
+        border-color: var(--color-border);
+    }
+    .btn-secondary:hover { border-color: var(--color-border-dark); }
+    .btn-ghost { background: none; color: var(--color-text); }
+    .btn-ghost:hover { background: var(--color-bg-warm); }
+    .btn-lg { font-size: var(--t-body); min-block-size: 52px; }
+    .btn[disabled], .btn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
+
+    /* ---- Forms ---------------------------------------------------- */
+    .form-group { display: grid; gap: 6px; margin-bottom: var(--space-4); }
+    .form-group label { font-size: var(--t-sm); font-weight: 500; }
+    .form-control {
+        inline-size: 100%;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        color: var(--color-text);
+        padding-inline: var(--space-4);
+        font-family: inherit;
+    }
+    .form-control:hover { border-color: var(--color-border-dark); }
+    .form-control::placeholder { color: var(--color-text-faint); }
+    .form-control[aria-invalid="true"] { border-color: var(--color-danger); }
+    .form-help { font-size: var(--t-sm); color: var(--color-text-muted); }
+    .form-error { font-size: var(--t-sm); color: var(--color-danger); }
+
+    /* ---- Desktop table -------------------------------------------- */
+    @media (min-width: 1024px) {
+        table.data-table { inline-size: 100%; border-collapse: separate; border-spacing: 0; }
+        table.data-table thead th {
+            position: sticky;
+            top: var(--header-h);
+            z-index: 1;
+            background: var(--color-bg-warm);
+            text-align: left;
+            font-size: var(--t-eyebrow);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            font-weight: 600;
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--color-border);
+        }
+        table.data-table td {
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--color-border);
+            vertical-align: middle;
+        }
+        table.data-table tbody tr:hover td { background: var(--color-bg-warm); }
+        table.data-table tbody tr:last-child td { border-bottom: 0; }
+        /* Figures line up: every numeric cell is mono and tabular. */
+        table.data-table td:has(> .num), table.data-table td.num {
+            font-family: var(--font-mono);
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+        }
     }
 }

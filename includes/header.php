@@ -153,8 +153,10 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
                 <?php endif; ?>
 
                 <!-- Greeting + Profile link -->
-                <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>" class="btn btn-ghost btn-sm u-pointer" title="Profile">
-                    Hi, <?= e(auth_name()) ?>
+                <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>"
+                   class="btn btn-ghost btn-sm u-pointer" title="Profile">
+                    <?= icon('user', 20) ?>
+                    <span class="header-greeting">Hi, <?= e(auth_name()) ?></span>
                 </a>
 
                 <a href="<?= url('/auth/logout.php') ?>" class="btn btn-ghost btn-sm">Logout</a>
@@ -201,7 +203,8 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         </form>
     <?php endif; ?>
 
-    <div class="mobile-nav-group">Menu</div>
+    <div class="mobile-nav-body">
+    <div class="mobile-nav-section">Menu</div>
     <?php if ($isAdmin): ?>
         <a href="<?= url('/admin/dashboard.php') ?>">Dashboard</a>
         <a href="<?= url('/admin/users.php') ?>">Users</a>
@@ -227,16 +230,16 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         <a href="<?= url('/shop/browse.php?freshness=LAST_CHANCE') ?>"><?= icon('flame', 18) ?> Last Chance</a>
     <?php endif; ?>
 
-    <div class="mobile-nav-group">Account</div>
-    <?php if ($isCustomer): ?>
-        <a href="<?= url('/shop/cart.php') ?>"><?= icon('cart', 18) ?> Cart<?= $cartCount > 0 ? ' (' . min(99, $cartCount) . ')' : '' ?></a>
-    <?php endif; ?>
+    <div class="mobile-nav-section">Account</div>
+    <?php // §7.1 — the drawer carries the long tail, not the tab bar's five.
+          // Cart, Orders and Account are one tap away below; repeating them
+          // here gives two routes to the same place. ?>
     <?php if (auth_check()): ?>
         <a href="<?= url('/notifications.php') ?>"><?= icon('bell', 18) ?> Notifications<?= $unreadNotifs > 0 ? ' (' . min(99, $unreadNotifs) . ')' : '' ?></a>
         <?php if ($isCustomer): ?>
             <a href="<?= url('/wishlist.php') ?>"><?= icon('heart', 18) ?> Wishlist</a>
-            <a href="<?= url('/shop/orders.php') ?>"><?= icon('package', 18) ?> My orders</a>
             <a href="<?= url('/wallet.php') ?>"><?= icon('wallet', 16) ?> My wallet</a>
+            <a href="<?= url('/help/freshness.php') ?>"><?= icon('info', 18) ?> How freshness works</a>
         <?php endif; ?>
         <a href="<?= url($isRetailer ? '/retailer/profile.php' : '/profile.php') ?>"><?= icon('user', 18) ?> <?= e(auth_name()) ?></a>
         <a class="btn btn-outline mobile-nav-cta" href="<?= url('/auth/logout.php') ?>">Logout</a>
@@ -244,6 +247,7 @@ $brandSubLabel = $isAdmin ? 'Admin' : ($isRetailer ? 'Retailer' : '');
         <a href="<?= url('/auth/login.php') ?>">Login</a>
         <a class="btn btn-primary mobile-nav-cta" href="<?= url('/auth/register.php') ?>">Sign Up</a>
     <?php endif; ?>
+    </div>
 </nav>
 
 <?php // §9 — flashes render as toasts. Same $flashes source and same
